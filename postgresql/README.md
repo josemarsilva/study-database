@@ -11,7 +11,7 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 
 ### 2. Mapa Mental
 
-![Mapa Mental](doc/images/MindMap%20-%20DatabaseStudy%20-%20PostgreSQL.png) 
+![Mapa Mental](../doc/images/MindMap%20-%20DatabaseStudy%20-%20PostgreSQL.png) 
 
 
 ### 3. Tópicos

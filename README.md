@@ -10,6 +10,11 @@ Este repositório de estudo sobre **Banco de dados**
 ![Mapa Mental](doc/images/MindMap%20-%20DatabaseStudy.png) 
 
 
+### 3. Tópicos
+
+* [PostgreSQL](./postgresql/README.md)
+
+
 ## Referências ##
 
 * n/a

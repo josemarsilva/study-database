@@ -4,9 +4,15 @@
 
 Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/josemarsilva/study-database) aborda os seguintes assuntos:
 
-* [Instalação PostgreSQL](#31-instalação-postgresQL)
+* [Instalação PostgreSQL](#31-instalação-postgresql)
+  * [Instalação CentOS 7](#a-instalação-CentOS-7)
+  * [Instalação CentOS 6](#b-instalação-CentOS-6)
+  * [Instalação CentOS 6 - Baixando pacotes RPM manualmente](#b-instalação-CentOS-6---baixando-pacotes-rpm-manualmente)
+  * [Regras de Firewall](#d-regras-de-firewall)
 * [Configuração do PostgreSQL para acesso externo](#32-configuração-do-postgresQL-para-acesso-externo)
 * [Criacao de database e usuarios](#32-criacao-de-database-e-usuarios)
+* [Instalar Psycopg2 para conexao Python - PostgreSQL](#33-instalar-psycopg2-para-conexao-python---postgresql)
+* [Python conectando Postgresql via psycopg e executando query](#34-python-conectando-ostgresql-via-psycopg-e-executando-query)
 
 
 ### 2. Mapa Mental
@@ -18,13 +24,10 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 
 ### 3.1. Instalação PostgreSQL
 
-#### a. Referências
-* https://www.linode.com/docs/databases/postgresql/how-to-install-postgresql-relational-databases-on-centos-7/
-* https://tecadmin.net/install-postgresql-on-centos-rhel-and-fedora/
+#### a. Instalação CentOS 7
 
-#### b. Instalação CentOS 7
-
-* Step-01: Instalação do pacote padrao do CentOS 7
+* [Referências](https://www.linode.com/docs/databases/postgresql/how-to-install-postgresql-relational-databases-on-centos-7)
+* Step-by-step: Instalação do pacote padrao do CentOS 7
 
 ```sh
 # sudo yum update
@@ -33,6 +36,79 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 # sudo systemctl start postgresql
 # sudo systemctl enable postgresql
 ```
+
+#### b. Instalação CentOS 6
+
+* [Referências](https://tecadmin.net/install-postgresql-on-centos-rhel-and-fedora/)
+* Step-by-step: Instalação do pacote padrao do CentOS 6
+
+```sh
+# sudo yum update
+# sudo yum install postgresql-server postgresql-contrib
+# service postgresql initdb
+# service postgresql start
+# chkconfig postgresql on
+```
+
+
+#### c. Instalação manual PostgreSQL
+* [Referências](https://yum.postgresql.org/rpmchart.php) e [Download RPM PostgreSQL 9.6](https://yum.postgresql.org/9.6/redhat/rhel-6-x86_64/repoview/)
+* [Referências](https://www.tecmint.com/install-postgresql-on-centos-rhel-fedora/)
+
+```sh
+yum update
+yum install wget -y
+yum install curl -y
+wget https://yum.postgresql.org/9.6/redhat/rhel-6-x86_64/postgresql96-9.6.12-1PGDG.rhel6.x86_64.rpm
+wget https://yum.postgresql.org/9.6/redhat/rhel-6-x86_64/postgresql96-contrib-9.6.12-1PGDG.rhel6.x86_64.rpm
+wget https://yum.postgresql.org/9.6/redhat/rhel-6-x86_64/postgresql96-libs-9.6.12-1PGDG.rhel6.x86_64.rpm
+wget https://yum.postgresql.org/9.6/redhat/rhel-6-x86_64/postgresql96-server-9.6.12-1PGDG.rhel6.x86_64.rpm
+wget http://mirror.centos.org/centos/6/os/x86_64/Packages/libxslt-1.1.26-2.el6_3.1.x86_64.rpm
+
+yum install libxslt-1.1.26-2.el6_3.1.x86_64.rpm
+yum install postgresql96-libs-9.6.12-1PGDG.rhel6.x86_64.rpm
+yum install postgresql96-9.6.12-1PGDG.rhel6.x86_64.rpm
+yum install postgresql96-server-9.6.12-1PGDG.rhel6.x86_64.rpm
+yum install postgresql96-contrib-9.6.12-1PGDG.rhel6.x86_64.rpm
+
+# Expected: Nothing to do
+yum install postgresql96-server postgresql96 postgresql96-contrib 
+
+# Expected: Initializing database: [  OK  ]
+service postgresql-9.6 initdb
+
+# Expected: Starting postgresql-9.6 service: [  OK  ]
+service  postgresql-9.6 start
+chkconfig postgresql-9.6 on
+
+# Expected: psql (9.6.12) - List of databases ...
+su - postgres
+psql
+postgres=# \l
+postgres=# \q
+```
+
+
+#### d. Regras de Firewall
+
+```sh
+vim /etc/sysconfig/iptables
+  :
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 5432 -j ACCEPT
+  :
+
+service iptables reload
+```
+
+```sh
+vim /etc/sysconfig/ip6tables
+  :
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 5432 -j ACCEPT
+  :
+
+service ip6tables reload
+```
+
 
 
 ### 3.2. Configuração do PostgreSQL para acesso externo
@@ -62,15 +138,80 @@ $ psql
 $ psql
 postgres=# create database dbsample;
 postgres=# CREATE USER dbuser WITH PASSWORD 'dbuser';
+\l
+\q
 ```
 
 
 * Step-2: Teste de conexão remota
 
 ```sh
-psql -h 127.0.0.1 dbsample -U dbuser 
+psql -h 127.0.0.1 -U dbuser dbsample
 Password for user dbuser: dbuser
 dbsample=> \q
 ```
 
+
+### 3.3. Instalar Psycopg2 para conexao Python - PostgreSQL
+
+* Step-1: Instalar Psycopg2
+
+```sh
+sudo yum install python-psycopg2
+# verifique instalação do psycopg, o resultado do comando deve ser algo parecido com este ...
+yum list installed python-psycopg2 
+Installed Packages
+python-psycopg2.x86_64                     2.5.1-3.el7                     @base
+```
+
+* Referências:
+  * [Installing Psycopg for Red Hat Enterprise Linux](https://www.luminanetworks.com/docs-lsc-610/Topics/SDN_Controller_Software_Installation_Guide/Appendix/Installing_Psycopg_for_Red_Hat_Enterprise_Linux_1.html)
+
+
+### 3.4. Python conectando Postgresql via psycopg e executando query
+
+```sh
+vim hello-world-psycopg.py
+#!/usr/bin/python
+import psycopg2
+import sys
+
+def main():
+        conn_string = "host='127.0.0.1' dbname='dbsample' user='dbuser' password='dbuser'"
+        print "Connecting to database\n ->%s" % (conn_string)
+        conn = psycopg2.connect(conn_string)
+        cursor = conn.cursor()
+        print "Connected!\n"
+        cursor.execute("""SELECT schemaname || '.' || tablename AS schema_table_name FROM pg_catalog.pg_tables ORDER BY schemaname, tablename""")
+        rows = cursor.fetchall()
+        print "\nShow me the databases:\n"
+        for row in rows:
+                print "   ", row[0]
+
+if __name__ == "__main__":
+        main()
+```
+
+```sh
+# Executando script ...
+python hello-world-psycopg.py
+```
+
+```sh
+Connecting to database
+ ->host='127.0.0.1' dbname='dbsample' user='dbuser' password='dbuser'
+Connected!
+
+
+Show me the databases:
+
+    information_schema.sql_features
+    information_schema.sql_implementation_info
+    information_schema.sql_languages
+      :
+```
+
+
+* Referências:
+  * [Psycopg Tutorial](https://wiki.postgresql.org/wiki/Psycopg2_Tutorial)
 

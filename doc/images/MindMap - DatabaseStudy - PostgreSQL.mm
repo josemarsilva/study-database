@@ -18,7 +18,7 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1554482598244" ID="ID_1667706244" MODIFIED="1554482677610" STYLE="fork" TEXT="Instala&#xe7;&#xe3;o ( SO, Vers&#xf5;es, etc)"/>
 <node CREATED="1554482629353" ID="ID_891354362" MODIFIED="1554482684211" STYLE="fork" TEXT="Configura&#xe7;&#xe3;o ( acesso remoto )"/>
-<node CREATED="1554482686771" ID="ID_1909682542" MODIFIED="1554482693107" TEXT="Cria&#xe7;&#xe3;o Database e Usu&#xe1;rio"/>
+<node CREATED="1554482686771" ID="ID_1909682542" MODIFIED="1554482938019" STYLE="fork" TEXT="Cria&#xe7;&#xe3;o Database e Usu&#xe1;rio"/>
 </node>
 <node CREATED="1553633855150" ID="ID_958783709" MODIFIED="1553633931661" POSITION="left" STYLE="bubble" TEXT="T&#xf3;picos">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>

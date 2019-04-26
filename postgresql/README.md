@@ -8,18 +8,25 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
   * [Instalação CentOS 7](#a-instalação-CentOS-7)
   * [Instalação CentOS 6](#b-instalação-CentOS-6)
   * [Instalação CentOS 6 - Baixando pacotes RPM manualmente](#b-instalação-CentOS-6---baixando-pacotes-rpm-manualmente)
-  * [Regras de Firewall](#d-regras-de-firewall)
-* [Configuração do PostgreSQL para acesso externo](#32-configuração-do-postgresQL-para-acesso-externo)
-* [Criacao de database e usuarios](#32-criacao-de-database-e-usuarios)
-* [Instalar Psycopg2 para conexao Python - PostgreSQL](#33-instalar-psycopg2-para-conexao-python---postgresql)
-* [Python conectando Postgresql via psycopg e executando query](#34-python-conectando-ostgresql-via-psycopg-e-executando-query)
+* [Configuração PostgreSQL](#32-configuração-postgresql)
+  * [Regras de Firewall](#a-regras-de-firewall)
+  * [Conectividade externa](#b-conectividade)
+  * [Criação de database e usuario](#c-criacao-de-database-e-usuario)
+* [Conexão PostgreSQL Database](#33-conexao-postgresql-database)
+  * [Linha de comando](#a-linha-de-comando)
+  * [JDBC Driver](#b-jdbc-driver)
+  * [Python Library](#c-python-library)
+    * [Python Library](#i-psycopg2)
+    * [Python Library](#ii-exemplo-query-database)
+* [Conexão PostgreSQL Database](#33-conexao-postgresql-database)
 
-
+---
 ### 2. Mapa Mental
 
 ![Mapa Mental](../doc/images/MindMap%20-%20DatabaseStudy%20-%20PostgreSQL.png) 
 
 
+---
 ### 3. Tópicos
 
 ### 3.1. Instalação PostgreSQL
@@ -37,6 +44,7 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 # sudo systemctl enable postgresql
 ```
 
+---
 #### b. Instalação CentOS 6
 
 * [Referências](https://tecadmin.net/install-postgresql-on-centos-rhel-and-fedora/)
@@ -50,7 +58,7 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 # chkconfig postgresql on
 ```
 
-
+---
 #### c. Instalação manual PostgreSQL
 * [Referências](https://yum.postgresql.org/rpmchart.php) e [Download RPM PostgreSQL 9.6](https://yum.postgresql.org/9.6/redhat/rhel-6-x86_64/repoview/)
 * [Referências](https://www.tecmint.com/install-postgresql-on-centos-rhel-fedora/)
@@ -88,8 +96,21 @@ postgres=# \l
 postgres=# \q
 ```
 
+---
+#### d. Instalação Docker
+* [Referências](https://github.com/josemarsilva/eval-virtualbox-vm-ubuntu-server#44-docker-composer---postgresql-96-pgadmin4)
 
-#### d. Regras de Firewall
+
+---
+#### e. Instalação Windows
+
+* não disponível
+
+
+---
+### 3.2. Configuração PostgreSQL
+
+#### a. Regras de Firewall
 
 ```sh
 vim /etc/sysconfig/iptables
@@ -109,9 +130,8 @@ vim /etc/sysconfig/ip6tables
 service ip6tables reload
 ```
 
-
-
-### 3.2. Configuração do PostgreSQL para acesso externo
+---
+#### b. Conectividade
 
 ```sh
 # vim /var/lib/pgsql/data/pg_hba.conf
@@ -127,8 +147,8 @@ listen_addresses = '*'
 # su - postgres # login 'postgres'
 ```
 
-
-### 3.2. Criacao de database e usuarios
+---
+#### c. Criacao de database e usuários
 
 * Step-1: Criação de **database** e **user**
 
@@ -151,8 +171,25 @@ Password for user dbuser: dbuser
 dbsample=> \q
 ```
 
+---
+### 3.3. Conexão PostgreSQL Database
 
-### 3.3. Instalar Psycopg2 para conexao Python - PostgreSQL
+#### a. Linha de comando 
+
+```sh
+psql -h 127.0.0.1 -U dbuser dbsample
+Password for user dbuser: dbuser
+dbsample=> \q
+```
+
+---
+#### b. JDBC driver
+
+* 
+
+#### c. Python Library
+
+##### i. Psycopg2
 
 * Step-1: Instalar Psycopg2
 
@@ -168,7 +205,7 @@ python-psycopg2.x86_64                     2.5.1-3.el7                     @base
   * [Installing Psycopg for Red Hat Enterprise Linux](https://www.luminanetworks.com/docs-lsc-610/Topics/SDN_Controller_Software_Installation_Guide/Appendix/Installing_Psycopg_for_Red_Hat_Enterprise_Linux_1.html)
 
 
-### 3.4. Python conectando Postgresql via psycopg e executando query
+##### ii. Exemplo query database
 
 ```sh
 vim hello-world-psycopg.py
@@ -211,7 +248,11 @@ Show me the databases:
       :
 ```
 
-
 * Referências:
   * [Psycopg Tutorial](https://wiki.postgresql.org/wiki/Psycopg2_Tutorial)
 
+
+---
+### 3.3. Performance
+
+* em construção

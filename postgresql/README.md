@@ -7,7 +7,8 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 * [Instalação PostgreSQL](#31-instalação-postgresql)
   * [Instalação CentOS 7](#a-instalação-CentOS-7)
   * [Instalação CentOS 6](#b-instalação-CentOS-6)
-  * [Instalação CentOS 6 - Baixando pacotes RPM manualmente](#b-instalação-CentOS-6---baixando-pacotes-rpm-manualmente)
+  * [Instalação CentOS 6 - Baixando pacotes RPM manualmente](#c-instalação-manual-postgresql)
+  * [Instalação Regras de Firewall](#d-regras-de-firewall)
 * [Configuração PostgreSQL](#32-configuração-postgresql)
   * [Regras de Firewall](#a-regras-de-firewall)
   * [Conectividade externa](#b-conectividade)
@@ -15,10 +16,10 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 * [Conexão PostgreSQL Database](#33-conexao-postgresql-database)
   * [Linha de comando](#a-linha-de-comando)
   * [JDBC Driver](#b-jdbc-driver)
-  * [Python Library](#c-python-library)
+  * [Python](#c-python)
     * [Python Library](#i-psycopg2)
     * [Python Library](#ii-exemplo-query-database)
-* [Conexão PostgreSQL Database](#33-conexao-postgresql-database)
+  * [NodeJS](#d-nodejs)
 
 ---
 ### 2. Mapa Mental
@@ -185,8 +186,10 @@ dbsample=> \q
 ---
 #### b. JDBC driver
 
-* 
+* to do
 
+
+---
 #### c. Python Library
 
 ##### i. Psycopg2
@@ -250,6 +253,13 @@ Show me the databases:
 
 * Referências:
   * [Psycopg Tutorial](https://wiki.postgresql.org/wiki/Psycopg2_Tutorial)
+
+
+#### d. NodeJS
+
+##### i. 
+
+
 
 
 ---

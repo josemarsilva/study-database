@@ -11,13 +11,13 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 * [Configuração PostgreSQL](#32-configuração-postgresql)
   * [Regras de Firewall](#a-regras-de-firewall)
   * [Conectividade externa](#b-conectividade)
-  * [Criação de database e usuario](#c-criacao-de-database-e-usuarios)
+  * [Criação de database e usuario](#c-criacao-de-database-e-usuários)
 * [Conexão PostgreSQL Database](#33-conexao-postgresql-database)
   * [Linha de comando](#a-linha-de-comando)
   * [JDBC Driver](#b-jdbc-driver)
   * [Python](#c-python)
-    * [Python Library](#i-psycopg2)
-    * [Python Library](#ii-exemplo-query-database)
+    * [Pip library install](#i-psycopg2)
+    * [Example Query Database](#ii-exemplo-query-database)
   * [NodeJS](#d-nodejs)
 
 ---
@@ -189,7 +189,7 @@ dbsample=> \q
 
 
 ---
-#### c. Python Library
+#### c. Python
 
 ##### i. Psycopg2
 

@@ -7,7 +7,7 @@ Este repositório de estudo sobre **Banco de dados**
 
 ### 2. Mapa Mental
 
-![Mapa Mental](doc/images/MindMap%20-%20DatabaseStudy.png) 
+![Mapa Mental - Contexto](doc/mind-maps/MindMapDiagram-Context.png) 
 
 
 ### 3. Tópicos

@@ -10,8 +10,7 @@
       PostgreSQL
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <node CREATED="1556296662908" ID="ID_1539429095" MODIFIED="1556314288690" POSITION="right" STYLE="fork" TEXT="Instala&#xe7;&#xe3;o">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
@@ -41,6 +40,10 @@
     </p>
   </body>
 </html></richcontent>
+</node>
+<node CREATED="1623935016367" ID="ID_1154277387" MODIFIED="1623935019288" TEXT="Cloud">
+<node CREATED="1623935020322" ID="ID_450011413" MODIFIED="1623935030224" TEXT="AWS - Amazon Web Service"/>
+<node CREATED="1623935030904" ID="ID_1089776711" MODIFIED="1623935036710" TEXT="GCP - Google Cloud Platform"/>
 </node>
 </node>
 <node CREATED="1556296667278" ID="ID_573994403" MODIFIED="1556314292788" POSITION="right" STYLE="fork" TEXT="Configura&#xe7;&#xe3;o">

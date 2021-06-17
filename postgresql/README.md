@@ -23,7 +23,7 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 ---
 ### 2. Mapa Mental
 
-![Mapa Mental - PostgreSQL](../../doc/mind-maps/MindMapDiagram-DatabaseStudy-PostgreSQL.png) 
+![Mapa Mental - PostgreSQL](../doc/mind-maps/MindMapDiagram-DatabaseStudy-PostgreSQL.png) 
 
 
 ---

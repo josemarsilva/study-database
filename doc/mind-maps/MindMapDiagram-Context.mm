@@ -119,29 +119,47 @@
 </node>
 <node CREATED="1556296667278" ID="ID_683362039" MODIFIED="1556330722933" STYLE="fork" TEXT="Performance">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1556296681710" ID="ID_1438446666" MODIFIED="1556330722933" STYLE="fork">
+<node CREATED="1556296681710" ID="ID_1438446666" MODIFIED="1702060018150" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Particionamento
+      <i>Troubleshooting</i>
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
+<font NAME="SansSerif" SIZE="12"/>
 </node>
-<node CREATED="1556296681710" ID="ID_299452505" MODIFIED="1556330722933" STYLE="fork">
+<node CREATED="1556296681710" ID="ID_299452505" MODIFIED="1702059956039" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Ferramenta profile
+      Query Tuning
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
+<font ITALIC="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1556296681710" ID="ID_1956244415" MODIFIED="1702060003724" STYLE="fork">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Ferramentas
+    </p>
+  </body>
+</html>
+</richcontent>
+<font NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
 </node>

@@ -1,7 +1,7 @@
 -- ----------------------------------------------------------------------------
 -- filename: query_dm_topsql_plan.sql
 -- purpose : TOP SQL with PLAN
--- revision: 2023-12-15 18:45 - josemarsilva - replace "cpu_over_head" by "worker_time"
+-- revision: 2023-12-18 10:13 - josemarsilva - replace "cpu_over_head" by "worker_time"
 -- remarks : https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-exec-query-stats-transact-sql?view=sql-server-ver16
 -- ----------------------------------------------------------------------------
 

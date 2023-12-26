@@ -1,7 +1,8 @@
 -- ----------------------------------------------------------------------------
 -- filename: query_cardinality_selectivity.sql
 -- purpose : Gather cardinality and selectivity from objects
--- revision: 2023-12-13 16:25 - josemarsilva@inmetrics.com.br - 
+-- revision: 2023-12-21 11:00 - josemarsilva@inmetrics.com.br - 
+-- remarks : https://github.com/josemarsilva/study-database/tree/master/sqlserver/scripts
 -- ----------------------------------------------------------------------------
 
 --
@@ -9,11 +10,13 @@
 --
 SELECT 
 	CONCAT( 
-		'UNION ALL SELECT /* sys.dm_exec */ ''Table'' AS [ObjType], ',
+		'UNION ALL SELECT /* sys.dm_exec */ ''1-Table'' AS [ObjType], ',
 		'''', table_name, '''',
-		' AS [ObjName], COUNT(1) AS [Rows] FROM ',
-		table_name,
-		' WITH(NOLOCK)'
+		' AS [ObjName], ', 
+		'COUNT(1) AS [Rows],', 
+		'NULL AS [OfTotals], ', 
+		'NULL AS [Pct%] ', 
+		'FROM ', table_name, ' WITH(NOLOCK)'
 	)
 FROM
 	information_schema.tables WITH (NOLOCK)
@@ -31,42 +34,17 @@ WHERE
 --
 UNION ALL
 --
--- Column(Join)
---
-SELECT 
-	CONCAT( 
-		'UNION ALL SELECT /* sys.dm_exec */ ''Column(Join)'' AS [ObjType], ',
-		'''', table_name, '.', column_name, '''',
-		' AS [ObjName], COUNT(DISTINCT ', column_name, ') AS [Rows] FROM ',
-		table_name,
-		' WITH(NOLOCK)'
-	)
-FROM
-	information_schema.columns WITH (NOLOCK)
-WHERE
-	CONCAT(table_name, '.', column_name) IN (
-		--
-		-- Put your "tables.columns" from your JOIN above
-		--
-		'cliente_variavel_negociacao.id_cliente',
-		'cliente.id_cliente',
-		'cliente.id_tipo_cobranca',
-		'tipo_cobranca.id_tipo_cobranca',
-		--
-	NULL
-	)
---
-UNION ALL
---
 -- Column(Where)
 --
 SELECT 
 	CONCAT( 
-		'UNION ALL SELECT /* sys.dm_exec */ ''Column(Where)'' AS [ObjType], ',
+		'UNION ALL SELECT /* sys.dm_exec */ ''2-Column(Where)'' AS [ObjType], ',
 		'''', table_name, '.', column_name, '''',
-		' AS [ObjName], COUNT(DISTINCT ', column_name, ') AS [Rows] FROM ',
-		table_name,
-		' WITH(NOLOCK)'
+		' AS [ObjName], ',
+		'COUNT(DISTINCT ', column_name, ') AS [Rows], ', 
+		'COUNT(1) AS [OfTotals], ', 
+		'COUNT(DISTINCT ', column_name, ') / CONVERT(DECIMAL(15,2), COUNT(1)) * 100 AS [Pct%] ', 
+		'FROM ', table_name, ' WITH(NOLOCK)'
 	)
 FROM
 	information_schema.columns WITH (NOLOCK)
@@ -84,9 +62,38 @@ WHERE
 		--
 	NULL
 	)
+UNION ALL
+--
+-- Column(Join)
+--
+SELECT 
+	CONCAT( 
+		'UNION ALL SELECT /* sys.dm_exec */ ''3-Column(Join)'' AS [ObjType], ',
+		'''', table_name, '.', column_name, '''',
+		' AS [ObjName], ',
+		'COUNT(DISTINCT ', column_name, ') AS [Rows], ', 
+		'COUNT(1) AS [OfTotals], ', 
+		'COUNT(DISTINCT ', column_name, ') / CONVERT(DECIMAL(15,2), COUNT(1)) * 100 AS [Pct%] ', 
+		'FROM ', table_name, ' WITH(NOLOCK)'
+	)
+FROM
+	information_schema.columns WITH (NOLOCK)
+WHERE
+	CONCAT(table_name, '.', column_name) IN (
+		--
+		-- Put your "tables.columns" from your JOIN above
+		--
+		'cliente_variavel_negociacao.id_cliente',
+		'cliente.id_cliente',
+		'cliente.id_tipo_cobranca',
+		'tipo_cobranca.id_tipo_cobranca',
+		--
+	NULL
+	)
+--
 --
 -- ORDER BY
 --
-ORDER BY 1 DESC
+ORDER BY 1 ASC
 ;
 

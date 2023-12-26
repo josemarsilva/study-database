@@ -1,0 +1,164 @@
+-- ----------------------------------------------------------------------------
+-- filename     : <db-instance> - <query-alias> - <sqlhandle>.txt
+-- last revision: 2023-12-21 20:15
+-- ----------------------------------------------------------------------------
+
+#1. TOP Rank Query Assessment
+
+#1.1. Rank Top level (query_dm_plan_exec.sql)
+
+#1.1.1. Rank Top level - by total_worker_time
+
+	* WHERE
+		???
+
+	* ORDER BY
+		???
+
+
+#1.1.2. Rank Metrics - by total_worker_time
+
+	*
+		sql_handle query_text
+		???
+		
+	* 
+		execution_count	avg_worker_time	avg_logical_reads	avg_logical_writes	avg_phys_reads	avg_elapsed_time	total_worker_time	total_logical_reads	total_logical_writes	total_physical_reads	total_elapsed_time	stmt_offset	num_recompiles
+		???
+
+	* 
+		creation_time			last_execution_time		diff_hour_time	total_rows	avg_total_rows	last_rows	min_rows	max_rows
+		???
+
+#1.1.3. Rank Metrics Attentions Points - by total_worker_time
+
+	* TOP(???) ??? by CPU - tanto total quanto avg
+	* Ponto de atenção TOP(???) sql_hash ???% pelo num_recompiles 393610
+	* Ponto de atenção TOP(???) sql_hash ???% pelo num_max_rows 7774
+
+
+#2. Top queries
+
+#2.2. Top queries - identified
+
+	* Top level queries - Identified (and similars): 
+		- ???0x02
+
+	* Top level queries - Metrics:
+		execution_count	avg_worker_time	avg_logical_reads	avg_logical_writes	avg_phys_reads	avg_elapsed_time	total_worker_time	total_logical_reads	total_logical_writes	total_physical_reads	total_elapsed_time	stmt_offset	num_recompiles
+		??? 
+
+		creation_time			last_execution_time		diff_hour_time	total_rows	avg_total_rows	last_rows	min_rows	max_rows
+		???	
+
+	* Top level queries - Execution Plan:
+		plan_handle: ???
+			<ShowPlanXML ??? ...>
+
+
+	* Top level queries - SQL Text
+
+```sql
+-- ???
+
+```
+
+	* Top level queries - Bind:
+		- ???
+
+
+#3. Tuning - cardinality and selectivity
+
+#3.1. Tuning - cardinality and selectivity - Gather metrics (query_cardinality_selectivity.sql)
+
+```sql
+
+		--
+		-- Put your "tables" above
+		--
+		'cliente',
+		--
+
+		--
+		-- Put your "tables.columns" from your JOIN above
+		--
+		'cliente.id_cliente',
+		--
+
+		--
+		-- Put your "tables.columns" from your WHERE above
+		--
+		'cliente.id_tipo_cliente',
+		--
+
+```
+
+#3.1. Tuning - cardinality and selectivity - Metrics
+
+```output
+ObjType			ObjName																		Rows
+--------------	---------------------------------------------------------------------------	---------
+
+
+```
+
+
+#3.2. Tuning - cardinality and selectivity - Distribution 
+
+	* ??? - ANORMAL Distribution
+
+
+#4. Tuning - Indexes (sp_helpindex2)
+
+	* ??? - 
+
+```output
+index_name	type	index_description	index_keys	included_keys
+----------	----	-----------------	----------	-------------
+
+```
+
+#5. Tuning - Exec Plan
+
+	* ??? - 
+
+
+#6. Tuning - Analisys: query vs rewrite vs scenario vs metrics
+
+	* ???query-rewrite-scenario???: 
+	* ???query-rewrite-scenario???: 
+
+
+#6.1. Query Rewrite - ???query-rewrite-scenario???
+
+	* Cost:
+	* CPU time = 0 ms,  elapsed time = 2 ms.
+	* 43% - [DATABASE].[dbo].[cliente].[IX_cliente] [cli]
+
+
+```sql
+--SET STATISTICS IO, TIME ON 
+
+```
+
+
+#6.1. Query Metrics - ???query-rewrite-scenario???
+
+
+```output
+SQL Server parse and compile time: 
+   CPU time = 0 ms, elapsed time = 0 ms.
+
+```
+
+#7. Conclusion
+
+
+#7.1. Conclusion - Attentions Points
+
+	* ???
+
+#7.2. Conclusion - List of Recommendations
+
+	* 2023-12-20: ???
+

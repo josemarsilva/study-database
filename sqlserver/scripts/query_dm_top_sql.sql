@@ -1,7 +1,7 @@
 -- ----------------------------------------------------------------------------
--- filename: query_dm_topsql_plan.sql
+-- filename: query_dm_top_sql.sql
 -- purpose : TOP SQL with PLAN
--- revision: 2023-12-22 09:23 - josemarsilva - sql_handle sem apostrofo
+-- revision: 2023-12-26 13:43 - josemarsilva - sql_handle sem apostrofo
 -- remarks : https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-exec-query-stats-transact-sql?view=sql-server-ver16
 -- ----------------------------------------------------------------------------
 

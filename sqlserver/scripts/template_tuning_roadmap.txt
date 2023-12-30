@@ -1,22 +1,20 @@
 -- ----------------------------------------------------------------------------
 -- filename     : <db-instance> - <query-alias> - <sqlhandle>.txt
--- last revision: 2023-12-21 20:15
+-- last revision: 2023-12-26 13:45
 -- ----------------------------------------------------------------------------
 
-#1. TOP Rank Query Assessment
 
-#1.1. Rank Top level (query_dm_plan_exec.sql)
+#1. Rank Top Query
 
-#1.1.1. Rank Top level - by total_worker_time
+#1.1. Rank Top Query - Assessment - (query_dm_top_sql.sql)
 
-	* WHERE
+#1.1.1. Rank Top Query - Criteria
+
+	* WHERE / ORDER BY - by total_worker_time
 		???
 
-	* ORDER BY
-		???
 
-
-#1.1.2. Rank Metrics - by total_worker_time
+#1.1.2. Rank Top Query - Metrics
 
 	*
 		sql_handle query_text
@@ -30,7 +28,8 @@
 		creation_time			last_execution_time		diff_hour_time	total_rows	avg_total_rows	last_rows	min_rows	max_rows
 		???
 
-#1.1.3. Rank Metrics Attentions Points - by total_worker_time
+
+#1.1.3. Rank Top Query - Attentions Points
 
 	* TOP(???) ??? by CPU - tanto total quanto avg
 	* Ponto de atenção TOP(???) sql_hash ???% pelo num_recompiles 393610
@@ -39,10 +38,10 @@
 
 #2. Top queries
 
-#2.2. Top queries - identified
+#2.1. Top queries - identified
 
 	* Top level queries - Identified (and similars): 
-		- ???0x02
+		- ???
 
 	* Top level queries - Metrics:
 		execution_count	avg_worker_time	avg_logical_reads	avg_logical_writes	avg_phys_reads	avg_elapsed_time	total_worker_time	total_logical_reads	total_logical_writes	total_physical_reads	total_elapsed_time	stmt_offset	num_recompiles
@@ -52,8 +51,7 @@
 		???	
 
 	* Top level queries - Execution Plan:
-		plan_handle: ???
-			<ShowPlanXML ??? ...>
+		* plan_handle: ??? - <ShowPlanXML ??? ...>
 
 
 	* Top level queries - SQL Text
@@ -67,9 +65,9 @@
 		- ???
 
 
-#3. Tuning - cardinality and selectivity
+#3. Cardinality and Selectivity
 
-#3.1. Tuning - cardinality and selectivity - Gather metrics (query_cardinality_selectivity.sql)
+#3.1. Cardinality and Selectivity - Gather metrics (query_cardinality_selectivity.sql)
 
 ```sql
 
@@ -93,22 +91,23 @@
 
 ```
 
-#3.1. Tuning - cardinality and selectivity - Metrics
+#3.1. Cardinality and Selectivity - Metrics
 
 ```output
 ObjType			ObjName																		Rows
 --------------	---------------------------------------------------------------------------	---------
 
-
 ```
 
 
-#3.2. Tuning - cardinality and selectivity - Distribution 
+#3.2. Cardinality and Selectivity - Distribution 
 
 	* ??? - ANORMAL Distribution
 
 
-#4. Tuning - Indexes (sp_helpindex2)
+#4. Indexes
+
+#4.1. Indexes - Structures - (sp_helpindex2)
 
 	* ??? - 
 
@@ -118,23 +117,19 @@ index_name	type	index_description	index_keys	included_keys
 
 ```
 
-#5. Tuning - Exec Plan
 
-	* ??? - 
+#4.2. Indexes - Fragmentation
 
-
-#6. Tuning - Analisys: query vs rewrite vs scenario vs metrics
-
-	* ???query-rewrite-scenario???: 
-	* ???query-rewrite-scenario???: 
+	* ???
 
 
-#6.1. Query Rewrite - ???query-rewrite-scenario???
+#5. Tuning - Analisys
 
-	* Cost:
-	* CPU time = 0 ms,  elapsed time = 2 ms.
-	* 43% - [DATABASE].[dbo].[cliente].[IX_cliente] [cli]
+	* query vs rewrite vs scenario vs metrics
+		1 ???
 
+
+#5.1. Tuning - Analisys - ???query-rewrite-scenario???
 
 ```sql
 --SET STATISTICS IO, TIME ON 
@@ -142,8 +137,7 @@ index_name	type	index_description	index_keys	included_keys
 ```
 
 
-#6.1. Query Metrics - ???query-rewrite-scenario???
-
+#5.2. Tuning - Analisys - Metrics
 
 ```output
 SQL Server parse and compile time: 
@@ -151,14 +145,15 @@ SQL Server parse and compile time:
 
 ```
 
-#7. Conclusion
 
+#7. Conclusion
 
 #7.1. Conclusion - Attentions Points
 
 	* ???
 
+
 #7.2. Conclusion - List of Recommendations
 
-	* 2023-12-20: ???
+	* ???
 

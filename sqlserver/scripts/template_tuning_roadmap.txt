@@ -1,6 +1,6 @@
 -- ----------------------------------------------------------------------------
 -- filename     : <db-instance> - <query-alias> - <sqlhandle>.txt
--- last revision: 2023-12-26 13:45
+-- last revision: 2024-01-02 18:25
 -- ----------------------------------------------------------------------------
 
 
@@ -54,15 +54,28 @@
 		* plan_handle: ??? - <ShowPlanXML ??? ...>
 
 
-	* Top level queries - SQL Text
+	* Top level queries - Original SQL Text
 
 ```sql
 -- ???
 
 ```
 
-	* Top level queries - Bind:
-		- ???
+	* Top level queries - Original Binds
+
+```xml
+<ParameterList>
+	<ColumnReference Column="@P0" ParameterDataType="???" ParameterCompiledValue="'???'"/>
+	<ColumnReference Column="@P1" ParameterDataType="int" ParameterCompiledValue="(???)"/>
+</ParameterList>
+```
+
+	* Top level queries - Original T-SQL block
+
+```sql
+-- ???
+
+```
 
 
 #3. Cardinality and Selectivity
@@ -129,15 +142,16 @@ index_name	type	index_description	index_keys	included_keys
 		1 ???
 
 
-#5.1. Tuning - Analisys - ???query-rewrite-scenario???
+#5.1. Tuning - Analisys - query-rewrite-???
+
+	#5.1.a. T-SQL block
 
 ```sql
 --SET STATISTICS IO, TIME ON 
 
 ```
 
-
-#5.2. Tuning - Analisys - Metrics
+	#5.1.b. Metrics
 
 ```output
 SQL Server parse and compile time: 
@@ -145,15 +159,21 @@ SQL Server parse and compile time:
 
 ```
 
+	#5.1.c. ExecPlan
 
-#7. Conclusion
+```xml
+???
+```
 
-#7.1. Conclusion - Attentions Points
+
+#6. Conclusion
+
+#6.1. Conclusion - Attentions Points
 
 	* ???
 
 
-#7.2. Conclusion - List of Recommendations
+#6.2. Conclusion - List of Recommendations
 
 	* ???
 

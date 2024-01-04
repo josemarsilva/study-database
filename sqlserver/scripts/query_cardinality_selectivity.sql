@@ -1,7 +1,7 @@
 -- ----------------------------------------------------------------------------
 -- filename: query_cardinality_selectivity.sql
 -- purpose : Gather cardinality and selectivity from objects
--- revision: 2023-12-21 11:00 - josemarsilva@inmetrics.com.br - 
+-- revision: 2024-01-02 13:30 - josemarsilva@inmetrics.com.br - CONVERT(DECIMAL(15,2),...)
 -- remarks : https://github.com/josemarsilva/study-database/tree/master/sqlserver/scripts
 -- ----------------------------------------------------------------------------
 
@@ -25,9 +25,15 @@ WHERE
 		--
 		-- Put your "tables" above
 		--
-		'cliente_variavel_negociacao',
-		'cliente',
-		'tipo_cobranca',
+		'caracteristica',
+		'caracteristica_unidade',
+		'exibicao_unidade_processo_canal_atendimento',
+		'localizacao_unidade',
+		'marca_unidade_produto',
+		'produto',
+		'produto',
+		'unidade',
+		'unidade_mercado',
 		--
 	NULL
 	)
@@ -43,7 +49,7 @@ SELECT
 		' AS [ObjName], ',
 		'COUNT(DISTINCT ', column_name, ') AS [Rows], ', 
 		'COUNT(1) AS [OfTotals], ', 
-		'COUNT(DISTINCT ', column_name, ') / CONVERT(DECIMAL(15,2), COUNT(1)) * 100 AS [Pct%] ', 
+		'CONVERT(DECIMAL(15,2), COUNT(DISTINCT ', column_name, ') / CONVERT(DECIMAL(15,2), COUNT(1)) * 100, 2) AS [Pct%] ', 
 		'FROM ', table_name, ' WITH(NOLOCK)'
 	)
 FROM
@@ -53,12 +59,21 @@ WHERE
 		--
 		-- Put your "tables.columns" from your WHERE above
 		--
-		'cliente_variavel_negociacao.status',
-		'cliente_variavel_negociacao.id_marca',
-		'cliente_variavel_negociacao.id_negociacao_origem',
-		'cliente_variavel_negociacao.valor_variavel',
-		'cliente.id_tipo_cliente',
-		'tipo_cobranca.id_tipo_cobranca',
+		'caracteristica.id_caracteristica',
+		'caracteristica.status',
+		'caracteristica_unidade.id_unidade',
+		'caracteristica_unidade.status',
+		'exibicao_unidade_processo_canal_atendimento.id_unidade',
+		'exibicao_unidade_processo_canal_atendimento.status',
+		'localizacao_unidade.id_unidade',
+		'localizacao_unidade.status',
+		'marca_unidade_produto.id_marca',
+		'marca_unidade_produto.id_unidade',
+		'marca_unidade_produto.status',
+		'produto.id_produto',
+		'produto.id_produto',
+		'produto.status',
+		'unidade.status',
 		--
 	NULL
 	)
@@ -73,7 +88,7 @@ SELECT
 		' AS [ObjName], ',
 		'COUNT(DISTINCT ', column_name, ') AS [Rows], ', 
 		'COUNT(1) AS [OfTotals], ', 
-		'COUNT(DISTINCT ', column_name, ') / CONVERT(DECIMAL(15,2), COUNT(1)) * 100 AS [Pct%] ', 
+		'CONVERT(DECIMAL(15,2), COUNT(DISTINCT ', column_name, ') / CONVERT(DECIMAL(15,2), COUNT(1)) * 100, 2) AS [Pct%] ', 
 		'FROM ', table_name, ' WITH(NOLOCK)'
 	)
 FROM
@@ -83,10 +98,21 @@ WHERE
 		--
 		-- Put your "tables.columns" from your JOIN above
 		--
-		'cliente_variavel_negociacao.id_cliente',
-		'cliente.id_cliente',
-		'cliente.id_tipo_cobranca',
-		'tipo_cobranca.id_tipo_cobranca',
+		'caracteristica.id_caracteristica',
+		'caracteristica.status',
+		'caracteristica_unidade.id_unidade',
+		'caracteristica_unidade.status',
+		'exibicao_unidade_processo_canal_atendimento.id_unidade',
+		'exibicao_unidade_processo_canal_atendimento.status',
+		'localizacao_unidade.id_unidade',
+		'localizacao_unidade.status',
+		'marca_unidade_produto.id_marca',
+		'marca_unidade_produto.id_unidade',
+		'marca_unidade_produto.status',
+		'produto.id_produto',
+		'produto.id_produto',
+		'produto.status',
+		'unidade.status',
 		--
 	NULL
 	)

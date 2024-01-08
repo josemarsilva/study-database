@@ -151,7 +151,7 @@ index_name	type	index_description	index_keys	included_keys
 
 ```
 
-	#5.1.b. Metrics
+	#5.1.b. Statistics
 
 ```output
 SQL Server parse and compile time: 

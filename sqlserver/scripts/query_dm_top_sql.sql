@@ -9,7 +9,7 @@
 
 WITH XMLNAMESPACES(DEFAULT 'http://schemas.microsoft.com/sqlserver/2004/07/showplan')
 SELECT
-	TOP 25
+	TOP 100
 	qs.sql_handle,
 	(
 		SELECT

@@ -2,7 +2,8 @@
 -- filename: query_dm_requests.sql
 -- purpose : Request server is processing now
 -- revision: 2023-12-15 19:45 - josemarsilva -
--- remarks : https://documentation.red-gate.com/display/SM5/List+of+common+wait+types
+-- remarks : 
+--          * https://documentation.red-gate.com/display/SM5/List+of+common+wait+types
 -- ----------------------------------------------------------------------------
 
 

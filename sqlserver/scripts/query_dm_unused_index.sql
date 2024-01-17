@@ -1,7 +1,7 @@
 -- ----------------------------------------------------------------------------
 -- filename: query_dm_unused_index.sql
 -- purpose : Finding unused index
--- revision: 2024-01-05 22:04 - josemarsilva@inmetrics.com.br - 
+-- revision: 2024-01-05 22:04 - josemarsilva - 
 -- remarks : 
 --			* https://www.sqlshack.com/how-to-identify-and-monitor-unused-indexes-in-sql-server/
 --			* https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-db-index-usage-stats-transact-sql?view=sql-server-ver16

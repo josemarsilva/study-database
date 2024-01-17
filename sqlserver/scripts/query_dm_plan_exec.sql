@@ -1,7 +1,7 @@
 -- ----------------------------------------------------------------------------
 -- filename: query_dm_plan_exec.sql
 -- purpose : Execution plan of a query
--- revision: 2024-01-02 16:55 - josemarsilva@inmetrics.com.br - st.text AS full_text
+-- revision: 2024-01-02 16:55 - josemarsilva - st.text AS full_text
 -- remarks : 
 --			* https://learn.microsoft.com/pt-br/sql/relational-databases/system-dynamic-management-views/sys-dm-exec-query-plan-transact-sql?view=azuresqldb-current
 -- ----------------------------------------------------------------------------

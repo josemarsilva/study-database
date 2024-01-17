@@ -2,7 +2,8 @@
 -- filename: query_cardinality_selectivity.sql
 -- purpose : Gather cardinality and selectivity from objects
 -- revision: 2024-01-02 13:30 - josemarsilva@inmetrics.com.br - CONVERT(DECIMAL(15,2),...)
--- remarks : https://github.com/josemarsilva/study-database/tree/master/sqlserver/scripts
+-- remarks : 
+--			* https://github.com/josemarsilva/study-database/tree/master/sqlserver/scripts
 -- ----------------------------------------------------------------------------
 
 --

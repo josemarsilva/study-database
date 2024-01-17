@@ -1,8 +1,9 @@
 -- ----------------------------------------------------------------------------
--- filename     : <db-instance> - <query-alias> - <sqlhandle>.txt
--- last revision: 2024-01-02 18:25
+-- filename: template_tuning_roadmap.txt
+-- purpose : Template Tuning Query Roadmap
+-- revision: 2024-01-17 09:25 - josemarsilva - 
+-- remarks : 
 -- ----------------------------------------------------------------------------
-
 
 #1. Rank Top Query
 
@@ -153,7 +154,7 @@ index_name	type	index_description	index_keys	included_keys
 
 	#5.1.b. Statistics
 
-```output
+```messages
 SQL Server parse and compile time: 
    CPU time = 0 ms, elapsed time = 0 ms.
 

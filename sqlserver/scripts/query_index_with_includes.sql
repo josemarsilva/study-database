@@ -6,7 +6,7 @@
 -- ----------------------------------------------------------------------------
 
 ```sql
-sp_helpindex2 cliente_variavel_negociacao
+sp_helpindex2 cliente
 ```
 
 ```output

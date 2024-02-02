@@ -1,0 +1,15 @@
+{
+    "server": "127.0.0.1",
+    "database": "master",
+    "username": "sa",
+    "password": "Password@123",
+    "options": ";TrustServerCertificate=True;",
+    "deploy_databases": ["labdb"],
+    "deploy_sql_stmts": [
+		["script", "script-deploy-src-10-01.sql", ""],
+		["script", "script-deploy-src-10-02.sql", ""],
+		["script", "script-deploy-src-10-03.sql", ""],
+		["script", "script-deploy-src-10-04.sql", ""],
+		["script", "script-deploy-src-10-05.sql", ""]
+    ]
+}

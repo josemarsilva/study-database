@@ -1,7 +1,7 @@
 -- ----------------------------------------------------------------------------
 -- filename: query_cardinality_selectivity.sql
 -- purpose : Gather cardinality and selectivity from objects
--- revision: 2024-01-02 13:30 - josemarsilva@inmetrics.com.br - CONVERT(DECIMAL(15,2),...)
+-- revision: 2024-01-17 22:55 - josemarsilva - 
 -- remarks : 
 --			* https://github.com/josemarsilva/study-database/tree/master/sqlserver/scripts
 -- ----------------------------------------------------------------------------
@@ -27,14 +27,8 @@ WHERE
 		-- Put your "tables" above
 		--
 		'caracteristica',
-		'caracteristica_unidade',
-		'exibicao_unidade_processo_canal_atendimento',
-		'localizacao_unidade',
-		'marca_unidade_produto',
-		'produto',
 		'produto',
 		'unidade',
-		'unidade_mercado',
 		--
 	NULL
 	)
@@ -62,16 +56,6 @@ WHERE
 		--
 		'caracteristica.id_caracteristica',
 		'caracteristica.status',
-		'caracteristica_unidade.id_unidade',
-		'caracteristica_unidade.status',
-		'exibicao_unidade_processo_canal_atendimento.id_unidade',
-		'exibicao_unidade_processo_canal_atendimento.status',
-		'localizacao_unidade.id_unidade',
-		'localizacao_unidade.status',
-		'marca_unidade_produto.id_marca',
-		'marca_unidade_produto.id_unidade',
-		'marca_unidade_produto.status',
-		'produto.id_produto',
 		'produto.id_produto',
 		'produto.status',
 		'unidade.status',
@@ -101,16 +85,6 @@ WHERE
 		--
 		'caracteristica.id_caracteristica',
 		'caracteristica.status',
-		'caracteristica_unidade.id_unidade',
-		'caracteristica_unidade.status',
-		'exibicao_unidade_processo_canal_atendimento.id_unidade',
-		'exibicao_unidade_processo_canal_atendimento.status',
-		'localizacao_unidade.id_unidade',
-		'localizacao_unidade.status',
-		'marca_unidade_produto.id_marca',
-		'marca_unidade_produto.id_unidade',
-		'marca_unidade_produto.status',
-		'produto.id_produto',
 		'produto.id_produto',
 		'produto.status',
 		'unidade.status',

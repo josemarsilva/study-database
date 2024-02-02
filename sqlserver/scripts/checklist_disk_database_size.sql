@@ -7,11 +7,11 @@
 -- ----------------------------------------------------------------------------
 
 -- Procedure to check disc space
-exec master..xp_fixeddrives
+EXEC master..xp_fixeddrives
 -- To Check database size
-exec sp_helpdb [dbName]
-or
-use [dbName]
-select str(sum(convert(dec(17,2),size)) / 128,10,2)  + 'MB'
-from dbo.sysfiles
+EXEC sp_helpdb [dbName]
+-- or
+USE [dbName]
+SELECT STR(SUM(CONVERT(DEC(17,2),SIZE)) / 128,10,2)  + 'MB'
+FROM dbo.sysfiles
 GO

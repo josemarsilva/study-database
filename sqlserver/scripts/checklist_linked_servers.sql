@@ -6,5 +6,5 @@
 --			* https://www.mssqltips.com/sqlservertip/1936/sql-server-database-migration-checklist/
 -- ----------------------------------------------------------------------------
 
-select  *
+select *
 from sys.sysservers

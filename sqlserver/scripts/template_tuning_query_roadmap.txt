@@ -1,8 +1,10 @@
 -- ----------------------------------------------------------------------------
--- filename: template_tuning_roadmap.txt
+-- filename: template_tuning_query_roadmap.txt
 -- purpose : Template Tuning Query Roadmap
 -- revision: 2024-01-17 09:25 - josemarsilva - 
 -- remarks : 
+--			* Salvar como "<database> + <query-identificator> + <substr(sqlhash)>".txt
+--			* Exemplo de "sql-db-replica2-prd - query03 - 0x020000005499C7.txt"
 -- ----------------------------------------------------------------------------
 
 #1. Rank Top Query

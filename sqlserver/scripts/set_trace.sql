@@ -1,3 +1,11 @@
+-- ----------------------------------------------------------------------------
+-- filename: set_trace.sql
+-- purpose : Script to SET traces
+-- revision: 2024-01-17 15:25 - josemarsilva - 
+-- remarks : 
+--          * https://learn.microsoft.com/pt-br/sql/t-sql/database-console-commands/dbcc-freeproccache-transact-sql?view=sql-server-ver16
+-- ----------------------------------------------------------------------------
+
 ----------- DISABLE
 select T.id as [Id],
        case T.status when 0 then N'stopped' else N'running' end as [Status],

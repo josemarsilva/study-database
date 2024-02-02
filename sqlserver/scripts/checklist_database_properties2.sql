@@ -6,9 +6,9 @@
 --          * https://www.mssqltips.com/sqlservertip/1936/sql-server-database-migration-checklist/
 -- ----------------------------------------------------------------------------
 
-declare @dbdesc varchar(max)
-declare @name varchar(10)
-set @name='Master'
+DECLARE @dbdesc varchar(max)
+DECLARE @name varchar(10)
+SET @name='Master'
 SELECT @dbdesc = 'Status=' + convert(sysname,DatabasePropertyEx(@name,'Status'))  
 SELECT @dbdesc = @dbdesc + ', Updateability=' + convert(sysname,DatabasePropertyEx(@name,'Updateability'))  
 SELECT @dbdesc = @dbdesc + ', UserAccess=' + convert(sysname,DatabasePropertyEx(@name,'UserAccess'))  

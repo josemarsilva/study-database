@@ -6,9 +6,10 @@
 --			* https://www.mssqltips.com/sqlservertip/1936/sql-server-database-migration-checklist/
 -- ----------------------------------------------------------------------------
 
-select 
- distinct 
- name,
- database_name
-from sysjobs sj
-INNER JOIN sysjobsteps sjt on sj.job_id = sjt.job_id
+SELECT 
+	DISTINCT 
+	name,
+	database_name
+FROM
+	sysjobs sj
+INNER JOIN sysjobsteps sjt ON sj.job_id = sjt.job_id

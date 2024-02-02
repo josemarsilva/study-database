@@ -1,0 +1,11 @@
+{
+    "server": "127.0.0.1",
+    "database": "master",
+    "username": "sa",
+    "password": "Password@123",
+    "options": ";TrustServerCertificate=True;",
+    "deploy_databases": ["labdb"],
+    "deploy_sql_stmts": [
+        ["script", "script-deploy-tgt-05-01.sql", ""]
+    ]
+}

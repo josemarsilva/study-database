@@ -1,0 +1,24 @@
+{
+    "server": "127.0.0.1",
+    "database": "master",
+    "username": "sa",
+    "password": "Password@123",
+    "options": ";TrustServerCertificate=True;",
+    "deploy_databases": ["labdb"],
+    "deploy_sql_stmts": [
+        ["script", "script-deploy-src-01-01.sql", ""],
+        ["script", "script-deploy-src-01-02.sql", ""],
+        ["script", "script-deploy-src-01-03.sql", ""],
+        ["script", "script-deploy-src-01-04.sql", ""],
+        ["script", "script-deploy-src-01-05.sql", ""],
+        ["script", "script-deploy-src-01-06.sql", ""],
+        ["script", "script-deploy-src-01-07.sql", ""],
+        ["script", "script-deploy-src-01-08.sql", ""],
+        ["script", "script-deploy-src-01-09.sql", ""],
+        ["script", "script-deploy-src-01-10.sql", ""],
+        ["script", "script-deploy-src-01-11.sql", ""],
+        ["script", "script-deploy-src-01-12.sql", ""],
+        ["script", "script-deploy-src-01-13.sql", ""],
+        ["script", "script-deploy-src-01-14.sql", ""]   
+    ]
+}

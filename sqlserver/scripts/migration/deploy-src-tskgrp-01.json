@@ -17,8 +17,6 @@
         ["script", "script-deploy-src-01-09.sql", ""],
         ["script", "script-deploy-src-01-10.sql", ""],
         ["script", "script-deploy-src-01-11.sql", ""],
-        ["script", "script-deploy-src-01-12.sql", ""],
-        ["script", "script-deploy-src-01-13.sql", ""],
-        ["script", "script-deploy-src-01-14.sql", ""]   
+        ["script", "script-deploy-src-01-12.sql", ""]
     ]
 }

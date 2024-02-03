@@ -1,17 +1,17 @@
 --
--- script-deploy-src-01-13.sql
+-- script-deploy-tgt-99-03.sql
 --
 
-CREATE DATABASE labdb3
+CREATE DATABASE {deploy_database}
 GO
 
-USE labdb3
+USE {deploy_database}
 GO
 
-CREATE TABLE tbl_test_3 (
+CREATE TABLE tbl_test (
     id                  INT              NOT NULL IDENTITY(1,1), 
     key_info            NVARCHAR(30)     NOT NULL,
-    CONSTRAINT pk_test_2 PRIMARY KEY CLUSTERED 
+    CONSTRAINT pk_test PRIMARY KEY CLUSTERED 
         (
             id ASC
         )

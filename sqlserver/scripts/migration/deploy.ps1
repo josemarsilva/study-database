@@ -57,7 +57,7 @@ foreach ($deploy_database in $a_deploy_databases) {
             $path = "."
         }
         $filenameTmp = "$path\$($filename -replace '\.sql$', '.tmp')"
-        (Get-Content -Path $filenameSql) -replace '{deploy_database}', '$deploy_database' | Out-File -FilePath $filenameTmp
+        (Get-Content -Path $filenameSql) -replace '{deploy_database}', $deploy_database | Out-File -FilePath $filenameTmp
 
         # Write Output Iteration
         $scriptType = $sql_stmt[0]

@@ -1,0 +1,11 @@
+{
+    "server": "127.0.0.1",
+    "database": "master",
+    "username": "sa",
+    "password": "Password@123",
+    "options": ";TrustServerCertificate=True;",
+    "deploy_databases": ["Northwind"],
+    "deploy_sql_stmts": [
+        ["script", "C:\\Apps\\iso-installer-ova-etc\\Northwind.sql", ""]
+    ]
+}

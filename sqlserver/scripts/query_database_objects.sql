@@ -10,4 +10,8 @@ SELECT
 	name, type_desc, modify_date
 FROM sys.objects
 WHERE 1=1
-AND   type IN ('TR', 'P', 'FN') -- TR: Trigger, P: Procedure, FN: Function
+AND   type IN (
+	'TR',  -- TR: Trigger
+	'P',   -- P: Procedure
+	'FN'   -- FN: Function
+)

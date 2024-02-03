@@ -10,3 +10,4 @@ powershell -f .\deploy.ps1 deploy-src-tskgrp-09.json
 powershell -f .\deploy.ps1 deploy-src-tskgrp-10.json
 powershell -f .\deploy.ps1 deploy-src-tskgrp-11.json
 powershell -f .\deploy.ps1 deploy-src-tskgrp-12e13e14.json
+powershell -f .\deploy.ps1 deploy-src-tskgrp-15.json

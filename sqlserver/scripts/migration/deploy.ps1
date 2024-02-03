@@ -48,21 +48,36 @@ foreach ($deploy_database in $a_deploy_databases) {
 
     # Loop foreach queries
     foreach ($sql_stmt in $a_sql_stmts ) {
-        # Iteration
-        Write-Output "Deploying '$($sql_stmt[0])' '$($sql_stmt[1])' on database [$deploy_database] ..."
+
+        # SQL (.sql) script file replacements into TMP (.tmp) file
+        $filenameSql = $sql_stmt[1]
+        $filename = Split-Path -Path $filenameSql -Leaf
+        $path = Split-Path -Path $filenameSql -Parent
+        if ($path -eq "") {
+            $path = "."
+        }
+        $filenameTmp = "$path\$($filename -replace '\.sql$', '.tmp')"
+        (Get-Content -Path $filenameSql) -replace '{deploy_database}', '$deploy_database' | Out-File -FilePath $filenameTmp
+
+        # Write Output Iteration
+        $scriptType = $sql_stmt[0]
+        Write-Output "Deploying '$($scriptType)' '$($filenameTmp)' on database [$deploy_database] ..."
 
         $results = $null
         # Switch case statement type of:
-        if ($sql_stmt[0] -eq "script") {
+        if ($scriptType -eq "script") {
             # Script
-            $results = Invoke-Sqlcmd -ConnectionString $connectionString -InputFile $sql_stmt[1] -QueryTimeout 0
-        } elseif ($sql_stmt[0] -eq "statement") {
+            $results = Invoke-Sqlcmd -ConnectionString $connectionString -InputFile $filenameTmp -QueryTimeout 0
+        } elseif ($scriptType -eq "statement") {
             # Executa a query SQL e obtem o resultado
-            $results = Invoke-Sqlcmd -ConnectionString $connectionString -Query $sql_stmt[1]
+            $results = Invoke-Sqlcmd -ConnectionString $connectionString -Query $filenameTmp
         } else {
             # Unexpected type
-            Write-Output "Error: Unexpected type '$sql_stmt[0]'. List of values expected: ['script', 'query' ]"
+            Write-Output "Error: Unexpected type '$scriptType'. List of values expected: ['script', 'query' ]"
         }
+
+        # Remove Temporary file (.tmp)
+        Remove-Item -Path $filenameTmp
 
         # Result
         if (!([string]::IsNullOrEmpty($results) -or $results.Count -eq 0)) {

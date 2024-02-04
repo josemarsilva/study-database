@@ -9,9 +9,9 @@ GO
 --
 DECLARE @backupType    NVARCHAR(30) = 'diff'
 DECLARE @sequence      NVARCHAR(30) = '04'
-DECLARE @databaseName  NVARCHAR(30) = 'labdb'
-DECLARE @fromDisk      NVARCHAR(4000) = N'/mnt/share/labdb_' + @sequence + '_' + @backupType + '.bak'
-DECLARE @toDiskTailLog NVARCHAR(4000) = N'/mnt/share/labdb_' + @sequence + '_' + 'tail' + '.bak'
+DECLARE @databaseName  NVARCHAR(30) = '{deploy_database}'
+DECLARE @fromDisk      NVARCHAR(4000) = N'/mnt/share/{deploy_database}_' + @sequence + '_' + @backupType + '.bak'
+DECLARE @toDiskTailLog NVARCHAR(4000) = N'/mnt/share/{deploy_database}_' + @sequence + '_' + 'tail' + '.bak'
 DECLARE @name          NVARCHAR(4000) = N'Restore ' + @backupType + ' database [' + @databaseName + '] - TaskGroup ' + @sequence
 DECLARE @sql           NVARCHAR(4000) = N''
 

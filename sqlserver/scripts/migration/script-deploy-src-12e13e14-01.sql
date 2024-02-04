@@ -13,11 +13,11 @@ DECLARE @databaseName NVARCHAR(30) = '{deploy_database}'
 DECLARE @toDisk       NVARCHAR(4000) = N'/mnt/share/{deploy_database}_' + @sequence + '_' + @backupType + '.bak'
 DECLARE @name         NVARCHAR(4000) = N'Backup ' + @backupType + ' database [' + @databaseName + '] - TaskGroup ' + @sequence
 DECLARE @sql          NVARCHAR(4000)
+
 --
+-- SET SINGLE_USER, BACKUP
 --
---
-SET @sql = N'ALTER DATABASE ' + QUOTENAME(@databaseName) + N' SET SINGLE_USER WITH ROLLBACK IMMEDIATE;'
-EXEC sp_executesql @sql;
+ALTER DATABASE {deploy_database} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 
 PRINT 'BACKUP'
 PRINT '   TO DISK ' + @toDisk
@@ -35,16 +35,11 @@ BACKUP DATABASE @databaseName
     CHECKSUM;
 
 --
---
+-- SET READ_ONLY, MULTI_USER
 --
 
-SET @sql = N'ALTER DATABASE ' + QUOTENAME(@databaseName) + N' SET READ_ONLY;'
-PRINT @sql
-EXEC sp_executesql @sql;
-
-SET @sql = N'ALTER DATABASE ' + QUOTENAME(@databaseName) + N' SET MULTI_USER;'
-PRINT @sql
-EXEC sp_executesql @sql;
+ALTER DATABASE {deploy_database} SET READ_ONLY;
+ALTER DATABASE {deploy_database} SET MULTI_USER;
 
 GO
 

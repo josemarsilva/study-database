@@ -1,5 +1,5 @@
 --
--- script-deploy-src-01-01.sql
+-- script-deploy-src-00-01.sql
 --
 
 CREATE DATABASE labdb

@@ -1,7 +1,7 @@
 ## ############################################################################
 ## filename: deploy.ps1
 ## purpose : Deploy SQL scripts configured in JSON file
-## revision: 2024-01-30 19:45 - josemarsilva - 
+## revision: 2024-02-03 18:45 - josemarsilva - 
 ## remarks : 
 ##			* https://stackoverflow.com/questions/67268792/querying-data-from-sql-server-table-with-powershell
 ##			* https://learn.microsoft.com/en-us/powershell/module/sqlserver/invoke-sqlcmd?view=sqlserver-ps
@@ -11,16 +11,26 @@
 ##				- PS:> Get-ExecutionPolicy
 ##				- PS:> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
 ##          * Parameters[]:
-##              [0]: ConfigPath - Path to JSON File (.json) with configurations (required)
+##              [0]: configPath - Path to JSON File (.json) with configurations (required)
 ## ############################################################################
 
-# Command line parameter
-$ConfigPath = $args[0]
-if (-not $ConfigPath) {
-    Write-Error "ERROR-01: Script Command Line Parameter '-ConfigPath' not set. Usage: PS:> powershell -f deploy.ps1 deploy.json"
+# Command line parameter:
+$configPath = $args[0]
+if (-not $configPath) {
+    Write-Error "ERROR-01: Script Command Line Parameter '-configPath' not set. Usage: PS:> powershell -f deploy.ps1 deploy.json"
     return
 }
-$config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
+$config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+
+# $args[1] .. $args[n]
+$keepTmpFile = $false
+for ($i = 1; $i -le $args.Length; $i++) {
+    if ($args[$i])  {
+        if ($args[$i].ToLower() -eq "-keepTmpFile".ToLower()) {
+            $keepTmpFile = $true
+        }    
+    }
+}
 
 # Import Modules required
 Import-Module -Name SqlServer
@@ -73,15 +83,37 @@ foreach ($deploy_database in $a_deploy_databases) {
             $results = Invoke-Sqlcmd -ConnectionString $connectionString -Query $filenameTmp
         } else {
             # Unexpected type
-            Write-Output "Error: Unexpected type '$scriptType'. List of values expected: ['script', 'query' ]"
+            Write-Error "Error: Unexpected type '$scriptType'. List of values expected: ['script', 'query' ]"
         }
 
         # Remove Temporary file (.tmp)
-        Remove-Item -Path $filenameTmp
+        If (-not $keepTmpFile) {
+            Remove-Item -Path $filenameTmp
+        } else {
+            Write-Output "Warning: Temporary file was not removed ..."
+        }
 
-        # Result
+        # ($result is not null or not empty) AND ($result.count <> 0)
         if (!([string]::IsNullOrEmpty($results) -or $results.Count -eq 0)) {
-            $results
+
+            # Some results were returned
+            if ($sql_stmt[2] -eq "") {
+                Write-Output "Warning: Some results were returned but will not be saved ..."
+            } else {
+                # TSV (.tsv) filename replacement 
+                $filenameTsv = $sql_stmt[2]
+                $filename = Split-Path -Path $filenameTsv -Leaf
+                $path = Split-Path -Path $filenameTsv -Parent
+                if ($path -eq "") {
+                    $path = "."
+                }
+                $filenameTsv = "$path\$($filename -replace '{deploy_database}', $deploy_database)"
+                Write-Output "Saving results into '$($filenameTsv)' ..."
+                $results | ConvertTo-Csv -Delimiter "`t" -NoTypeInformation | Out-File -FilePath $filenameTsv
+                (Get-Content -Path $filenameTsv) | Foreach-Object {$_ -replace '"', ''} | Set-Content -Path $filenameTsv
+
+            }
+
         } 
 
     }

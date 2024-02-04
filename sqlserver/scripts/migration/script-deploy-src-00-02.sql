@@ -1,5 +1,5 @@
 --
--- script-deploy-src-01-02.sql
+-- script-deploy-src-00-02.sql
 --
 
 USE labdb
@@ -34,8 +34,8 @@ CREATE TABLE tbl_laboratory (
     varchar_info        VARCHAR(30),
     text_info           TEXT,
     -- Unicode character strings
-    nchar_info          NCHAR(1),
-    nvarchar_info       NVARCHAR(30),
+    nchar_info          NCHAR(3),
+    nvarchar_info       NVARCHAR(100),
     ntext_info          NTEXT,
     -- DML record control
     created_at     DATETIME      NOT NULL DEFAULT GETDATE(),

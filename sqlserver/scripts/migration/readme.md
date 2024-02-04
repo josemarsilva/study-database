@@ -38,8 +38,16 @@ PS:> docker rm -f mssql-labdb-2019
 
 8. Power Shell "bundle" scripts 
 
-* `deploy-tgt-AdventureWorks2019.ps1`: Script RESTORE AdventureWorks2019.bak demo database
-* `deploy-src-labdb.ps1`: Script backup full + differencial + last differencial [labdb] database
-* `deploy-src-labdb2-labdb3.ps1`: Script deploy [labdb2] e [labdb3] database
-* `deploy-tgt-Northwind.ps1`: Script deploy Northwind.sql demo database
-* `deploy-tgt-all-labdb.ps1`: Script restore full + differencial + last differencial [labdb] database
+* init: Initial scenario all databases created on initial state
+    * `deploy-init-all.ps1`: Docker MS SQLServer started and Script que chama os demais scripts apenas para iniciar o cenario criando todas as  bases de dados [AdventureWorks2019, Northwind, labdb, labdb2, labdb3]
+
+* src: Source
+    * `deploy-src-all-backup-full-diff-last.ps1`: Script backup full + differencial + last differencial para todas as bases de dados
+    * `deploy-src-labdb.ps1`: Script deploy [labdb] database apenas cria o database
+    * `deploy-src-labdb-backup-full-changes-diff-last.ps1`: Script backup full + differencial + last differencial [labdb] database
+    * `deploy-src-labdb2-labdb3.ps1`: Script deploy [labdb2] e [labdb3] database
+
+* tgt: Target
+    * `deploy-tgt-labdb.ps1`: Script restore full + differencial + last differencial [labdb] database
+    * `deploy-tgt-AdventureWorks2019.ps1`: Script Restore AdventureWorks2019.bak demo database
+    * `deploy-tgt-Northwind.ps1`: Script deploy Northwind.sql demo database

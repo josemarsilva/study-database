@@ -6,8 +6,6 @@
     "options": ";TrustServerCertificate=True;",
     "deploy_databases": ["labdb"],
     "deploy_sql_stmts": [
-        ["script", "script-deploy-src-01-01.sql", ""],
-        ["script", "script-deploy-src-01-02.sql", ""],
         ["script", "script-deploy-src-01-03.sql", ""],
         ["script", "script-deploy-src-01-04.sql", ""],
         ["script", "script-deploy-src-01-05.sql", ""],
@@ -16,7 +14,6 @@
         ["script", "script-deploy-src-01-08.sql", ""],
         ["script", "script-deploy-src-01-09.sql", ""],
         ["script", "script-deploy-src-01-10.sql", ""],
-        ["script", "script-deploy-src-01-11.sql", ""],
-        ["script", "script-deploy-src-01-12.sql", ""]
+        ["script", "script-deploy-src-01-11.sql", "script-deploy-src-01-11_{deploy_database}.tsv"]
     ]
 }

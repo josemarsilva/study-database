@@ -1,13 +1,1 @@
-powershell -f .\deploy.ps1 deploy-src-tskgrp-01.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-02.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-03.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-04.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-05.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-06.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-07.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-08.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-09.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-10.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-11.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-12e13e14.json
-powershell -f .\deploy.ps1 deploy-src-tskgrp-15.json
+powershell -f .\deploy.ps1 deploy-src-tskgrp-00.json $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]

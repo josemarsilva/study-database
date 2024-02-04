@@ -5,9 +5,13 @@
 --
 -- Step#01: USE {deploy_database} - Replaced by current deploy database
 --
+USE {deploy_database}
+/*
 DECLARE @deploy_database NVARCHAR(128) = '{deploy_database}';
 DECLARE @sql_use NVARCHAR(MAX) = N'USE ' + QUOTENAME(@deploy_database) + ';'
 EXEC sp_executesql @sql_use;
+*/
+
 
 --
 -- Step#02: DROP temporary table if exists

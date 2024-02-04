@@ -6,6 +6,6 @@
     "options": ";TrustServerCertificate=True;",
     "deploy_databases": ["labdb"],
     "deploy_sql_stmts": [
-        ["script", "script-deploy-src-15-01.sql", ""]
+        ["script", "script-deploy-src-15-01.sql", "script-deploy-src-15-01_{deploy_database}.tsv"]
     ]
 }

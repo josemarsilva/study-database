@@ -9,8 +9,8 @@ GO
 --
 DECLARE @backupType   NVARCHAR(30) = 'last'
 DECLARE @sequence     NVARCHAR(30) = '06'
-DECLARE @databaseName NVARCHAR(30) = 'labdb'
-DECLARE @toDisk       NVARCHAR(4000) = N'/mnt/share/labdb_' + @sequence + '_' + @backupType + '.bak'
+DECLARE @databaseName NVARCHAR(30) = '{deploy_database}'
+DECLARE @toDisk       NVARCHAR(4000) = N'/mnt/share/{deploy_database}_' + @sequence + '_' + @backupType + '.bak'
 DECLARE @name         NVARCHAR(4000) = N'Backup ' + @backupType + ' database [' + @databaseName + '] - TaskGroup ' + @sequence
 DECLARE @sql          NVARCHAR(4000)
 --

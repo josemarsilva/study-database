@@ -53,21 +53,24 @@ $connectionString = "Server=$server;Database=$database;User ID=$username;Passwor
 
 # Loop deploy databases
 foreach ($deploy_database in $a_deploy_databases) {
-	#
+
+	# Iteration
 	Write-Output "Deploying database [$deploy_database] ..."
 
     # Loop foreach queries
     foreach ($sql_stmt in $a_sql_stmts ) {
 
         # SQL (.sql) script file replacements into TMP (.tmp) file
-        $filenameSql = $sql_stmt[1]
-        $filename = Split-Path -Path $filenameSql -Leaf
-        $path = Split-Path -Path $filenameSql -Parent
-        if ($path -eq "") {
-            $path = "."
+        if ($scriptType -ne "statement") {
+            $filenameSql = $sql_stmt[1]
+            $filename = Split-Path -Path $filenameSql -Leaf
+            $path = Split-Path -Path $filenameSql -Parent
+            if ($path -eq "") {
+                $path = "."
+            }
+            $filenameTmp = "$path\$($filename -replace '\.sql$', '.tmp' -replace '\.ps1$', '.tmp')"
+            (Get-Content -Path $filenameSql) -replace '{deploy_database}', $deploy_database | Out-File -FilePath $filenameTmp
         }
-        $filenameTmp = "$path\$($filename -replace '\.sql$', '.tmp')"
-        (Get-Content -Path $filenameSql) -replace '{deploy_database}', $deploy_database | Out-File -FilePath $filenameTmp
 
         # Write Output Iteration
         $scriptType = $sql_stmt[0]
@@ -76,11 +79,14 @@ foreach ($deploy_database in $a_deploy_databases) {
         $results = $null
         # Switch case statement type of:
         if ($scriptType -eq "script") {
-            # Script
+            # Execute SQL script and get results
             $results = Invoke-Sqlcmd -ConnectionString $connectionString -InputFile $filenameTmp -QueryTimeout 0
         } elseif ($scriptType -eq "statement") {
-            # Executa a query SQL e obtem o resultado
+            # Execute query and get results
             $results = Invoke-Sqlcmd -ConnectionString $connectionString -Query $filenameTmp
+        } elseif ($scriptType -eq "powershell") {
+            # Execute Powershell scripts and get results
+            Start-Process powershell.exe -ArgumentList "-File $filenameTmp" -Wait
         } else {
             # Unexpected type
             Write-Error "Error: Unexpected type '$scriptType'. List of values expected: ['script', 'query' ]"

@@ -4,7 +4,7 @@
     "username": "sa",
     "password": "Password@123",
     "options": ";TrustServerCertificate=True;",
-    "deploy_databases": ["Northwind"],
+    "deploy_databases": ["AdventureWorks2019"],
     "deploy_sql_stmts": [
         ["script", "C:\\Apps\\iso-installer-ova-etc\\AdventureWorks2019-restore-full.sql", ""]
     ]

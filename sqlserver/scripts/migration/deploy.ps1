@@ -68,7 +68,7 @@ foreach ($deploy_database in $a_deploy_databases) {
             if ($path -eq "") {
                 $path = "."
             }
-            $filenameTmp = "$path\$($filename -replace '\.sql$', '.tmp' -replace '\.ps1$', '.tmp')"
+            $filenameTmp = "$path\$($filename -replace '\.sql$', '.tmp' -replace '\.ps1$', '.tmp.ps1')"
             (Get-Content -Path $filenameSql) -replace '{deploy_database}', $deploy_database | Out-File -FilePath $filenameTmp
         }
 
@@ -86,7 +86,7 @@ foreach ($deploy_database in $a_deploy_databases) {
             $results = Invoke-Sqlcmd -ConnectionString $connectionString -Query $filenameTmp
         } elseif ($scriptType -eq "powershell") {
             # Execute Powershell scripts and get results
-            Start-Process powershell.exe -ArgumentList "-File $filenameTmp" -Wait
+            Start-Process powershell.exe -ArgumentList "-File $filenameTmp" -NoNewWindow -Wait
         } else {
             # Unexpected type
             Write-Error "Error: Unexpected type '$scriptType'. List of values expected: ['script', 'query' ]"

@@ -10,8 +10,10 @@
         ["script",     "script-deploy-tgt-02-01.sql", "script-deploy-tgt-02-01_{deploy_database}.tsv"],
         ["script",     "script-deploy-tgt-06-01.sql", "script-deploy-tgt-06-01_{deploy_database}.tsv"],
         ["script",     "script-deploy-src-15-01.sql", "script-deploy-tgt-07-01_{deploy_database}.tsv"],
-        ["script",     "script-deploy-tgt-08-01.sql", ""],
-        ["powershell", "script-deploy-tgt-08-02.ps1", ""],
-        ["script",     "script-deploy-tgt-08-03.sql", ""]
+        ["script",     "script-deploy-tgt-09-01.sql", ""],
+        ["powershell", "script-deploy-tgt-09-02.ps1", ""],
+        ["script",     "script-deploy-tgt-09-03.sql", ""],
+        ["script",     "script-deploy-tgt-09-04.sql", "script-deploy-tgt-09-04_{deploy_database}.tsv"],
+        ["powershell", "script-deploy-tgt-10-01.ps1", "script-deploy-tgt-10-01_{deploy_database}.tsv"]
     ]
 }

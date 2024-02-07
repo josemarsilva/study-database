@@ -274,8 +274,8 @@ SELECT
 	schema_name,
 	object_name,
 	object_type_desc,
-	create_date,
-	modify_date,
+	CONVERT(VARCHAR(19), create_date, 120),
+	CONVERT(VARCHAR(19), modify_date, 120),
 	property_int,
 	property_varchar
 FROM

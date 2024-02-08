@@ -15,7 +15,7 @@ $a_tsvFiles = @(
 foreach ($tsvFile in $a_tsvFiles) {
 
     # Iteration
-    Write-Output "Serching ERROR in file '$($tsvFile.Item1)' ..."
+    Write-Output "Serching for any problem in file '$($tsvFile.Item1)' ..."
 
     # Search ERROR 
     Get-Content $tsvFile.Item1 | Where-Object { $_ -match " ERROR" }  | Out-File -FilePath .\script-deploy-tgt-10-01_{deploy_database}.tsv

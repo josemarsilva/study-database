@@ -116,7 +116,7 @@ foreach ($tsvFile in $a_tsvFiles) {
             if ($property_varchar -ne $null) {
                 $property_varchar = $property_varchar.Replace("'", "")
             } else {
-                $property_varchar = "NULL"
+                $property_varchar = ""
             }
         
             # Transform Tsv rows into SQL script

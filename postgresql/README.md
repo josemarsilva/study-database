@@ -19,6 +19,9 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
     * [Pip library install](#i-psycopg2)
     * [Example Query Database](#ii-exemplo-query-database)
   * [NodeJS](#d-nodejs)
+* [Performance](#34-performance-sqlserver-database)
+* [Scripts](#35-scripts-sqlserver-database)
+* [Laboratório](#35-laboratorio-sqlserver-database)
 
 ---
 ### 2. Mapa Mental
@@ -262,6 +265,16 @@ Show me the databases:
 
 
 ---
-### 3.3. Performance
+### 3.4. Performance sqlserver Database
 
-* em construção
+* _under construction_
+
+---
+### 3.5. Scripts sqlserver Database
+
+* _under construction_
+
+---
+### 3.6. Laboratório sqlserver Database
+
+* _under construction_

@@ -10,7 +10,7 @@ docker run --name mssql-labdb-2019 -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Pass
 Write-Output "Sleeping 30 sec waiting for SQLServer startup ..."
 Start-Sleep -Seconds 30
 
-powershell -f .\deploy-tgt-AdventureWorks2019.ps1 $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
-powershell -f .\deploy-tgt-Northwind.ps1          $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
+powershell -f .\deploy-src-AdventureWorks2019.ps1 $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
+powershell -f .\deploy-src-Northwind.ps1          $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
 powershell -f .\deploy-src-labdb.ps1              $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
-powershell -f .\deploy-tgt-labdb2-labdb3.ps1      $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
+powershell -f .\deploy-src-labdb2-labdb3.ps1      $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]

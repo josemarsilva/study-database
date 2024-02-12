@@ -3,43 +3,20 @@ README
 
 # 1. Introduction
 
-The `migration` sub-folder has automation scripts to Backup and Restore all databases from a Server.
+The `migrate-databases-from-source-to-target` sub-folder has automation scripts to Backup and Restore all databases from a **source** Server to another **target** Server.
 
 # 2. How does it works?
 
-* Invoke `deploy.ps1` with a JSON file parameter `deploy-src-tskgrp-02.json`.
-* `deploy.ps1` script will read parameters of `deploy-src-tskgrp-02.json` with SQL Server connection, a "list of  databases" to be Backuped or Restored and a "list of scripts" (.sql) or (.ps1) to be executed for each databses.
-* `deploy.ps1` script connect to database and execute each script of "list of scripts". Before execution of script, `deploy.ps1` replace variables like `{databse_deploy}` with the item of "list of databases"
-
-```ps1
-PS:> powershell -f deploy.ps1 deploy-src-tskgrp-02.json
-```
-
-```ps1
-PS C:\> Get-Content deploy-src-tskgrp-02.json
-{
-    "server": "127.0.0.1",
-    "database": "master",
-    "username": "sa",
-    "password": "Password@123",
-    "options": ";TrustServerCertificate=True;",
-    "deploy_databases": ["labdb"],
-    "deploy_sql_stmts": [
-        ["script", "script-deploy-src-02-01.sql", "script-deploy-src-02-01_{deploy_database}.tsv"],
-        ["script", "script-deploy-src-02-02.sql", "script-deploy-src-02-02_{deploy_database}.tsv"]
-    ]
-}
-```
+* `migrate-databases-from-source-to-target` uses tool `powershell-deployer` to make step-by-step group of tasks
 
 
 ## 2.1. Files Contents explanation
 
-1. `deploy.ps1`: main PS scripts invoked with a parameter .json configuration file
-2. `deploy-src-tskgrp-*.json`: JSON configuration file read by `deploy.ps1` and used to configure tasks steps of **Backup*** of a Task Group
-3. `deploy-tgt-tskgrp-*.json`: JSON configuration file read by `deploy.ps1` and used to configure tasks steps of **Restore** of a Task Group
-4. `script-deploy-src-*-*.sql`: Scripts sequencially executed in a Task Group to **Backup** database
-5. `script-deploy-tgt-*-*.sql`: Scripts sequencially executed in a Task Group to **Restore** database
-6. Command line startup Docker Container with SQLServer 2019 with a local volume:
+1. `deploy-src-tskgrp-*.json`: JSON configuration file read by `deploy.ps1` and used to configure tasks steps of **Backup*** of a Task Group
+2. `deploy-tgt-tskgrp-*.json`: JSON configuration file read by `deploy.ps1` and used to configure tasks steps of **Restore** of a Task Group
+3. `script-deploy-src-*-*.sql`: Scripts sequencially executed in a Task Group to **Backup** database
+4. `script-deploy-tgt-*-*.sql`: Scripts sequencially executed in a Task Group to **Restore** database
+5. Command line startup Docker Container with SQLServer 2019 with a local volume:
 
 
 ## 2.2. How to run demo?

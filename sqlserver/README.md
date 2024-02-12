@@ -43,8 +43,8 @@ Esta seção **SQLServer** do repositório [Study Database](https://github.com/j
 ### 3.5. Scripts sqlserver Database
 
 * [scripts](./scripts/): Diversos **scripts** para SQLServer
-  * [powershell-deployer](./scripts/powershell-deployer/readme.md): Ferramenta construída em PowerShell para executar um conjunto de scripts (.sql) e (.ps1) segundo um arquivo de configuração JSON
-  * [migrate-databases-from-source-to-target](./scripts/migrate-databases-from-source-to-target/readme.md): Ferramenta para migrar todas as bases de dados de uma instância **source** para outra instância **target**
+  * [powershell-deployer](./scripts/powershell-deployer/README.md): Ferramenta construída em PowerShell para executar um conjunto de scripts (.sql) e (.ps1) segundo um arquivo de configuração JSON
+  * [migrate-databases-from-source-to-target](./scripts/migrate-databases-from-source-to-target/README.md): Ferramenta para migrar todas as bases de dados de uma instância **source** para outra instância **target**
 
 ---
 ### 3.6. Laboratório sqlserver Database

@@ -14,6 +14,7 @@ Este repositório de estudo sobre **Banco de dados**
 
 ### 3. Tópicos
 
+* [Oracle](./oracle/README.md)
 * [PostgreSQL](./postgresql/README.md)
 * [SQLServer](./sqlserver/README.md)
 

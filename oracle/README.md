@@ -1,50 +1,50 @@
-# study-database - SQLServer
+# study-database - Oracle
 
 ## 1. Introdução ##
 
-Esta seção **SQLServer** do repositório [Study Database](https://github.com/josemarsilva/study-database) aborda os seguintes assuntos:
+Esta seção **Oracle** do repositório [Study Database](https://github.com/josemarsilva/study-database) aborda os seguintes assuntos:
 
-* [Instalação sqlserver](#31-instalação-sqlserver)
-* [Configuração sqlserver](#32-configuração-sqlserver)
-* [Conexão sqlserver Database](#33-conexao-sqlserver-database)
-* [Performance](#34-performance-sqlserver-database)
-* [Scripts](#35-scripts-sqlserver-database)
-* [Laboratório](#35-laboratorio-sqlserver-database)
+* [Instalação Oracle](#31-instalação-Oracle)
+* [Configuração Oracle](#32-configuração-Oracle)
+* [Conexão Oracle Database](#33-conexao-Oracle-database)
+* [Performance](#34-performance-Oracle-database)
+* [Scripts](#35-scripts-Oracle-database)
+* [Laboratório](#35-laboratorio-Oracle-database)
 
 ---
 ### 2. Mapa Mental
 
-![Mapa Mental - sqlserver](../doc/mind-maps/MindMapDiagram-DatabaseStudy-SQLServer.png) 
+![Mapa Mental - Oracle](../doc/mind-maps/MindMapDiagram-DatabaseStudy-Oracle.png) 
 
 
 ---
 ### 3. Tópicos
 
-### 3.1. Instalação sqlserver
+### 3.1. Instalação Oracle
 
 * _under construction_
 
 ---
-### 3.2. Configuração sqlserver
+### 3.2. Configuração Oracle
 
 * _under construction_
 
 ---
-### 3.3. Conexão sqlserver Database
+### 3.3. Conexão Oracle Database
 
 * _under construction_
 
 ---
-### 3.4. Performance sqlserver Database
+### 3.4. Performance Oracle Database
 
 * _under construction_
 
 ---
-### 3.5. Scripts sqlserver Database
+### 3.5. Scripts Oracle Database
 
 * _under construction_
 
 ---
-### 3.6. Laboratório sqlserver Database
+### 3.6. Laboratório Oracle Database
 
 * _under construction_

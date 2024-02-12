@@ -12,7 +12,7 @@ Este repositório de estudo sobre **Banco de dados**
 ![Mapa Mental - Contexto](doc/mind-maps/MindMapDiagram-Context.png) 
 
 
-### 3. Tópicos
+### 3. Tópicos vs Databases
 
 * [Oracle](./oracle/README.md)
 * [PostgreSQL](./postgresql/README.md)

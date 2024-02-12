@@ -4,12 +4,12 @@
 
 Esta seção **Oracle** do repositório [Study Database](https://github.com/josemarsilva/study-database) aborda os seguintes assuntos:
 
-* [Instalação Oracle](#31-instalação-Oracle)
-* [Configuração Oracle](#32-configuração-Oracle)
-* [Conexão Oracle Database](#33-conexao-Oracle-database)
-* [Performance](#34-performance-Oracle-database)
-* [Scripts](#35-scripts-Oracle-database)
-* [Laboratório](#35-laboratorio-Oracle-database)
+* [Instalação Oracle](#31-instalação-oracle)
+* [Configuração Oracle](#32-configuração-oracle)
+* [Conexão Oracle Database](#33-conexão-oracle-database)
+* [Performance](#34-performance-oracle-database)
+* [Scripts](#35-scripts-oracle-database)
+* [Laboratório](#35-scripts-oracle-database)
 
 ---
 ### 2. Mapa Mental
@@ -22,17 +22,27 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 
 ### 3.1. Instalação Oracle
 
-* _under construction_
+* Diagrama de Deploy - Oracle VirtualBox
+
+![DeployDiagram-oracle-virtualbox.drawio.png](../doc/diagrams/DeployDiagram-oracle-virtualbox.drawio.png)
 
 ---
 ### 3.2. Configuração Oracle
 
-* _under construction_
+* OVA file for Oracle Database 23c 
+* https://www.oracle.com/database/technologies/databaseappdev-vm.html
+* Configurations:
+  * IP VirtualBox Host-Only: [192.168.56.102, 192.168.56.103]
+  * ALL PASSWORDS ARE : oracle
 
 ---
 ### 3.3. Conexão Oracle Database
 
-* _under construction_
+* Command line:
+
+```bash
+sqlplus system@localhost:1521/FREE        # password = oracle
+```
 
 ---
 ### 3.4. Performance Oracle Database

@@ -18,6 +18,7 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 
 
 ---
+
 ### 3. Tópicos
 
 ### 3.1. Instalação Oracle
@@ -27,6 +28,7 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 ![DeployDiagram-oracle-virtualbox.drawio.png](../doc/diagrams/DeployDiagram-oracle-virtualbox.drawio.png)
 
 ---
+
 ### 3.2. Configuração Oracle
 
 * OVA file for Oracle Database 23c 

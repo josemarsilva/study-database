@@ -7,4 +7,4 @@ docker run --name mssql-labdb-2019 -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Pass
 Write-Output "Sleeping 30 sec waiting for SQLServer startup ..."
 Start-Sleep -Seconds 30
 
-powershell -f .\deploy.ps1 deploy-tgt-tskgrp-30.json $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
+powershell -f ..\powershell-deployer\deployer.ps1 deploy-tgt-tskgrp-30.json $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]

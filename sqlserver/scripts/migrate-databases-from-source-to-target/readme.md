@@ -3,7 +3,7 @@ README
 
 # 1. Introduction
 
-The `migration` sub-folder has automation scripts to Backup and Restore all databases from a Server. 
+The `migration` sub-folder has automation scripts to Backup and Restore all databases from a Server.
 
 # 2. How does it works?
 

@@ -1,6 +1,6 @@
 -- ----------------------------------------------------------------------------
--- filename: query_dm_top_sql.sql
--- purpose : TOP SQL with PLAN
+-- filename: query_dm_top_exec_qry_stats.sql
+-- purpose : Query TOP SQL with PLAN
 -- revision: 2023-12-30 00:12 - josemarsilva - qp.query_plan.value
 -- remarks : 
 --			* https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-exec-query-stats-transact-sql?view=sql-server-ver16

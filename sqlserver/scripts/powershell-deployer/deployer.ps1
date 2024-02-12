@@ -1,7 +1,7 @@
 ## ############################################################################
-## filename: deploy.ps1
+## filename: deployer.ps1
 ## purpose : Deploy SQL scripts configured in JSON file
-## revision: 2024-02-03 18:45 - josemarsilva - 
+## revision: 2024-02-12 18:45 - josemarsilva - 
 ## remarks : 
 ##			* https://stackoverflow.com/questions/67268792/querying-data-from-sql-server-table-with-powershell
 ##			* https://learn.microsoft.com/en-us/powershell/module/sqlserver/invoke-sqlcmd?view=sqlserver-ps

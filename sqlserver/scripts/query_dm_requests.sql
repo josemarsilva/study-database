@@ -1,29 +1,30 @@
 -- ----------------------------------------------------------------------------
 -- filename: query_dm_requests.sql
--- purpose : Request server is processing now
+-- purpose : Query Request server is processing now
 -- revision: 2023-12-15 19:45 - josemarsilva -
 -- remarks : 
+--			* https://learn.microsoft.com/pt-br/sql/relational-databases/system-dynamic-management-views/sys-dm-exec-requests-transact-sql?view=sql-server-ver16
 --          * https://documentation.red-gate.com/display/SM5/List+of+common+wait+types
 -- ----------------------------------------------------------------------------
 
 
 SELECT
-    TOP 25 st.text                             ,
-    r.session_id                               ,
-    r.status                                   ,
-    r.wait_type                                ,
-    r.wait_time                                ,
-    r.command                                  ,
-    DatabaseName = db_name(r.database_id)      ,
-    r.cpu_time                                 ,
+    TOP 25 st.text,
+    r.session_id,
+    r.status,
+    r.wait_type,
+    r.wait_time,
+    r.command,
+    DatabaseName = db_name(r.database_id),
+    r.cpu_time,
     r.total_elapsed_time                   /1000 elapsed_time_sec,
-    DATEDIFF(minute,r.start_time,getdate())/60 diff_start_time   ,
-    r.percent_complete                                           ,
-    f.login_time                                                 ,
-    f.host_name                                                  ,
-    f.program_name                                               ,
-    f.login_name                                                 ,
-    f.original_login_name                                        ,
+    DATEDIFF(minute,r.start_time,getdate())/60 diff_start_time,
+    r.percent_complete,
+    f.login_time,
+    f.host_name,
+    f.program_name,
+    f.login_name,
+    f.original_login_name,
     qp.*
 FROM
     sys.dm_exec_requests r

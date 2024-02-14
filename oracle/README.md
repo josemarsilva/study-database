@@ -12,6 +12,7 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 * [Laboratório](#35-scripts-oracle-database)
 
 ---
+
 ### 2. Mapa Mental
 
 ![Mapa Mental - Oracle](../doc/mind-maps/MindMapDiagram-DatabaseStudy-Oracle.png) 
@@ -23,7 +24,7 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 
 ### 3.1. Instalação Oracle
 
-* Diagrama de Deploy - Oracle VirtualBox
+* Deploy Diagram - Oracle VirtualBox
 
 ![DeployDiagram-oracle-virtualbox.drawio.png](../doc/diagrams/DeployDiagram-oracle-virtualbox.drawio.png)
 
@@ -34,10 +35,11 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 * OVA file for Oracle Database 23c 
 * https://www.oracle.com/database/technologies/databaseappdev-vm.html
 * Configurations:
-  * IP VirtualBox Host-Only: [192.168.56.102, 192.168.56.103]
+  * IP VirtualBox Host-Only: [`192.168.56.102`, `192.168.56.103`], host = `192.168.0.3`
   * ALL PASSWORDS ARE : oracle
 
 ---
+
 ### 3.3. Conexão Oracle Database
 
 * Command line:
@@ -47,16 +49,19 @@ sqlplus system@localhost:1521/FREE        # password = oracle
 ```
 
 ---
+
 ### 3.4. Performance Oracle Database
 
 * _under construction_
 
 ---
+
 ### 3.5. Scripts Oracle Database
 
 * _under construction_
 
 ---
+
 ### 3.6. Laboratório Oracle Database
 
-* _under construction_
+* [Oracle-RMAN](./labs/Oracle-RMAN/README.md)

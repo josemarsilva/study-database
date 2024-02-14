@@ -24,12 +24,14 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 * [Laboratório](#35-laboratorio-sqlserver-database)
 
 ---
+
 ### 2. Mapa Mental
 
 ![Mapa Mental - PostgreSQL](../doc/mind-maps/MindMapDiagram-DatabaseStudy-PostgreSQL.png) 
 
 
 ---
+
 ### 3. Tópicos
 
 ### 3.1. Instalação PostgreSQL
@@ -48,6 +50,7 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 ```
 
 ---
+
 #### b. Instalação CentOS 6
 
 * [Referências](https://tecadmin.net/install-postgresql-on-centos-rhel-and-fedora/)
@@ -62,6 +65,7 @@ Esta seção **PostgreSQL** do repositório [Study Database](https://github.com/
 ```
 
 ---
+
 #### c. Instalação manual PostgreSQL
 * [Referências](https://yum.postgresql.org/rpmchart.php) e [Download RPM PostgreSQL 9.6](https://yum.postgresql.org/9.6/redhat/rhel-6-x86_64/repoview/)
 * [Referências](https://www.tecmint.com/install-postgresql-on-centos-rhel-fedora/)
@@ -100,17 +104,20 @@ postgres=# \q
 ```
 
 ---
+
 #### d. Instalação Docker
 * [Referências](https://github.com/josemarsilva/eval-virtualbox-vm-ubuntu-server#44-docker-composer---postgresql-96-pgadmin4)
 
 
 ---
+
 #### e. Instalação Windows
 
 * não disponível
 
 
 ---
+
 ### 3.2. Configuração PostgreSQL
 
 #### a. Regras de Firewall
@@ -134,6 +141,7 @@ service ip6tables reload
 ```
 
 ---
+
 #### b. Conectividade
 
 ```sh
@@ -151,6 +159,7 @@ listen_addresses = '*'
 ```
 
 ---
+
 #### c. Criacao de database e usuários
 
 * Step-1: Criação de **database** e **user**
@@ -175,6 +184,7 @@ dbsample=> \q
 ```
 
 ---
+
 ### 3.3. Conexão PostgreSQL Database
 
 #### a. Linha de comando 
@@ -186,12 +196,14 @@ dbsample=> \q
 ```
 
 ---
+
 #### b. JDBC driver
 
 * to do
 
 
 ---
+
 #### c. Python
 
 ##### i. Psycopg2
@@ -265,16 +277,19 @@ Show me the databases:
 
 
 ---
+
 ### 3.4. Performance sqlserver Database
 
 * _under construction_
 
 ---
+
 ### 3.5. Scripts sqlserver Database
 
 * _under construction_
 
 ---
+
 ### 3.6. Laboratório sqlserver Database
 
 * _under construction_

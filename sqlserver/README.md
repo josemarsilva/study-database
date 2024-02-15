@@ -6,10 +6,10 @@ Esta seção **SQLServer** do repositório [Study Database](https://github.com/j
 
 * [Instalação sqlserver](#31-instalação-sqlserver)
 * [Configuração sqlserver](#32-configuração-sqlserver)
-* [Conexão sqlserver Database](#33-conexao-sqlserver-database)
+* [Conexão sqlserver Database](#33-conexão-sqlserver-database)
 * [Performance](#34-performance-sqlserver-database)
 * [Scripts](#35-scripts-sqlserver-database)
-* [Laboratório](#35-laboratorio-sqlserver-database)
+* [Laboratório](#36-laboratório-sqlserver-database)
 
 ---
 

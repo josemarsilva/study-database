@@ -87,4 +87,5 @@ sqlplus sys@localhost:1521/FREEPDB1 as sysdba # password = oracle
 
 ### 3.6. Laboratório Oracle Database
 
+* [Oracle Database 19c Installation On Oracle Linux 7 (OL7)](./labs/Oracle-db-19c-installation-on-oracle-linux-7/README.md)
 * [Oracle RMAN - Configure advanced RMAN backups and scripts](./labs/Oracle-RMAN/README.md)

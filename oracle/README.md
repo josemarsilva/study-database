@@ -42,11 +42,34 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 
 ### 3.3. Conexão Oracle Database
 
-* Command line:
+#### a. Using SQLPlus Command line
+
+* Para se conectar ao Container Database (CDB), use:
 
 ```bash
 sqlplus system@localhost:1521/FREE        # password = oracle
 ```
+
+* Para se conectar ao primeiro Pluggable Database (PDB), use:
+
+```bash
+sqlplus sys@localhost:1521/FREEPDB1 as sysdba # password = oracle
+```
+
+
+#### b. Using SQLDeveloper Client application
+
+* Step-01: Start `sqldeveloper`
+* Step-02: Add new connection to new database if not exists
+  * sqldeveloper :: Connection (sheet) >> New (button) >> "New database connection"
+  * On dialogbox "New / Select Database connection" follow these steps
+    * "Name": `oracle-1`, "User Info" ("Username": `system`, "Password": `oracle`, "Connection type": `basic`, "Details": ("Hostname": `192.168.56.102`, "Port": `1521`, "SID": `free` ) )
+    * Click "Test" (button) to test if connection is working good
+    * Click "Save" (button) to save database connection configuration
+* Step-03: Connect database using an existing connection
+  * sqldeveloper :: Connection (sheet) >> Oracle Connections
+    * Choose your connection and click on it. Ex: `oracle-1`
+
 
 ---
 
@@ -64,4 +87,4 @@ sqlplus system@localhost:1521/FREE        # password = oracle
 
 ### 3.6. Laboratório Oracle Database
 
-* [Oracle-RMAN](./labs/Oracle-RMAN/README.md)
+* [Oracle RMAN - Configure advanced RMAN backups and scripts](./labs/Oracle-RMAN/README.md)

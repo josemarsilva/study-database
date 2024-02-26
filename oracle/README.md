@@ -42,18 +42,51 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 
 ### 3.3. Conexão Oracle Database
 
+
 #### a. Using SQLPlus Command line
+
+* Veja também [4 ways to connect to a pdb ](https://dbaparadise.com/2023/02/4-ways-of-connecting-to-a-pdb/)
+
+1. Connect first Container Database(CDB) and for ther connect Pluggable Database (PDB):
+
+```bash
+sqlplus / as sysdba
+alter session set container=freepdb1;
+```
+
+2. Connect using services `tnsnames.ora`
 
 * Para se conectar ao Container Database (CDB), use:
 
 ```bash
-sqlplus system@localhost:1521/FREE        # password = oracle
+sqlplus sys/oracle@localhost:1521/free as sysdba
 ```
 
 * Para se conectar ao primeiro Pluggable Database (PDB), use:
 
 ```bash
-sqlplus sys@localhost:1521/FREEPDB1 as sysdba # password = oracle
+sqlplus sys/oracle@localhost:1521/freepdb1 as sysdba
+```
+
+3. Connect using EZCONNECT
+
+* Para se conectar ao Container Database (CDB) usando EZCONNECT e o service name, use:
+
+```bash
+sqlplus sys/oracle@//localhost:1521/free as sysdba
+```
+
+* Para se conectar ao Pluggable Database (PDB), usando EZCONNECT e o service name, use:
+
+```bash
+sqlplus sys/oracle@//localhost:1521/freepdb1 as sysdba
+```
+
+4. New way of connecting (>= 19c) use of an environment variable: ORACLE_PDB_SID
+
+```bash
+export ORACLE_PDB_SID=freepdb1
+sqlplus / as sysdba
 ```
 
 

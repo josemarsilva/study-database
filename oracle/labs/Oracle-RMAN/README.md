@@ -186,7 +186,7 @@ connected to target database: FREE (DBID=1419519205)
 RMAN> exit
 ```
 
-* Option no. 4: connection to a specific target database (PDB) from RMAN Utility
+* Option no. 4: connection to a specific target database (/) from RMAN Utility
 
 ```bash
 [oracle@localhost ~]$ rman 

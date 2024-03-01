@@ -38,7 +38,7 @@ Instale a partir da [Loja Microsoft Store](https://apps.microsoft.com/detail/9N4
 
 ### 3.3. Demonstração
 
-#### 3.3.01. Step: 
+#### 3.3.01. Step: Configurar
 
 ---
 

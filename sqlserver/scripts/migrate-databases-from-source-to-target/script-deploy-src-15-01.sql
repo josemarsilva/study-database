@@ -229,7 +229,46 @@ FROM	sys.server_principals sp
 ;
 
 --
--- Step#09: UPDATE temporary table SET table count(*)
+-- Step#09: INSERT into temporary table query server logins
+--
+INSERT INTO #temp_objects
+(
+    server_name,
+	database_name,
+	schema_name,
+	object_name,
+	object_type_desc,
+    create_date,
+	modify_date,
+	property_int,
+	property_varchar
+)
+SELECT
+	SUBSTRING(CAST(SERVERPROPERTY('ServerName') AS VARCHAR(128)), 1, 128) AS server_name,
+	NULL AS database_name,
+	NULL AS schema_name,
+	SUBSTRING(s.name, 1, 128) AS object_name, 
+	'LNKSRV - LINKED SERVERS' AS object_type_desc, 
+	ll.modify_date AS create_date, 
+	ll.modify_date AS modify_date, 
+	NULL AS property_int,
+	SUBSTRING(CONCAT(
+		'server_id=', CAST(s.server_id AS VARCHAR(30)),
+		', name=', s.name,
+		', product=', s.product,
+		', provider=', s.provider,
+		', data_source=', s.data_source,
+		', catalog=', COALESCE(s.catalog, ''),
+		', remote_name=', COALESCE(ll.remote_name,''),
+		''
+	),1,8000) AS property_varchar
+FROM sys.Servers s
+LEFT OUTER JOIN sys.linked_logins ll ON ll.server_id = s.server_id
+LEFT OUTER JOIN sys.server_principals sp ON sp.principal_id = ll.local_principal_id
+;
+
+--
+-- Step#10: UPDATE temporary table SET table count(*)
 --
 BEGIN
 DECLARE @schema_name NVARCHAR(128);
@@ -266,7 +305,7 @@ END;
 
 
 --
--- Step#10: QUERY temporary table
+-- Step#11: QUERY temporary table
 --
 SELECT
     server_name,

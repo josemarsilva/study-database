@@ -11,3 +11,4 @@ powershell -f ..\powershell-deployer\deployer.ps1 deploy-src-tskgrp-10.json     
 powershell -f ..\powershell-deployer\deployer.ps1 deploy-src-tskgrp-11.json       $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
 powershell -f ..\powershell-deployer\deployer.ps1 deploy-src-tskgrp-12e13e14.json $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
 powershell -f ..\powershell-deployer\deployer.ps1 deploy-src-tskgrp-15.json       $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]
+powershell -f ..\powershell-deployer\deployer.ps1 deploy-src-tskgrp-16.json       $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]

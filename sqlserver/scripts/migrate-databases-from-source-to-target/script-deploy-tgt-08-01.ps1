@@ -9,7 +9,8 @@
 # Get (.tsv) files to import: source and target
 $a_fromTsvFiles_toSqlFiles = @(
     [tuple]::Create("script-deploy-src-02-01_{deploy_database}.tsv", ".\script-deploy-tgt-08-02.sql"),
-    [tuple]::Create("script-deploy-src-02-02_{deploy_database}.tsv", ".\script-deploy-tgt-08-03.sql")
+    [tuple]::Create("script-deploy-src-02-02_{deploy_database}.tsv", ".\script-deploy-tgt-08-03.sql"),
+    [tuple]::Create("script-deploy-src-16-01.tsv",                   ".\script-deploy-tgt-08-04.sql")
 )
 
 # Loop files to import

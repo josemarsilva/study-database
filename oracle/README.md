@@ -108,7 +108,7 @@ sqlplus / as sysdba
 
 ### 3.4. Performance Oracle Database
 
-* _under construction_
+* [README.md Oracle Performance](./performance/README.md)
 
 ---
 

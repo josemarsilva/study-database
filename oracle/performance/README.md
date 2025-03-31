@@ -11,7 +11,7 @@
   * [Undo Tablespace](#15-undo-tablespace)
   * [Temporary Tablespace](#16-temporary-tablespace)
   * [Best Practices for Performance Optimization](#17-best-practices-for-performance-optimization)
-* [2. Logical Structure of the Oracle Database
+* [2. Logical Structure of the Oracle Database](#2-logical-structure-of-the-oracle-database)
   * [Tablespaces](#2-logical-structure-of-the-oracle-database)
   * [Segments](#21-tablespaces)
   * [Extents](#22-segments)
@@ -19,6 +19,9 @@
 * [3. Understanding the Oracle Optimizer](#3-understanding-the-oracle-optimizer)
   * [How the Optimizer Works](#31-how-the-optimizer-works)
   * [Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
+* [4. Identifying Performance Bottlenecks](#4-identifying-performance-bottlenecks)
+  * [Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
+
 
 ---
 
@@ -177,24 +180,24 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
 
 ### 4.1. Using V$ Views for Query Monitoring
 
-Identify long-running SQL queries:
+* Identify long-running SQL queries:
 
 ```sql
--- Check active sessions and wait events:
+-- Identify long-running SQL queries
 SELECT sql_id, elapsed_time, sql_text
 FROM v$sql
 ORDER BY elapsed_time DESC FETCH FIRST 10 ROWS ONLY;
 ```
 
 ```sql
--- Find queries consuming the most CPU
+-- Check active sessions and wait events
 SELECT event, state, wait_time, seconds_in_wait
 FROM v$session_wait
 WHERE wait_class != 'Idle';
 ```
 
 ```sql
--- Query commands 
+-- Find queries consuming the most CPU
 SELECT sql_id, executions, buffer_gets, cpu_time
 FROM v$sql
 ORDER BY cpu_time DESC FETCH FIRST 10 ROWS ONLY;

@@ -4,186 +4,140 @@
 
 ## Índice
 
-* 1. [Fundamentos do Oracle Database](#1-fundamentos-do-oracle-database)
-  * 1.1. [Estrutura Física e Lógica](#11-estrutura-física-e-lógica)
-  * 1.2. [Processos do Oracle](#12-processos-do-oracle)
-  * 1.3. [Arquitetura da SGA e PGA](#13-arquitetura-da-sga-e-pga)
-  * 1.4. Modo de Execução e Processamento de Queries
-* 2. SQL Performance Tuning
-  * 2.1. Otimização de Queries
-  * 2.2. Execution Plan (EXPLAIN PLAN)
-  * 2.3. Uso do SQL Trace e TKPROF
-  * 2.4. Bind Variables vs. Literals
-* 3. Índices e Estratégias de Indexação
-  * 3.1. Tipos de Índices
-  * 3.2. Como e quando criar e remover índices
-  * 3.3. Index Monitoring e uso de DBA_INDEX_USAGE
-* 4. Optimizer do Oracle (CBO - Cost-Based Optimizer)
-  * 4.1. Como o CBO funciona e como ele toma decisões
-  * 4.2. Estatísticas e influência do DBMS_STATS
-  * 4.3. Adaptive Query Optimization (Oracle 12c+)
-  * 4.4. Dynamic Sampling e Cardinality Estimation
-* 5. Gerenciamento da Memória
-  * 5.1. SGA e PGA Tuning
-  * 5.2. Shared Pool tuning
-  * 5.2. Automatic Memory Management (AMM) e Automatic Shared Memory Management (ASMM)
-* 6. Ajuste de Storage e I/O Performance
-  * 6.1. Configuração de redo logs e redo log groups
-  * 6.2. Controle de Undo Tablespace e Retenção
-  * 6.3. Análise de Wait Events com V$SESSION_WAIT e V$SYSTEM_EVENT
-  * 6.4. ASM (Automatic Storage Management) e impacto na performance.
-* 7. Diagnóstico de Problemas de Performance
-  * 7.1. Uso de AWR (Automatic Workload Repository) e ASH (Active Session History)
-  * 7.2. Query para V$SESSION e V$SQLAREA para identificar queries pesadas
-  * 7.3. Locks e Deadlocks: Monitoramento com V$LOCK e DBA_BLOCKERS
-  * 7.4. Diagnóstico com Oracle Enterprise Manager (OEM)
-* 8. Parallel Execution e Partitioning
-  * 8.1. Como funciona a execução paralela no Oracle
-  * 8.2. Tipos de Partitioning: Range, List, Hash, Composite
-  * 8.3. Benefícios de parallel queries e partition pruning
-* 9. High Availability e Disaster Recovery
-  * 9.1. Uso de Data Guard para replicação e failover
-  * 9.2. Oracle RAC (Real Application Clusters) para alta disponibilidade
-  * 9.3. Backup & Recovery com RMAN (Recovery Manager)
-* 10. Automação e Monitoramento
-  * 10.1. Como automatizar análises de performance com scripts SQL e PL/SQL
-  * 10.2. Uso de ferramentas como Prometheus + Grafana para métricas de banco
-  * 10.3. Alertas proativos via DBA_ALERT_HISTORY
-* 11. Laboratório
-
----
-
-## 1. Fundamentos do Oracle Database
-
-Antes de aprofundar em performance tuning, é essencial conhecer a arquitetura do Oracle Database:
-
-### 1.1. Estrutura Física e Lógica
-
-Datafiles, redo logs, control files, tablespaces, segmentos, extents e blocks.
-
-
-### 1.2. Processos do Oracle
-PMON, SMON, DBWn, LGWR, CKPT, etc.
-
-### 1.3. Arquitetura da SGA e PGA
-
-Shared Pool, Buffer Cache, Large Pool, Java Pool.
-
-### 1.4. Modo de Execução e Processamento de Queries
+* [Physical Structure of the Oracle Database](#1-physical-structure-of-the-oracle-database)
+  * [Datafiles](#11-datafiles)
+  * [Control Files](#12-control-files)
+  * [Redo Log Files](#13-redo-log-files)
+  * [Archive Log Files](#14-archive-log-files)
+  * [Undo Tablespace](#15-undo-tablespace)
+  * [Temporary Tablespace](#16-temporary-tablespace)
+  * [Best Practices for Performance Optimization](#17-best-practices-for-performance-optimization)
+* [2. Logical Structure of the Oracle Database
+  * [Tablespaces](#2-logical-structure-of-the-oracle-database)
+  * [Segments](#21-tablespaces)
+  * [Extents](#22-segments)
+  * [Data Blocks](#23-extents)
 
 
 ---
 
-## 2. SQL Performance Tuning
+## 1. Physical Structure of the Oracle Database
+The physical structure represents the operating system files that store the database data. These files include:
 
-### 2.1. Otimização de Queries
+### 1.1. Datafiles
 
-Uso correto de índices, hints, subqueries vs. joins, partitioning.
-
-### 2.2. Execution Plan (EXPLAIN PLAN)
-
-Saber interpretar os planos de execução e como ajustá-los.
-
-### 2.3. Uso do SQL Trace e TKPROF
-
-Análise de gargalos em queries.
-
-### 2.4. Bind Variables vs. Literals
-
-Impacto no parsing e performance.
+* Contain table data, indexes, and other objects.
+* Associated with tablespaces, which organize logical storage.
+* Can be placed on different disks for load balancing (I/O).
+* Performance tuning: Monitor I/O, distribute across multiple disks, and use Bigfile Tablespaces for large data volumes.
 
 
----
+### 1.2. Control Files
 
-## 3. Índices e Estratégias de Indexação
-
-### 3.1. Tipos de índices
-
-B-tree, Bitmap, Function-based, Reverse Key.
-
-### 3.2. Como e quando criar e remover índices
-
-### 3.3. Index Monitoring e uso de DBA_INDEX_USAGE
+* Essential files that store the database structure.
+* Contain information about datafiles, redo logs, checkpoint numbers, etc.
+* Performance tuning: Should be multiplexed to avoid critical failures.
 
 
----
+### 1.3. Redo Log Files
 
-## 4. Optimizer do Oracle (CBO - Cost-Based Optimizer)
-
-### 4.1. Como o CBO funciona e como ele toma decisões
-### 4.2. Estatísticas e influência do DBMS_STATS
-### 4.3. Adaptive Query Optimization (Oracle 12c+)
-### 4.4. Dynamic Sampling e Cardinality Estimation
-
-
----
-
-## 5. Gerenciamento da Memória
-
-### 5.1. SGA e PGA Tuning
-
-Ajuste de memória dinâmica e manual.
-
-### 5.2. Shared Pool tuning
-
-Redução de Hard Parsing.
-
-### 5.2. Automatic Memory Management (AMM) e Automatic Shared Memory Management (ASMM)
+* Store all database changes before being written to datafiles.
+* Used for recovery in case of failure.
+* Performance tuning:
+  * Proper sizing to avoid frequent checkpoints.
+  * Multiplexing for reliability.
+  * Using groups and multiple members for improved recovery.
 
 
----
+### 1.4. Archive Log Files
 
-## 6. Ajuste de Storage e I/O Performance
+* If the database is in ARCHIVELOG mode, contain copies of redo logs used for recovery.
+* Performance tuning: 
+  * Monitor disk space to prevent database downtime.
 
-### 6.1. Configuração de redo logs e redo log groups
 
-### 6.2. Controle de Undo Tablespace e Retenção
+### 1.5. Undo Tablespace
 
-### 6.3. Análise de Wait Events com V$SESSION_WAIT e V$SYSTEM_EVENT
+* Stores information for rollbacks and consistency control.
+* Performance tuning:
+  * Proper Undo Tablespace sizing to prevent errors like "ORA-01555: snapshot too old".
+  * Monitoring with V$UNDOSTAT.
 
-### 6.4. ASM (Automatic Storage Management) e impacto na performance.
+
+### 1.6. Temporary Tablespace
+
+* Used for operations requiring temporary space, such as sorting and complex joins.
+* Performance tuning:
+  * Monitoring with V$TEMPSEG_USAGE to prevent space errors.
+  * Using BIGFILE TEMPORARY TABLESPACE for large data volumes.
+
+
+### 1.7. Best Practices for Performance Optimization
+
+* Separate datafiles from redo logs and temporary files to distribute I/O load.
+* Avoid uncontrolled autoextend to prevent excessive fragmentation.
+* Use dedicated tablespaces for indexes and data to optimize read/write efficiency.
+* Monitor undo and temporary tablespaces to prevent failures in large transactions.
+* Utilize partitioning for large tables to improve query performance.
 
 
 ---
 
-## 7. Diagnóstico de Problemas de Performance
+## 2. Logical Structure of the Oracle Database
 
-### 7.1. Uso de AWR (Automatic Workload Repository) e ASH (Active Session History)
+The logical structure organizes data within the physical files.
 
-### 7.2. Query para V$SESSION e V$SQLAREA para identificar queries pesadas
+### 2.1. Tablespaces
 
-### 7.3. Locks e Deadlocks: Monitoramento com V$LOCK e DBA_BLOCKERS
+* Logical groupings of data segments stored in **datafiles**.
+* Important types of tablespaces:
+  * SYSTEM and SYSAUX: Manage database metadata.
+  * USERS: Store user data.
+  * UNDO: Manage transactions and rollback.
+  * TEMP: Used for temporary operations.
+  * Performance tuning:
+    * Separate data and index tablespaces to optimize read/write operations.
+    * Use ASSM (Automatic Segment Space Management) for better space management.
 
-### 7.4. Diagnóstico com Oracle Enterprise Manager (OEM)
 
+### 2.2. Segments
+Storage units within tablespaces.
+
+* Types:
+  * Table Segments: Store table data.
+  * Index Segments: Contain indexes.
+  * Undo Segments: Used for rollbacks.
+  * Temporary Segments: Created during queries that use temporary space.
+
+* Performance tuning:
+  * Avoid excessive segmentation with properly configured Autoextend.
+  * Monitor fragmentation using DBMS_SPACE.ADMIN_SEGMENT.
+
+
+### 2.3. Extents
+
+A set of data blocks allocated to a segment.
+
+* Performance tuning:
+  * Avoid excessive fragmentation by adjusting storage parameters (INITIAL, NEXT, PCTINCREASE).
+
+
+### 2.4. Data Blocks
+
+The smallest storage unit in Oracle (default size is 8 KB).
+
+* Performance tuning:
+  * Adjust DB_BLOCK_SIZE to optimize I/O operations.
+  * Monitor PCTFREE and PCTUSED to optimize free space within blocks.
+
+
+### 2.5. 3. Best Practices for Performance Optimization
+
+* Separate datafiles from redo logs and temporary files to distribute I/O load.
+* Avoid uncontrolled autoextend to prevent excessive fragmentation.
+* Use dedicated tablespaces for indexes and data to optimize read/write efficiency.
+* Monitor undo and temporary tablespaces to prevent failures in large transactions.
+* Utilize partitioning for large tables to improve query performance.
 
 ---
 
-## 8. Parallel Execution e Partitioning
-
-### 8.1. Como funciona a execução paralela no Oracle
-### 8.2. Tipos de Partitioning: Range, List, Hash, Composite
-### 8.3. Benefícios de parallel queries e partition pruning
-
-
----
-
-## 9. High Availability e Disaster Recovery
-
-### 9.1. Uso de Data Guard para replicação e failover
-### 9.2. Oracle RAC (Real Application Clusters) para alta disponibilidade
-### 9.3. Backup & Recovery com RMAN (Recovery Manager)
-
-
----
-
-## 10. Automação e Monitoramento
-
-### 10.1. Como automatizar análises de performance com scripts SQL e PL/SQL
-### 10.2. Uso de ferramentas como Prometheus + Grafana para métricas de banco
-### 10.3. Alertas proativos via DBA_ALERT_HISTORY
-
-
----
-
-## 11. Laboratório

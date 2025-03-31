@@ -127,8 +127,7 @@
       Query sys.dm_*
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="button_ok"/>
 </node>
 <node CREATED="1556296681710" ID="ID_1902611747" MODIFIED="1707508152132" STYLE="fork">
@@ -141,8 +140,7 @@
       Indexes
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="button_ok"/>
 </node>
 <node CREATED="1556296681710" ID="ID_791718253" MODIFIED="1707508138514" STYLE="fork">
@@ -155,9 +153,14 @@
       Statistics IO, Time
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1743423807941" ID="ID_1861860073" MODIFIED="1743423843606" TEXT="PowerShellDeployer">
+<icon BUILTIN="folder"/>
+</node>
+<node CREATED="1743423820686" ID="ID_1342520775" MODIFIED="1743423843606" TEXT="MigrateDatabaseFromSourceToTarget">
+<icon BUILTIN="folder"/>
 </node>
 </node>
 <node CREATED="1556296667278" ID="ID_1399984052" MODIFIED="1707508014132" POSITION="right" STYLE="fork" TEXT="Laborat&#xf3;rios">
@@ -172,8 +175,7 @@
       How to Pin table
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="button_ok"/>
 </node>
 <node CREATED="1707508295943" ID="ID_723338876" MODIFIED="1707508311253" TEXT="How to Table Partition">

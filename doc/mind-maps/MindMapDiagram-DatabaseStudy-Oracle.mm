@@ -10,8 +10,7 @@
       Oracle
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <icon BUILTIN="gohome"/>
 <node CREATED="1556296662908" ID="ID_1539429095" MODIFIED="1556314288690" POSITION="right" STYLE="fork" TEXT="Instala&#xe7;&#xe3;o">
@@ -19,7 +18,9 @@
 <node CREATED="1623935016367" ID="ID_1154277387" MODIFIED="1702060267089" TEXT="Windows"/>
 <node CREATED="1623935016367" ID="ID_1702781342" MODIFIED="1707775141526" TEXT="Docker / Container"/>
 <node CREATED="1623935016367" ID="ID_401588427" MODIFIED="1623935019288" TEXT="Cloud">
-<node CREATED="1623935020322" ID="ID_1144124277" MODIFIED="1702060136858" TEXT="Microsoft Azure Portal"/>
+<node CREATED="1743423928270" ID="ID_1837993886" MODIFIED="1743424097551" TEXT="OCI - Oracle Cloud Infrastructure">
+<icon BUILTIN="button_ok"/>
+</node>
 </node>
 <node CREATED="1707775149737" ID="ID_1133545943" MODIFIED="1707775164255" TEXT="VirtualBox">
 <icon BUILTIN="button_ok"/>
@@ -77,47 +78,29 @@
 </node>
 <node CREATED="1556296667278" ID="ID_683362039" MODIFIED="1556314301357" POSITION="right" STYLE="fork" TEXT="Performance">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1556296681710" ID="ID_1236140596" MODIFIED="1702060018150" STYLE="fork">
+<node CREATED="1556296681710" ID="ID_1236140596" MODIFIED="1743424075828" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      <i>Troubleshooting</i>
-    </p>
-  </body>
-</html></richcontent>
-<font NAME="SansSerif" SIZE="12"/>
-</node>
-<node CREATED="1556296681710" ID="ID_1956244415" MODIFIED="1702060003724" STYLE="fork">
-<richcontent TYPE="NODE"><html>
-  <head>
-    
-  </head>
-  <body>
-    <p>
-      Ferramentas
-    </p>
-  </body>
-</html></richcontent>
-<font NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-<node CREATED="1556296667278" ID="ID_775988818" MODIFIED="1707508771284" POSITION="right" STYLE="fork" TEXT="Scripts">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1556296681710" ID="ID_791718253" MODIFIED="1707775234944" STYLE="fork">
-<richcontent TYPE="NODE"><html>
-  <head>
-    
-  </head>
-  <body>
-    <p>
-      AWR Report
+      README.md
     </p>
   </body>
 </html>
 </richcontent>
+<font NAME="SansSerif" SIZE="12"/>
+<icon BUILTIN="folder"/>
+</node>
+</node>
+<node CREATED="1556296667278" ID="ID_775988818" MODIFIED="1707508771284" POSITION="right" STYLE="fork" TEXT="Scripts">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1743424002005" ID="ID_40491911" MODIFIED="1743424007884" TEXT="Oracle-db-19c-installation-on-oracle-linux-7">
+<icon BUILTIN="folder"/>
+</node>
+<node CREATED="1743424014701" ID="ID_558484842" MODIFIED="1743424018250" TEXT="Oracle-RMAN">
+<icon BUILTIN="folder"/>
 </node>
 </node>
 <node CREATED="1556296667278" ID="ID_1399984052" MODIFIED="1707508014132" POSITION="right" STYLE="fork" TEXT="Laborat&#xf3;rios">
@@ -132,8 +115,7 @@
       RMAN
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="button_ok"/>
 </node>
 </node>

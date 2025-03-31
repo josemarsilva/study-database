@@ -61,4 +61,7 @@ PS: > docker run --name mssql-labdb-2019 -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWOR
 
 ### 3.6. Laboratório sqlserver Database
 
-* [labs](./labs/): Diversos **laboratórios** para SQLServer: `howto_pintable.sql`, `howto_table_partition.sql`, `lab-fake-sqlserver-statistics.sql`
+* [labs](./labs/): Diversos **laboratórios** para SQLServer: 
+  * [Ferramenta OStress](./labs/ostress/README.md)
+  * [SqlQueryStress](./labs/sqlquerystress/README.md)
+  * Scripts: `howto_pintable.sql`, `howto_table_partition.sql`, `lab-fake-sqlserver-statistics.sql`

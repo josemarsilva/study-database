@@ -446,3 +446,14 @@ Useful when data is evenly distributed but queries use different keys.
 
 
 ---
+
+## 7. Parallel Execution
+
+### 7.1. Using Parallel Queries
+
+For large queries, you can enable parallel execution:
+
+```sql
+ALTER TABLE orders PARALLEL 4;
+SELECT /*+ PARALLEL(o 4) */ * FROM orders o;
+```

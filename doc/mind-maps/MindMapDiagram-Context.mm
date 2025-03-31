@@ -15,25 +15,7 @@
   </body>
 </html></richcontent>
 <icon BUILTIN="gohome"/>
-<node CREATED="1553633778318" ID="ID_608958870" MODIFIED="1743424137463" POSITION="right" STYLE="fork" TEXT="Oracle">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<icon BUILTIN="button_ok"/>
-</node>
-<node CREATED="1553633781880" ID="ID_1697027759" MODIFIED="1707509498611" POSITION="right" STYLE="fork" TEXT="SqlServer">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<icon BUILTIN="button_ok"/>
-</node>
-<node CREATED="1553633785880" ID="ID_886475048" MODIFIED="1707509498610" POSITION="right" STYLE="fork" TEXT="PostgreSQL">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<icon BUILTIN="button_ok"/>
-</node>
-<node CREATED="1553633790264" ID="ID_465919319" MODIFIED="1707508598571" POSITION="right" STYLE="fork" TEXT="MySQL">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-<node CREATED="1553633795612" ID="ID_1368667212" MODIFIED="1707508598571" POSITION="right" STYLE="fork" TEXT="SQLite">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-<node CREATED="1553633855150" ID="ID_958783709" MODIFIED="1556330722931" POSITION="left" STYLE="fork" TEXT="T&#xf3;picos">
+<node CREATED="1553633855150" ID="ID_958783709" MODIFIED="1556330722931" POSITION="right" STYLE="fork" TEXT="T&#xf3;picos">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1556296662908" ID="ID_1539429095" MODIFIED="1707508581595" STYLE="fork" TEXT="Instala&#xe7;&#xe3;o">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
@@ -174,13 +156,31 @@
 <icon BUILTIN="folder"/>
 </node>
 </node>
-<node CREATED="1553633795612" ID="ID_1543801289" MODIFIED="1707508598571" POSITION="right" STYLE="fork" TEXT="MongoDB">
+<node CREATED="1553633778318" ID="ID_608958870" MODIFIED="1743424137463" POSITION="left" STYLE="fork" TEXT="Oracle">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1553633781880" ID="ID_1697027759" MODIFIED="1707509498611" POSITION="left" STYLE="fork" TEXT="SqlServer">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1553633785880" ID="ID_886475048" MODIFIED="1707509498610" POSITION="left" STYLE="fork" TEXT="PostgreSQL">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1553633790264" ID="ID_465919319" MODIFIED="1707508598571" POSITION="left" STYLE="fork" TEXT="MySQL">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node CREATED="1553633795612" ID="ID_1262320240" MODIFIED="1707508598571" POSITION="right" STYLE="fork" TEXT="Casandra">
+<node CREATED="1553633795612" ID="ID_1368667212" MODIFIED="1707508598571" POSITION="left" STYLE="fork" TEXT="SQLite">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node CREATED="1743424198877" ID="ID_1827549934" MODIFIED="1743424210230" POSITION="right" TEXT="Coachbase">
+<node CREATED="1553633795612" ID="ID_1543801289" MODIFIED="1707508598571" POSITION="left" STYLE="fork" TEXT="MongoDB">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1743424198877" ID="ID_1827549934" MODIFIED="1743424210230" POSITION="left" TEXT="Coachbase">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1553633795612" ID="ID_1262320240" MODIFIED="1707508598571" POSITION="left" STYLE="fork" TEXT="Casandra">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>

@@ -34,8 +34,7 @@
 </richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1743429073711" ID="ID_153622293" MODIFIED="1743429078919" TEXT="Online Real Time"/>
-<node CREATED="1743429080215" ID="ID_1339918110" MODIFIED="1743429092405" TEXT="History time frame"/>
-<node CREATED="1743429165447" ID="ID_1517296579" MODIFIED="1743429173794" TEXT="Optimizing SQL Queries"/>
+<node CREATED="1743429080215" ID="ID_1339918110" MODIFIED="1743430871619" TEXT="AWR History time frames"/>
 </node>
 <node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1743428921946" POSITION="left" STYLE="fork">
 <richcontent TYPE="NODE"><html>
@@ -85,22 +84,42 @@
 </html>
 </richcontent>
 </node>
-<node CREATED="1743428873815" ID="ID_234677099" MODIFIED="1743429034113">
+<node CREATED="1743428873815" ID="ID_234677099" MODIFIED="1743431221688">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Understanding how the
+      Understanding the Oracle
     </p>
     <p>
-      Oracle Optimizer Works
+      Optimizer and How the
+    </p>
+    <p>
+      Optimizer Works
     </p>
   </body>
 </html>
 </richcontent>
 </node>
+</node>
+<node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1743429373845" POSITION="right" STYLE="fork">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Optimizing Performance
+    </p>
+    <p>
+      Strategies
+    </p>
+  </body>
+</html>
+</richcontent>
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
 </map>

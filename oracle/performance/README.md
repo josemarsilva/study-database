@@ -8,24 +8,35 @@
 
 * [1. Physical Structure of the Oracle Database](#1-physical-structure-of-the-oracle-database)
   * [1.1. Datafiles](#11-datafiles)
-  * [Control Files](#12-control-files)
-  * [Redo Log Files](#13-redo-log-files)
-  * [Archive Log Files](#14-archive-log-files)
-  * [Undo Tablespace](#15-undo-tablespace)
-  * [Temporary Tablespace](#16-temporary-tablespace)
-  * [Best Practices for Performance Optimization](#17-best-practices-for-performance-optimization)
+  * [1.2. Control Files](#12-control-files)
+  * [1.3. Redo Log Files](#13-redo-log-files)
+  * [1.4. Archive Log Files](#14-archive-log-files)
+  * [1.5. Undo Tablespace](#15-undo-tablespace)
+  * [1.6. Temporary Tablespace](#16-temporary-tablespace)
+  * [1.7. Best Practices for Performance Optimization](#17-best-practices-for-performance-optimization)
+  * [1.8. References](#18-references)
 * [2. Logical Structure of the Oracle Database](#2-logical-structure-of-the-oracle-database)
-  * [Tablespaces](#2-logical-structure-of-the-oracle-database)
-  * [Segments](#21-tablespaces)
-  * [Extents](#22-segments)
-  * [Data Blocks](#23-extents)
+  * [2.1. Tablespaces](#21-tablespaces)
+  * [2.2. Segments](#22-segments)
+  * [2.3. Extents](#23-extents)
+  * [2.4. Data Blocks](#24-data-blocks)
+  * [2.5. Best Practices for Performance Optimization](#25-best-practices-for-performance-optimization)
+  * [2.6. References](#26-references)
 * [3. Understanding the Oracle Optimizer](#3-understanding-the-oracle-optimizer)
-  * [How the Optimizer Works](#31-how-the-optimizer-works)
-  * [Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
+  * [3.1. How the Optimizer Works](#31-how-the-optimizer-works)
+  * [3.2. Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
 * [4. Identifying Performance Bottlenecks](#4-identifying-performance-bottlenecks)
-  * [Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
+  * [4.1 Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
 * [5. Optimizing SQL Queries](#5-optimizing-sql-queries)
   * [5.1. Indexing Strategies](#51-indexing-strategies)
+    * [5.1.1. B-tree Index](#511-b-tree-index)
+    * [5.1.2. Bitmap Index](#512-bitmap-index)
+    * [5.1.3. Function-Based Index](#513-function-based-index)
+    * [5.1.4. Partitioned Index](#514-partitioned-index)
+    * [5.1.5. Check Index Usage](#515-check-index-usage)
+    * [5.1.6. Clustering Factor](#516-clustering-factor)
+    * [5.1.7. Index Reverse Key](#517-index-reverse-key)
+    * [5.1.8. Index Organized Table](#518-index-organized-table)
   * [5.2. Bind Variables vs. Literals](#52-bind-variables-vs-literals)
   * [5.3. Avoiding SELECT](#53-avoiding-select)
   * [5.4. EXISTS vs. IN](#54-exists-vs-in)
@@ -92,6 +103,12 @@ The physical structure represents the operating system files that store the data
 * Utilize partitioning for large tables to improve query performance.
 
 
+### 1.8. References
+
+* [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw)
+  * Chapters: database & instance, memory structures, type of process, server process, background process, putting all together
+
+
 ---
 
 ## 2. Logical Structure of the Oracle Database
@@ -142,13 +159,19 @@ The smallest storage unit in Oracle (default size is 8 KB).
   * Monitor PCTFREE and PCTUSED to optimize free space within blocks.
 
 
-### 2.5. 3. Best Practices for Performance Optimization
+### 2.5. Best Practices for Performance Optimization
 
 * Separate datafiles from redo logs and temporary files to distribute I/O load.
 * Avoid uncontrolled autoextend to prevent excessive fragmentation.
 * Use dedicated tablespaces for indexes and data to optimize read/write efficiency.
 * Monitor undo and temporary tablespaces to prevent failures in large transactions.
 * Utilize partitioning for large tables to improve query performance.
+
+
+### 2.6. References
+
+* [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw)
+  * Chapters: single instance & RAC, logical storage structures
 
 
 ---
@@ -221,20 +244,47 @@ ORDER BY cpu_time DESC FETCH FIRST 10 ROWS ONLY;
 ### 5.1. Indexing Strategies
 
 * Indexes improve query performance but can also degrade insert/update performance if overused.
-  * **B-tree Index**: Best for selective queries.
-  * **Bitmap Index**: Good for low-cardinality columns (e.g., gender, status).
-  * **Function-Based Index**: Useful when queries involve functions:
+
+#### 5.1.1. B-tree Index
+
+Best for selective queries.
+
+#### 5.1.2. Bitmap Index
+
+Good for low-cardinality columns (e.g., gender, status).
+
+#### 5.1.3. Function-Based Index
+
+Useful when queries involve functions:
 
 ```sql
 CREATE INDEX idx_upper_lastname ON employees (UPPER(last_name));
-Partitioned Index: Improves performance for large tables.
 ```
+
+#### 5.1.4. Partitioned Index
+
+Improves performance for large tables.
+
+#### 5.1.5. Check Index Usage
 
 * Check index usage:
 
 ```sql
 SELECT index_name, table_name, used FROM v$object_usage;
 ```
+
+
+#### 5.1.6. Clustering Factor
+
+* `under-construction`
+
+#### 5.1.7. Index Reverse Key
+
+* `under-construction` tabelas que sofrem unique scan
+
+#### 5.1.8. Index Organized Table
+
+* `under-construction`
 
 
 ### 5.2. Bind Variables vs. Literals

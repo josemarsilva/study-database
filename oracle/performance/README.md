@@ -21,7 +21,11 @@
   * [Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
 * [4. Identifying Performance Bottlenecks](#4-identifying-performance-bottlenecks)
   * [Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
-
+* [5. Optimizing SQL Queries](#5-optimizing-sql-queries)
+  * [5.1. Indexing Strategies](#51-indexing-strategies)
+  * [5.2. Bind Variables vs. Literals](#52-bind-variables-vs-literals)
+  * [5.3. Avoiding SELECT](#53-avoiding-select)
+  * [5.4. EXISTS vs. IN](#54-exists-vs-in)
 
 ---
 
@@ -143,6 +147,7 @@ The smallest storage unit in Oracle (default size is 8 KB).
 * Monitor undo and temporary tablespaces to prevent failures in large transactions.
 * Utilize partitioning for large tables to improve query performance.
 
+
 ---
 
 ## 3. Understanding the Oracle Optimizer
@@ -176,6 +181,8 @@ SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 Look for costly operations like TABLE ACCESS FULL, which usually indicates a full table scan.
 
 
+---
+
 ## 4. Identifying Performance Bottlenecks
 
 ### 4.1. Using V$ Views for Query Monitoring
@@ -201,4 +208,74 @@ WHERE wait_class != 'Idle';
 SELECT sql_id, executions, buffer_gets, cpu_time
 FROM v$sql
 ORDER BY cpu_time DESC FETCH FIRST 10 ROWS ONLY;
+```
+
+
+---
+
+## 5. Optimizing SQL Queries
+
+### 5.1. Indexing Strategies
+
+* Indexes improve query performance but can also degrade insert/update performance if overused.
+  * **B-tree Index**: Best for selective queries.
+  * **Bitmap Index**: Good for low-cardinality columns (e.g., gender, status).
+  * **Function-Based Index**: Useful when queries involve functions:
+
+```sql
+CREATE INDEX idx_upper_lastname ON employees (UPPER(last_name));
+Partitioned Index: Improves performance for large tables.
+```
+
+* Check index usage:
+
+```sql
+SELECT index_name, table_name, used FROM v$object_usage;
+```
+
+
+### 5.2. Bind Variables vs. Literals
+
+* Using literals can cause hard parsing, slowing down execution.
+  * Bad practice (causes hard parsing):
+
+```sql
+-- Bad practice using hard parse
+SELECT * FROM orders WHERE order_id = 123;
+```
+
+```sql
+-- Better practice avoid hard parse
+SELECT * FROM orders WHERE order_id = :order_id;
+```
+
+### 5.3. Avoiding SELECT
+
+* Fetching unnecessary columns increases memory usage and I/O.
+
+```sql
+-- Bad practice using *
+SELECT * FROM customers;
+```
+
+```sql
+-- Better practice using explicity only necessaries columnns
+SELECT name, email FROM customers;
+```
+
+### 5.4. EXISTS vs. IN
+
+EXISTS is generally faster when checking for existence:
+
+```sql
+-- Better: Exists only checks existence
+SELECT name FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id);
+```
+
+
+```sql
+-- Bad: IN can be slower for large datasets:
+SELECT name FROM customers c
+WHERE customer_id IN (SELECT customer_id FROM orders);
 ```

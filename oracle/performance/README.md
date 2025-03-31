@@ -1,8 +1,7 @@
-# study-database - Oracle - Performance
+# [study-database - Oracle](../README.md) - Performance
 
-<p align="right">voltar para [study-database - Oracle](../README.md)</p>
 
-## Índice
+## Index
 
 * [Physical Structure of the Oracle Database](#1-physical-structure-of-the-oracle-database)
   * [Datafiles](#11-datafiles)
@@ -17,7 +16,9 @@
   * [Segments](#21-tablespaces)
   * [Extents](#22-segments)
   * [Data Blocks](#23-extents)
-
+* [3. Understanding the Oracle Optimizer](#3-understanding-the-oracle-optimizer)
+  * [How the Optimizer Works](#31-how-the-optimizer-works)
+  * [Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
 
 ---
 
@@ -141,3 +142,60 @@ The smallest storage unit in Oracle (default size is 8 KB).
 
 ---
 
+## 3. Understanding the Oracle Optimizer
+
+The Cost-Based Optimizer (CBO) is responsible for determining the most efficient way to execute a query.
+
+### 3.1. How the Optimizer Works
+
+* The CBO evaluates multiple execution plans and selects the one with the lowest estimated cost.
+* It relies on statistics (table size, index distribution, data distribution) to make decisions.
+* Uses histograms to improve accuracy for columns with skewed data distributions.
+
+Performance Tip: Keep statistics up to date using:
+
+```sql
+EXEC DBMS_STATS.GATHER_SCHEMA_STATS('your_schema');
+-- or ...
+EXEC DBMS_STATS.GATHER_TABLE_STATS('your_schema', 'your_table');
+```
+
+### 3.2. Execution Plan (EXPLAIN PLAN)
+
+To analyze how Oracle executes a query, use:
+
+```sql
+EXPLAIN PLAN FOR
+SELECT * FROM orders WHERE order_date = '2024-01-01';
+-- or ...
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+Look for costly operations like TABLE ACCESS FULL, which usually indicates a full table scan.
+
+
+## 4. Identifying Performance Bottlenecks
+
+### 4.1. Using V$ Views for Query Monitoring
+
+Identify long-running SQL queries:
+
+```sql
+-- Check active sessions and wait events:
+SELECT sql_id, elapsed_time, sql_text
+FROM v$sql
+ORDER BY elapsed_time DESC FETCH FIRST 10 ROWS ONLY;
+```
+
+```sql
+-- Find queries consuming the most CPU
+SELECT event, state, wait_time, seconds_in_wait
+FROM v$session_wait
+WHERE wait_class != 'Idle';
+```
+
+```sql
+-- Query commands 
+SELECT sql_id, executions, buffer_gets, cpu_time
+FROM v$sql
+ORDER BY cpu_time DESC FETCH FIRST 10 ROWS ONLY;
+```

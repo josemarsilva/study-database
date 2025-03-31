@@ -1,6 +1,6 @@
 # study-database - Oracle
 
-<p align="right">voltar para [study-database](../README.md)</p>
+[study-database](../README.md)
 
 ## 1. Introdução ##
 

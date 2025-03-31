@@ -1,10 +1,13 @@
 # [study-database - Oracle](../README.md) - Performance
 
+## Mind Map - Oracle - Performance
+![Mind Map - Oracle - Performance](../../doc/mind-maps/MindMapDiagram-DatabaseStudy-Oracle-Performance.png) 
+
 
 ## Index
 
-* [Physical Structure of the Oracle Database](#1-physical-structure-of-the-oracle-database)
-  * [Datafiles](#11-datafiles)
+* [1. Physical Structure of the Oracle Database](#1-physical-structure-of-the-oracle-database)
+  * [1.1. Datafiles](#11-datafiles)
   * [Control Files](#12-control-files)
   * [Redo Log Files](#13-redo-log-files)
   * [Archive Log Files](#14-archive-log-files)

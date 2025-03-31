@@ -53,8 +53,9 @@ PS: > docker run --name mssql-labdb-2019 -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWOR
 ### 3.5. Scripts sqlserver Database
 
 * [scripts](./scripts/): Diversos **scripts** para SQLServer
-  * [powershell-deployer](./scripts/powershell-deployer/README.md): Ferramenta construída em PowerShell para executar um conjunto de scripts (.sql) e (.ps1) segundo um arquivo de configuração JSON
-  * [migrate-databases-from-source-to-target](./scripts/migrate-databases-from-source-to-target/README.md): Ferramenta para migrar todas as bases de dados de uma instância **source** para outra instância **target**
+  * [powershell-deployer](./scripts/powershell-deployer/): Ferramenta construída em PowerShell para executar um conjunto de scripts (.sql) e (.ps1) segundo um arquivo de configuração JSON
+  * [migrate-databases-from-source-to-target](./scripts/migrate-databases-from-source-to-target/): Ferramenta para migrar todas as bases de dados de uma instância **source** para outra instância **target**
+
 
 ---
 

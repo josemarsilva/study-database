@@ -40,6 +40,19 @@
   * [5.2. Bind Variables vs. Literals](#52-bind-variables-vs-literals)
   * [5.3. Avoiding SELECT](#53-avoiding-select)
   * [5.4. EXISTS vs. IN](#54-exists-vs-in)
+  * [5.5. In-Memory Table and Columns](#55-in-memory-table-and-columns)
+  * [5.6. Cursor Optimization](#56-cursor-optimization)
+  * [5.7. Optimizing Joins and Aggregations](#57-optimizing-joins-and-aggregations)
+    * [5.7.1. Choosing the Right Join Type](#571-choosing-the-right-join-type)
+    * [5.7.2. Using the RIGHT Aggregation Strategy](#572-using-the-right-aggregation-strategy)
+* [6. Table Partitioning](#6-table-partitioning)
+  * [6.1. Range Partitioning](#61-range-partitioning)
+  * [6.2. Hash Partitioning](#62-hash-partitioning)
+  * [6.3. Partition Pruning](#63-partition-pruning)
+  * [6.4. Partition zone maps Exadata](#64-partition-zone-maps-exadata)
+  * [6.5. Drop Partition](#65-drop-partition)
+  * [6.6. Query Partition](#66-query-partition)
+
 
 ---
 
@@ -105,6 +118,10 @@ The physical structure represents the operating system files that store the data
 
 ### 1.8. References
 
+* Official Documentation
+  * [Oracle Database](https://docs.oracle.com/en/database/oracle/oracle-database/index.html)
+  * [Oracle Database - Administration]https://docs.oracle.com/en/database/oracle/oracle-database/23/administration.html
+  * [Oracle Database - Administration - SQL Tuning Guide](https://docs.oracle.com/en/database/oracle/oracle-database/23/tgsql/index.html)
 * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw)
   * Chapters: database & instance, memory structures, type of process, server process, background process, putting all together
 
@@ -236,6 +253,18 @@ FROM v$sql
 ORDER BY cpu_time DESC FETCH FIRST 10 ROWS ONLY;
 ```
 
+### 4.2. Monitoring Performance Over Time
+
+Use AWR (Automatic Workload Repository) and ASH (Active Session History) reports.
+
+```sql
+@?/rdbms/admin/awrrpt.sql
+```
+
+```sql
+SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 ROWS ONLY;
+```
+
 
 ---
 
@@ -332,3 +361,88 @@ WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id);
 SELECT name FROM customers c
 WHERE customer_id IN (SELECT customer_id FROM orders);
 ```
+
+### 5.5. In-Memory Table and Columns
+
+* `under-construction`
+
+
+### 5.6. Cursor Optimization
+
+* `under-construction`
+
+### 5.7. Optimizing Joins and Aggregations
+
+#### 5.7.1. Choosing the Right Join Type
+
+* Nested Loops: Best for small datasets and indexed joins.
+* Hash Join: Efficient for large, unindexed datasets.
+* Sort Merge Join: Used when data is pre-sorted.
+
+Check which join is being used with EXPLAIN PLAN.
+
+#### 5.7.2. Using the RIGHT Aggregation Strategy
+
+* Avoid DISTINCT if GROUP BY works
+
+```sql
+-- Better alternative:
+SELECT DISTINCT department FROM employees;
+```
+
+```sql
+-- Use analytic functions instead of GROUP BY when possible
+SELECT department FROM employees GROUP BY department;
+```
+
+```sql
+SELECT emp_id, salary, 
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rank
+FROM employees;
+```
+
+
+---
+
+## 6. Table Partitioning
+
+Partitioning breaks large tables into smaller segments for better performance.
+
+### 6.1. Range Partitioning
+
+```sql
+CREATE TABLE orders (
+  order_id NUMBER,
+  order_date DATE,
+  customer_id NUMBER
+) PARTITION BY RANGE (order_date) (
+  PARTITION p2023 VALUES LESS THAN (TO_DATE('2024-01-01', 'YYYY-MM-DD')),
+  PARTITION p2024 VALUES LESS THAN (TO_DATE('2025-01-01', 'YYYY-MM-DD'))
+);
+```
+
+### 6.2. Hash Partitioning
+
+Useful when data is evenly distributed but queries use different keys.
+
+### 6.3. Partition Pruning
+
+* `under-construction`
+
+### 6.4. Partition zone maps Exadata
+
+* `under-construction`
+
+### 6.5. Drop Partition
+
+* `under-construction`
+- Drop de partições onde a PK da tabela não faz parte da chave de particionamento, o índice da PK fica em status unusable
+
+### 6.6. Query Partition 
+
+* `under-construction`
+
+*  com queries em tabelas particionadas, ficar atento aos itens PSTART e PSTOP
+
+
+---

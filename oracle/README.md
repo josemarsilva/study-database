@@ -115,7 +115,7 @@ sqlplus / as sysdba
 
 ### 3.5. Scripts Oracle Database
 
-* _under construction_
+* Script diversos: `cdb_vs_pdb.sql`
 
 ---
 

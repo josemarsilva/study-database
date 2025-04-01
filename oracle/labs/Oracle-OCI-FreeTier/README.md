@@ -1,4 +1,4 @@
-# [study-database - Oracle](../README.md) - Labs - Oracle OCI FreeTier
+# [study-database - Oracle](../../README.md) - Labs - Oracle OCI FreeTier
 
 ## 1. Introduction
 
@@ -43,22 +43,108 @@ Objective of this laboratory **Oracle-OCI-FreeTier** is to create an Oracle Auto
 
 Once the database is created, click on it and choose how to connect:
 
-## 4.1. Using Browser 
+## 4.1. Using Web-Browser SQL Database Actions
 
-* Click menu button `Database Action` :: `SQL`
+* Click drop-down menu button `Database actions` :: `SQL`
 * SQLDeveloper on browser instance will be launched
+  * Execute following command
+
+```sql
+SELECT * FROM DBA_TABLES
+```
+
+![Oracle-OCI-DatabaseActions-SQL.png](../../../doc/images/Oracle-OCI-DatabaseActions-SQL.png) 
+
+## 4.2. Create Database User
+
+* Click drop-down menu button `Database users`
+* On `Database Actions` :: `Database Users` click button `Create User` and fill form:
+  - Username: `STUDY`
+  - Password: `*********`
+  - Quota on Tablespace DATA: `UNLIMITED`
+  - Click button `Create User`
 
 
 ## 4.2. Using SQL Developer
 
-* On the database page, click DB Connection.
-  * Download the wallet.zip file.
-* In SQL Developer, create a new connection, select Cloud Wallet, and upload the downloaded file.
+### a. Download Wallet
 
-## 4.2. Using SQL*Plus or Other Clients
+* On the database page `Overview >> Autonomous Database >> Autonomous Database Details`, Click drop-down menu button `Database connection`
+  * On `Download client credentials (Wallet)` document section click button `Download wallet`
+  * On `Download wallet` dialog box inform de same password 
+  * On `Connection strings` document section:
+    - TLS authentication: `Mutual TLS` 
+    - TNS name: `study_high` - `(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-vinhedo-1.oraclecloud.com))(connect_data=(service_name=xxxxxxxxxxxxxxx_study_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))`
+
+### b. Create SQLDeveloper Connection using ADMIN (user)
+
+* Launch local program `SQLDeveloper`
+  * Click on green `+` icon and after `Nova Conexão de Banco de Dados ...`
+  * On `Nova conexão do Serviço de Esquema de Banco de dados` dialog-box fill in the fields as follows:
+    - Connection Name: `Study_Connection_AS_ADMIN`
+    - Nome do usuário: `ADMIN`
+    - Senha: `***********`
+    - Tipo de Conexão: `Wallet do Cloud`
+    + Em detalhes
+      - Arquivo de configuração: `C:\Users\josemarsilva\Downloads\Wallet_study.zip` (previous downloaded)
+    - Click button `Testar` and wait for message `Success ...`
+
+### c. Create SQLDeveloper Connection using STUDY (user)
+
+* Launch local program `SQLDeveloper`
+  * Click on green `+` icon and after `Nova Conexão de Banco de Dados ...`
+  * On `Nova conexão do Serviço de Esquema de Banco de dados` dialog-box fill in the fields as follows:
+    - Connection Name: `Study_Connection_AS_STUDY`
+    - Nome do usuário: `STUDY`
+    - Senha: `***********`
+    - Tipo de Conexão: `Wallet do Cloud`
+    + Em detalhes
+      - Arquivo de configuração: `C:\Users\josemarsilva\Downloads\Wallet_study.zip` (previous downloaded)
+    - Click button `Testar` and wait for message `Success ...`
+
+### d. References
+  * [Connecting to an Autonomous Transaction Processing database via SQLDeveloper](https://www.youtube.com/watch?v=RGPTMEPhrck)
+
+
+
+## 4.3. Using SQL*Plus or Other Clients
+
+* Unzip `Wallet*.zip` into local dir `C:\oracle\wallet`
+
+* Edit `%ORACLE_HOME%/network/admin/sqlnet.ora`
+
+```sqlnet.ora
+WALLET_LOCATION = 
+  (SOURCE = 
+    (METHOD = file) 
+    (METHOD_DATA = 
+      (DIRECTORY = C:\oracle\wallet)  # Change this to your extracted wallet path
+    )
+  )
+
+SSL_SERVER_DN_MATCH = yes
+SSL_VERSION = 1.2
+```
+
+
+* Edit `%ORACLE_HOME%/network/admin/tnsnames.ora`
+
+```tnsnames.ora
+study_high =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCPS)(HOST = adb.sa-vinhedo-1.oraclecloud.com)(PORT = 1522))
+    (CONNECT_DATA =
+      (SERVICE_NAME = gd1a1273809afc5_study_high.adb.oraclecloud.com)
+    )
+    (SECURITY =
+      (SSL_SERVER_DN_MATCH = yes)
+    )
+  )
+```
 
 * Use the details from the DB Connection tab and connect with:
 
 ```cmd
-sqlplus admin@<db_name>_high
+sqlplus admin/**************@study_high
 ```
+

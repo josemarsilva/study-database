@@ -1,4 +1,4 @@
-# [study-database - Oracle](../README.md) - Labs - Oracle RMAN
+# [study-database - Oracle](../../README.md) - Labs - Oracle RMAN
 
 ## 1. Introdução ##
 

@@ -25,13 +25,20 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 
 ### 3.1. Instalação Oracle
 
-* Deploy Diagram - Oracle VirtualBox
+#### a. Deploy Diagram - Oracle VirtualBox
 
 ![DeployDiagram-oracle-virtualbox.drawio.png](../doc/diagrams/DeployDiagram-oracle-virtualbox.drawio.png)
+
+
+#### b. Deploy Diagram - Oracle Autonomous Database - OCI Oracle Cloud Infrastructure
+
+* `under-construction`
 
 ---
 
 ### 3.2. Configuração Oracle
+
+#### a. Deploy Diagram - Oracle VirtualBox
 
 * OVA file for Oracle Database 23c 
 * https://www.oracle.com/database/technologies/databaseappdev-vm.html
@@ -124,4 +131,3 @@ sqlplus / as sysdba
 * [Oracle Database 19c Installation On Oracle Linux 7 (OL7)](./labs/Oracle-db-19c-installation-on-oracle-linux-7/README.md)
 * [Oracle RMAN - Configure advanced RMAN backups and scripts](./labs/Oracle-RMAN/README.md)
 * [Oracle Autonomous Database - OCI - Free Tier](./labs/Oracle-OCI-FreeTier/README.md)
-

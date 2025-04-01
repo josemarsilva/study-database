@@ -123,3 +123,5 @@ sqlplus / as sysdba
 
 * [Oracle Database 19c Installation On Oracle Linux 7 (OL7)](./labs/Oracle-db-19c-installation-on-oracle-linux-7/README.md)
 * [Oracle RMAN - Configure advanced RMAN backups and scripts](./labs/Oracle-RMAN/README.md)
+* [Oracle Autonomous Database - OCI - Free Tier](./labs/Oracle-OCI-FreeTier/README.md)
+

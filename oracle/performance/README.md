@@ -239,6 +239,8 @@ FROM v$sql
 ORDER BY elapsed_time DESC FETCH FIRST 10 ROWS ONLY;
 ```
 
+* Identify active sessions and wait events 
+
 ```sql
 -- Check active sessions and wait events
 SELECT event, state, wait_time, seconds_in_wait
@@ -246,12 +248,21 @@ FROM v$session_wait
 WHERE wait_class != 'Idle';
 ```
 
+* Identify running queries by exectuions, buffer_gets or cpu_time
+
 ```sql
 -- Find queries consuming the most CPU
 SELECT sql_id, executions, buffer_gets, cpu_time
 FROM v$sql
 ORDER BY cpu_time DESC FETCH FIRST 10 ROWS ONLY;
 ```
+
+```sql
+-- V$SQLAREA
+SELECT *
+FROM V$SQLAREA
+```
+
 
 ### 4.2. Monitoring Performance Over Time
 
@@ -265,6 +276,13 @@ Use AWR (Automatic Workload Repository) and ASH (Active Session History) reports
 SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 ROWS ONLY;
 ```
 
+### 4.3. Look for Locks e Deadlocks
+
+* `under-construction` V$LOCK e DBA_BLOCKERS
+
+### 4.4. Diagnostics with Oracle Enterprise Manager (OEM)
+
+* `under-construction` V$LOCK e DBA_BLOCKERS
 
 ---
 

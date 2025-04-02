@@ -37,7 +37,7 @@ BEGIN
       TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(1e2, 1e3))), -- address_unit
       DECODE(MOD(i,2), 0, '', DBMS_RANDOM.STRING('A', 20)), -- address_details
       TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(1e7, 1e8))), -- address_zip_code
-      DBMS_RANDOM.STRING('A', 30), -- address_city
+      get_array_element(i, 'Rio Branco,Maceio,Macapa,Manaus,Salvador,Fortaleza,Brasilia,Vitoria,Goiania,Sao Luis,Cuiaba,Campo Grande,Belo Horizonte,Belem,Joao Pessoa,Curitiba,Recife,Teresina,Rio de Janeiro,Natal,Porto Alegre,Porto Velho,Boa Vista,Florianopolis,Sao Paulo,Aracaju,Palmas'), -- address_city
       get_array_element(i, 'AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO'), -- address_state
       NULL, -- last_purchase_at
       NULL -- obs

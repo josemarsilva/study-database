@@ -27,6 +27,9 @@
   * [3.2. Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
 * [4. Identifying Performance Bottlenecks](#4-identifying-performance-bottlenecks)
   * [4.1 Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
+  * [4.2 Monitoring Performance over Time AWR](#42-monitoring-performance-over-time-with-awr-and-ash)
+  * [4.3 Look for Locks and DeadLocks](#43-look-for-locks-and-deadlocks)
+  * [4.4 Diagnostics with Oracle Enterprise Manager OEM](#44-diagnostics-with-oracle-enterprise-manager-oem)
 * [5. Optimizing SQL Queries](#5-optimizing-sql-queries)
   * [5.1. Indexing Strategies](#51-indexing-strategies)
     * [5.1.1. B-tree Index](#511-b-tree-index)
@@ -52,6 +55,8 @@
   * [6.4. Partition zone maps Exadata](#64-partition-zone-maps-exadata)
   * [6.5. Drop Partition](#65-drop-partition)
   * [6.6. Query Partition](#66-query-partition)
+* [7. Parallel Execution](#7-parallel-execution)
+  * [7.1. Using Parallel Queries](#71-using-parallel-queries)
 
 
 ---
@@ -264,7 +269,7 @@ FROM V$SQLAREA
 ```
 
 
-### 4.2. Monitoring Performance Over Time
+### 4.2. Monitoring Performance Over Time with AWR and ASH
 
 Use AWR (Automatic Workload Repository) and ASH (Active Session History) reports.
 
@@ -276,7 +281,7 @@ Use AWR (Automatic Workload Repository) and ASH (Active Session History) reports
 SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 ROWS ONLY;
 ```
 
-### 4.3. Look for Locks e Deadlocks
+### 4.3. Look for Locks and Deadlocks
 
 * `under-construction` V$LOCK e DBA_BLOCKERS
 
@@ -474,4 +479,110 @@ For large queries, you can enable parallel execution:
 ```sql
 ALTER TABLE orders PARALLEL 4;
 SELECT /*+ PARALLEL(o 4) */ * FROM orders o;
+```
+
+
+---
+
+## I. Laboratories
+
+Laboratories is a practical use of performance concepts
+
+## I.1. Lab-I.1: Create Sample Tables using scripts
+
+* Pre-requisites:
+  * [Laboratory - Oracle OCI FreeTier](../labs/Oracle-OCI-FreeTier/README.md)
+* Step-1: Create Tables, Constraints, Sequences, etc - Run Script [`01_tables_pk_ak_seq_check.sql`](./sql/01_tables_pk_ak_seq_check.sql)
+* Step-2: Create Function auxiliar - Run Script [`11_function_get_array_element.sql`](./sql/11_function_get_array_element.sql)
+* Step-3: Create Procedure Load Customers - Run Script [`12_procedure_load_customers.sql`](./sql/12_procedure_load_customers.sql)
+* Step-4: Load 200.000 rows into `customers` tables - Run Script [`13_execute_load_customers.sql`](./sql/13_execute_load_customers.sql)
+
+```sql
+EXECUTE load_customers(2000)
+```
+
+* Step-5: Understand table `STUDY.customers`: number of rows, columns, distinct values
+  * Table `customers` has 200.000 rows
+  * Column `customers.customer_code` is alternate key, so 200.000 distincts keys
+  * Column `customers.customer_type` is 2 distinct values: **F** Fisica, **J** Juridica
+  * Column `customers.address_city` is 27 distinct values: 'Rio Branco', 'Maceio', ..., 'Palmas'
+  * Column `customers.address_state` is 27 distinct values: 'AC', 'AL', ..., 'TO'
+  * Index Unique `customers.customer_code`
+
+```sql
+select count(*) from customers -- 200.000
+```
+
+```sql
+DESCRIBE STUDY.customers
+Name             Null?    Type           
+---------------- -------- -------------- 
+ID               NOT NULL NUMBER         
+CUSTOMER_NAME    NOT NULL VARCHAR2(100)  
+CUSTOMER_TYPE    NOT NULL VARCHAR2(1)    
+CUSTOMER_CODE    NOT NULL VARCHAR2(14)   
+CUSTOMER_STATUS  NOT NULL NUMBER(1)      
+CUSTOMER_EMAIL            VARCHAR2(100)  
+CUSTOMER_PHONE            VARCHAR2(30)   
+ADDRESS_STREET   NOT NULL VARCHAR2(200)  
+ADDRESS_UNIT     NOT NULL VARCHAR2(20)   
+ADDRESS_DETAILS           VARCHAR2(30)   
+ADDRESS_ZIP_CODE NOT NULL NUMBER(8)      
+ADDRESS_CITY     NOT NULL VARCHAR2(50)   
+ADDRESS_STATE    NOT NULL VARCHAR2(2)    
+LAST_PURCHASE_AT          DATE           
+OBS                       VARCHAR2(1000) 
+```
+
+
+```sql
+SELECT 
+    COUNT(DISTINCT customer_code),   -- CPF/CNPJ
+    COUNT(DISTINCT customer_name),   -- name
+    COUNT(DISTINCT customer_type),   -- [ 'F', 'J' ]
+    COUNT(DISTINCT customer_status), -- [ 0, 1 ]
+    COUNT(DISTINCT address_state)    -- ['AC','AL',...,'TO']
+FROM STUDY.customers;
+
+COUNT(DISTINCTCUSTOMER_TYPE) COUNT(DISTINCTCUSTOMER_TYPE) COUNT(DISTINCTCUSTOMER_STATUS) COUNT(DISTINCTADDRESS_STATE) COUNT(DISTINCTADDRESS_CITY)
+---------------------------- ---------------------------- ------------------------------ ---------------------------- ----------------------------
+200000                       2                            1                              27                           27
+```
+
+
+---
+
+## I.2. Lab-I.2: Query metrics scenario INITIAL
+
+* Pre-requisites:
+  * [I.1. Lab-I.1: Create Sample Tables using scripts](#i1-lab-i1-create-sample-tables-using-scripts)
+
+* Step-1: Check if Table Has Statistics Collected
+
+```sql
+SELECT table_name, last_analyzed, num_rows, blocks, avg_row_len
+FROM dba_tab_statistics 
+WHERE owner = 'STUDY' 
+AND table_name = 'CUSTOMERS';
+```
+
+```result
+TABLE_NAME LAST_ANALYZED NUM_ROWS BLOCKS AVG_ROW_LEN
+---------- ------------- -------- ------ -----------
+CUSTOMERS  NULL          NULL     NULL   NULL
+```
+
+* Step-2: Collect statistics 
+
+```sql
+-- This will collect row count, column statistics, and index statistics. Default method uses AUTO_SAMPLE_SIZE for better performance.
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'CUSTOMERS');
+```
+
+* New results after collect statistics
+
+```result
+TABLE_NAME LAST_ANALYZED NUM_ROWS BLOCKS AVG_ROW_LEN
+---------- ------------- -------- ------ -----------
+CUSTOMERS  02/04/25      200000   7174   247
 ```

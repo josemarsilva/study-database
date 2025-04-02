@@ -142,6 +142,12 @@ study_high =
   )
 ```
 
+* SET Environment variable `TNS_ADMIN`
+
+```cmd
+setx TNS_ADMIN C:\Apps\wallet     
+```
+
 * Use the details from the DB Connection tab and connect with:
 
 ```cmd

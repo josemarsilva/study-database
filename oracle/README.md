@@ -32,7 +32,7 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 
 #### b. Deploy Diagram - Oracle Autonomous Database - OCI Oracle Cloud Infrastructure
 
-* `under-construction`
+![DeployDiagram-Context-cloud-oci-oracle-autonomous.drawio.png](../doc/diagrams/DeployDiagram-Context-cloud-oci-oracle-autonomous.drawio.png)
 
 ---
 
@@ -45,6 +45,11 @@ Esta seção **Oracle** do repositório [Study Database](https://github.com/jose
 * Configurations:
   * IP VirtualBox Host-Only: [`192.168.56.102`, `192.168.56.103`], host = `192.168.0.3`
   * ALL PASSWORDS ARE : oracle
+
+
+#### b. Deploy Diagram - OCI - Oracle Autonomous Database
+
+* [Oracle-OCI-FreeTier](./labs/Oracle-OCI-FreeTier/README.md)
 
 ---
 

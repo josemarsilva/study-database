@@ -3,3 +3,4 @@
 -- revision: 2025-04-01 - josemarsilva
 -- ----------------------------------------------------------------------------
 
+-- Scenario INITIAL: Only PK and AK index

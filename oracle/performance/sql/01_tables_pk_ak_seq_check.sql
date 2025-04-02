@@ -1,7 +1,12 @@
 -- ----------------------------------------------------------------------------
--- filename: 01_tables_pk_seq_check.sql
+-- filename: 01_tables_pk_ak_seq_check.sql
 -- revision: 2025-04-01 - josemarsilva
 -- ----------------------------------------------------------------------------
+
+--
+-- Drop table "customers"
+--
+DROP TABLE customers CASCADE CONSTRAINTS;
 
 --
 -- Create table "customers"
@@ -25,7 +30,16 @@ CREATE TABLE customers (
 );
 
 --
+-- Drop table "customers"
+--
+DROP SEQUENCE customers_seq;
+
+--
 -- Create sequence for auto-incrementing the primary key
 --
 CREATE SEQUENCE customers_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
+--
+-- Alternate Key - Unique constraint
+--
+ALTER TABLE customers ADD CONSTRAINT ak_customer_code UNIQUE (customer_code);

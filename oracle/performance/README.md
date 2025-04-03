@@ -289,6 +289,10 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 * `under-construction` V$LOCK e DBA_BLOCKERS
 
+### 4.5. Check Statistics Consistency
+
+* `under-construction` Check Statistics Consistency
+
 ---
 
 ## 5. Optimizing SQL Queries
@@ -498,55 +502,59 @@ Laboratories is a practical use of performance concepts
 * Step-4: Load 200.000 rows into `customers` tables - Run Script [`13_execute_load_customers.sql`](./sql/13_execute_load_customers.sql)
 
 ```sql
-EXECUTE load_customers(2000)
+EXECUTE load_customers(200000) -- 200.000 rows
 ```
 
 * Step-5: Understand table `STUDY.customers`: number of rows, columns, distinct values
   * Table `customers` has 200.000 rows
-  * Column `customers.customer_code` is alternate key, so 200.000 distincts keys
-  * Column `customers.customer_type` is 2 distinct values: **F** Fisica, **J** Juridica
+  * Column `customers.customer_type_id` has 2 distinct values: (**F** Fisica, **J** Juridica)
+  * Column `customers.code` is alternate key CNPJ/CPF, has 200.000 distincts keys
+  * Column `customer_status_id` has a 4 distinct values: (0: INACTIVE; 1: ACTIVE; 2:BLOCKED; 3:RESTRICTED - ONLY WITHDRAWS)
   * Column `customers.address_city` is 27 distinct values: 'Rio Branco', 'Maceio', ..., 'Palmas'
   * Column `customers.address_state` is 27 distinct values: 'AC', 'AL', ..., 'TO'
   * Index Unique `customers.customer_code`
+
+
+* Describe 
+
+```sql
+DESCRIBE STUDY.customers
+Name               Null?    Type           
+------------------ -------- -------------- 
+ID                 NOT NULL NUMBER         
+NAME               NOT NULL VARCHAR2(100)  
+CUSTOMER_TYPE_ID   NOT NULL VARCHAR2(1)    
+CODE               NOT NULL VARCHAR2(14)   
+CUSTOMER_STATUS_ID NOT NULL NUMBER(1)      
+EMAIL              NOT NULL VARCHAR2(100)  
+PHONE              NOT NULL VARCHAR2(30)   
+ADDRESS_STREET              VARCHAR2(200)  
+ADDRESS_UNIT                VARCHAR2(20)   
+ADDRESS_DETAILS             VARCHAR2(30)   
+ADDRESS_ZIP_CODE   NOT NULL NUMBER(8)      
+ADDRESS_CITY       NOT NULL VARCHAR2(50)   
+ADDRESS_STATE      NOT NULL VARCHAR2(2)    
+SINCE_AT                    DATE           
+LAST_ORDER_AT               DATE           
+OBS                         VARCHAR2(1000) 
+```
+
+* CARDINALITY
 
 ```sql
 select count(*) from customers -- 200.000
 ```
 
-```sql
-DESCRIBE STUDY.customers
-Name             Null?    Type           
----------------- -------- -------------- 
-ID               NOT NULL NUMBER         
-CUSTOMER_NAME    NOT NULL VARCHAR2(100)  
-CUSTOMER_TYPE    NOT NULL VARCHAR2(1)    
-CUSTOMER_CODE    NOT NULL VARCHAR2(14)   
-CUSTOMER_STATUS  NOT NULL NUMBER(1)      
-CUSTOMER_EMAIL            VARCHAR2(100)  
-CUSTOMER_PHONE            VARCHAR2(30)   
-ADDRESS_STREET   NOT NULL VARCHAR2(200)  
-ADDRESS_UNIT     NOT NULL VARCHAR2(20)   
-ADDRESS_DETAILS           VARCHAR2(30)   
-ADDRESS_ZIP_CODE NOT NULL NUMBER(8)      
-ADDRESS_CITY     NOT NULL VARCHAR2(50)   
-ADDRESS_STATE    NOT NULL VARCHAR2(2)    
-LAST_PURCHASE_AT          DATE           
-OBS                       VARCHAR2(1000) 
-```
-
+* SELECTIVITY
 
 ```sql
 SELECT 
-    COUNT(DISTINCT customer_code),   -- CPF/CNPJ
-    COUNT(DISTINCT customer_name),   -- name
-    COUNT(DISTINCT customer_type),   -- [ 'F', 'J' ]
-    COUNT(DISTINCT customer_status), -- [ 0, 1 ]
-    COUNT(DISTINCT address_state)    -- ['AC','AL',...,'TO']
+    COUNT(DISTINCT code),               -- 2 keys: (CPF;CNPJ)
+    COUNT(DISTINCT name),               -- 200.000 keys
+    COUNT(DISTINCT customer_type_id),   -- 2 keys: [ 'F', 'J' ]
+    COUNT(DISTINCT customer_status_id), -- 4 keys: [ 0, 1, 2, 3 ]
+    COUNT(DISTINCT address_state)       -- ['AC','AL',...,'TO']
 FROM STUDY.customers;
-
-COUNT(DISTINCTCUSTOMER_TYPE) COUNT(DISTINCTCUSTOMER_TYPE) COUNT(DISTINCTCUSTOMER_STATUS) COUNT(DISTINCTADDRESS_STATE) COUNT(DISTINCTADDRESS_CITY)
----------------------------- ---------------------------- ------------------------------ ---------------------------- ----------------------------
-200000                       2                            1                              27                           27
 ```
 
 
@@ -574,9 +582,23 @@ CUSTOMERS  NULL          NULL     NULL   NULL
 
 * Step-2: Collect statistics 
 
+* Simple
+
 ```sql
--- This will collect row count, column statistics, and index statistics. Default method uses AUTO_SAMPLE_SIZE for better performance.
+-- This will collect row count, column statistics, and index statistics
 EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'CUSTOMERS');
+```
+
+* Estimate auto, histogram if benefical
+
+```sql
+-- More
+EXEC DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+);
 ```
 
 * New results after collect statistics

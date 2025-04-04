@@ -1,6 +1,7 @@
 -- ----------------------------------------------------------------------------
--- filename: 01_tables_pk_ak_seq_check.sql
--- revision: 2025-04-01 - josemarsilva
+-- filename   : 01_tables_pk_ak_seq_check.sql
+-- revision   : 2025-04-01 - josemarsilva
+-- description: 
 -- ----------------------------------------------------------------------------
 
 
@@ -63,6 +64,6 @@ CREATE SEQUENCE customers_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 ALTER TABLE customers ADD CONSTRAINT ak_customers_code UNIQUE (code);
 
 
+-- ----------------------------------------------------------------------------
 --
---
---
+-- ----------------------------------------------------------------------------

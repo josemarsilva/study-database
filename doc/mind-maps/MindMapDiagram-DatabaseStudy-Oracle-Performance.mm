@@ -157,36 +157,24 @@
 </html>
 </richcontent>
 </node>
-<node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743799080258">
+<node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743803424748">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Code rewrite strategies:
+      Code rewrite strategies: procedures,
     </p>
     <p>
-      procedures, jobs, mv, tmp, etc
+      partitioning, jobs, mv, tmp, architecture,
+    </p>
+    <p>
+      client-server, networking, etc
     </p>
   </body>
 </html>
 </richcontent>
-</node>
-<node CREATED="1743798890499" ID="ID_209462764" MODIFIED="1743798946509">
-<richcontent TYPE="NODE"><html>
-  <head>
-    
-  </head>
-  <body>
-    <p>
-      Code rewrite: procedures,
-    </p>
-    <p>
-      jobs, etc
-    </p>
-  </body>
-</html></richcontent>
 </node>
 </node>
 </node>

@@ -201,8 +201,13 @@ The smallest storage unit in Oracle (default size is 8 KB).
 
 ### 2.6. References
 
+* Official Documentation
+  * n/a
 * Blog/Videos
   * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: single instance & RAC, logical storage structures
+* Laboratories / [Quick Wins, Vlogs, Blogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+  * n/a
+
 
 
 ---

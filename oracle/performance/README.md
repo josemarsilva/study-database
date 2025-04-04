@@ -30,7 +30,7 @@
   * [4.2 Monitoring Performance over Time AWR](#42-monitoring-performance-over-time-with-awr-and-ash)
   * [4.3 Look for Locks and DeadLocks](#43-look-for-locks-and-deadlocks)
   * [4.4 Diagnostics with Oracle Enterprise Manager OEM](#44-diagnostics-with-oracle-enterprise-manager-oem)
-* [5. Optimizing Issues Identified](#5-optimizing-issues-identified)
+* [5. Optimizing Performance Issues Identified](#5-optimizing-issues-identified)
   * [5.1. Optimizing SQL Queries - Indexing Strategies](#51-optimizing-sql-queries---indexing-strategies)
     * [5.1.a. B-tree Index](#51a-b-tree-index)
     * [5.1.b. Bitmap Index](#51b-bitmap-index)
@@ -64,7 +64,7 @@
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii1-turn-trace-onof-explain-plan)
   * [II.2. Query Object Statistics](#ii2-query-object-statisticsplan)
   * [II.3. Query Indexed Columns](#ii3-query-indexed-columns)
-  * [II.99. Quick Wins, Blogs, etc](#ii99-quick-wins-blogs-etc)
+  * [II.99. Quick Wins, Blogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
 
 
 ---
@@ -133,11 +133,11 @@ The physical structure represents the operating system files that store the data
 
 * Official Documentation
   * [Oracle Database](https://docs.oracle.com/en/database/oracle/oracle-database/index.html)
-  * [Oracle Database - Administration]https://docs.oracle.com/en/database/oracle/oracle-database/23/administration.html
+  * [Oracle Database - Administration](https://docs.oracle.com/en/database/oracle/oracle-database/23/administration.html)
   * [Oracle Database - Administration - SQL Tuning Guide](https://docs.oracle.com/en/database/oracle/oracle-database/23/tgsql/index.html)
 * Blog/Videos
   * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: database & instance, memory structures, type of process, server process, background process, putting all together
-* Laboratories / Attachemnts
+* Laboratories / [Quick Wins, Vlogs, Blogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
   * n/a
 
 ---
@@ -201,8 +201,8 @@ The smallest storage unit in Oracle (default size is 8 KB).
 
 ### 2.6. References
 
-* [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw)
-  * Chapters: single instance & RAC, logical storage structures
+* Blog/Videos
+  * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: single instance & RAC, logical storage structures
 
 
 ---
@@ -304,7 +304,7 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 ---
 
-## 5. Optimizing Issues Identified
+## 5. Optimizing Performance Issues Identified
 
 ## 5.1. Optimizing SQL Queries - Indexing Strategies
 
@@ -768,7 +768,7 @@ SYS_C0056973      ID          1               ASC
 ```
 
 
-## II.99. Quick Wins, Blogs, etc
+## II.99. Quick Wins, Blogs, Vlogs, etc
 
 ## II.99.a. Default Simple Response, Quick Wins, What should you do
 

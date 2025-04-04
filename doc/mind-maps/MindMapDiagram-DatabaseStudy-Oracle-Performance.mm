@@ -13,8 +13,7 @@
       Performance
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <icon BUILTIN="gohome"/>
 <node CREATED="1556296667278" ID="ID_683362039" MODIFIED="1743428965190" POSITION="right" STYLE="fork">
@@ -30,11 +29,11 @@
       Bottlenecks Strategies
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1743429073711" ID="ID_153622293" MODIFIED="1743429078919" TEXT="Online Real Time"/>
 <node CREATED="1743429080215" ID="ID_1339918110" MODIFIED="1743430871619" TEXT="AWR History time frames"/>
+<node CREATED="1743799137058" ID="ID_130440621" MODIFIED="1743799167283" TEXT="Tracing business process"/>
 </node>
 <node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1743428921946" POSITION="left" STYLE="fork">
 <richcontent TYPE="NODE"><html>
@@ -49,8 +48,7 @@
       Pre-requisites
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1743428838865" ID="ID_1027187152" MODIFIED="1743428933971">
 <richcontent TYPE="NODE"><html>
@@ -65,8 +63,7 @@
       Oracle Database
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1743428850647" ID="ID_918823048" MODIFIED="1743428940543">
 <richcontent TYPE="NODE"><html>
@@ -81,8 +78,7 @@
       Oracle Database
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1743428873815" ID="ID_234677099" MODIFIED="1743431221688">
 <richcontent TYPE="NODE"><html>
@@ -100,11 +96,10 @@
       Optimizer Works
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1743429373845" POSITION="right" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1743793316811" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -114,12 +109,85 @@
       Optimizing Performance
     </p>
     <p>
-      Strategies
+      Issues Identified
     </p>
   </body>
 </html>
 </richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1743793334963" ID="ID_699225170" MODIFIED="1743798822510">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Indexing strategies
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1743793334963" ID="ID_1316410889" MODIFIED="1743798817609">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Statistics strategies
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1743793334963" ID="ID_897098251" MODIFIED="1743799094952">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Query rewrite strategies:
+    </p>
+    <p>
+      hints, mv, parallel, etc
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743799080258">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Code rewrite strategies:
+    </p>
+    <p>
+      procedures, jobs, mv, tmp, etc
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1743798890499" ID="ID_209462764" MODIFIED="1743798946509">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Code rewrite: procedures,
+    </p>
+    <p>
+      jobs, etc
+    </p>
+  </body>
+</html></richcontent>
+</node>
 </node>
 </node>
 </map>

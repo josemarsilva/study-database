@@ -25,7 +25,7 @@
 * [3. Understanding the Oracle Optimizer](#3-understanding-the-oracle-optimizer)
   * [3.1. How the Optimizer Works](#31-how-the-optimizer-works)
   * [3.2. Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
-* [4. Identifying Performance Bottlenecks](#4-identifying-performance-bottlenecks)
+* [4. Identifying Performance Bottlenecks](#4-identifying-and-diagnosticing-performance-bottlenecks)
   * [4.1 Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
   * [4.2 Monitoring Performance over Time AWR](#42-monitoring-performance-over-time-with-awr-and-ash)
   * [4.3 Look for Locks and DeadLocks](#43-look-for-locks-and-deadlocks)
@@ -40,14 +40,15 @@
     * [5.1.f. Clustering Factor](#51f-clustering-factor)
     * [5.1.g. Index Reverse Key](#51g-index-reverse-key)
     * [5.1.h. Index Organized Table](#51h-index-organized-table)
-  * [5.2. Bind Variables vs. Literals](#52-bind-variables-vs-literals)
-  * [5.3. Avoiding SELECT](#53-avoiding-select)
-  * [5.4. EXISTS vs. IN](#54-exists-vs-in)
-  * [5.5. In-Memory Table and Columns](#55-in-memory-table-and-columns)
-  * [5.6. Cursor Optimization](#56-cursor-optimization)
-  * [5.7. Optimizing Joins and Aggregations](#57-optimizing-joins-and-aggregations)
-    * [5.7.1. Choosing the Right Join Type](#571-choosing-the-right-join-type)
-    * [5.7.2. Using the RIGHT Aggregation Strategy](#572-using-the-right-aggregation-strategy)
+  * [5.2. Optimizing SQL Queries - Others Strategies](#52-optimizing-sql-queries---others-strategies)
+    * [5.2.a. Bind Variables vs. Literals](#52a-optimizing-sql-queries---bind-variables-vs-literals)
+    * [5.2.b. Avoiding SELECT *](#52b-avoiding-select-)
+    * [5.2.c. EXISTS vs. IN](#52c-exists-vs-in)
+    * [5.2.d. In-Memory Table and Columns](#52d-in-memory-table-and-columns)
+    * [5.2.e. Cursor Optimization](#52e-cursor-optimization)
+  * [5.3. Optimizing Joins and Aggregations](#53-optimizing-joins-and-aggregations)
+      * [5.3.a. Choosing the Right Join Type](#571-choosing-the-right-join-type)
+      * [5.3.b. Using the RIGHT Aggregation Strategy](#572-using-the-right-aggregation-strategy)
 * [6. Table Partitioning](#6-table-partitioning)
   * [6.1. Range Partitioning](#61-range-partitioning)
   * [6.2. Hash Partitioning](#62-hash-partitioning)
@@ -58,13 +59,13 @@
 * [7. Parallel Execution](#7-parallel-execution)
   * [7.1. Using Parallel Queries](#71-using-parallel-queries)
 * [I. Laboratories](#i-laboratories)
-  * [I.1. Create Sample Tables using scripts](#i1-lab-i1-create-sample-tables-using-scripts)
-  * [I.2. Query metrics scenario initial](#i2-lab-i2-query-metrics-scenario-initial)
+  * [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
+  * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
 * [II. Performance Tuning Cheatsheet](#ii-performance-tuning-cheatsheet)
-  * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii1-turn-trace-onof-explain-plan)
-  * [II.2. Query Object Statistics](#ii2-query-object-statisticsplan)
-  * [II.3. Query Indexed Columns](#ii3-query-indexed-columns)
-  * [II.99. Quick Wins, Blogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+  * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
+  * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
+  * [II.3. Query Indexed Columns](#ii-cheatsheet3-query-indexed-columns)
+  * [II.99. Quick Wins, Blogs, etc](#ii-cheatsheet99-quick-wins-blogs-vlogs-etc)
 
 
 ---
@@ -137,8 +138,8 @@ The physical structure represents the operating system files that store the data
   * [Oracle Database - Administration - SQL Tuning Guide](https://docs.oracle.com/en/database/oracle/oracle-database/23/tgsql/index.html)
 * Blog/Videos
   * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: database & instance, memory structures, type of process, server process, background process, putting all together
-* Laboratories / [Quick Wins, Vlogs, Blogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
-  * n/a
+* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+  * `under-construction`
 
 ---
 
@@ -202,11 +203,11 @@ The smallest storage unit in Oracle (default size is 8 KB).
 ### 2.6. References
 
 * Official Documentation
-  * n/a
+  * `under-construction`
 * Blog/Videos
   * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: single instance & RAC, logical storage structures
-* Laboratories / [Quick Wins, Vlogs, Blogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
-  * n/a
+* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+  * `under-construction`
 
 
 
@@ -218,11 +219,11 @@ The Cost-Based Optimizer (CBO) is responsible for determining the most efficient
 
 ### 3.1. How the Optimizer Works
 
-* The CBO evaluates multiple execution plans and selects the one with the lowest estimated cost.
-* It relies on statistics (table size, index distribution, data distribution) to make decisions.
-* Uses histograms to improve accuracy for columns with skewed data distributions.
+* The CBO evaluates multiple execution plans and selects the one with the lowest estimated cost
+* It relies on statistics (table size, index distribution, data distribution) to make decisions
+* Uses histograms to improve accuracy for columns with skewed data distributions
+* Performance Tip: Keep statistics up to date using
 
-Performance Tip: Keep statistics up to date using:
 
 ```sql
 EXEC DBMS_STATS.GATHER_SCHEMA_STATS('your_schema');
@@ -243,9 +244,31 @@ SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 Look for costly operations like TABLE ACCESS FULL, which usually indicates a full table scan.
 
 
+### 3.2.1. References
+
+* Official Documentation
+  * `under-construction`
+* Blog/Videos
+    * [Data Access Method](https://techiedba.wordpress.com/2011/08/12/data-access-methods-in-oracle/)
+      - Full Table SCAN (FTS)
+      - Table Access by ROW-ID
+      - Index Unique Scan
+      - Index Range Scan
+      - Index Skip Scan
+      - Full Index Scan
+      - Fast Full Index Scans
+      - Index Joins
+      - Hash Access
+      - Cluster Access
+      - Bit Map Index
+    * [Join Method](https://www.youtube.com/watch?v=pJWCwfv983Q)
+* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+  * `under-construction`
+
+
 ---
 
-## 4. Identifying and DiagnosticingPerformance Bottlenecks
+## 4. Identifying and Diagnosticing Performance Bottlenecks
 
 ### 4.1. Using V$ Views for Query Monitoring
 
@@ -321,7 +344,7 @@ Best for selective queries.
 
 #### 5.1.b. Bitmap Index
 
-Good for low-cardinality columns (e.g., gender, status).
+Good for low-cardinality columns (e.g., gender, status) but should be avoided in high-write environments.
 
 #### 5.1.c. Function-Based Index
 
@@ -333,11 +356,19 @@ CREATE INDEX idx_upper_lastname ON employees (UPPER(last_name));
 
 #### 5.1.d. Partitioned Index
 
-Improves performance for large tables.
+* `under-construction` Improves performance for large tables, partition key decision, partition type, partition pruning PSTART and PSTOP, partition drop, partition Zone maps
+
 
 #### 5.1.e. Check Index Usage
 
-* Check index usage:
+* Oracle does not track index usage automatically by default However, Oracle can track index usage if you explicitly enable it.
+
+```sql
+-- Enable
+ALTER INDEX STUDY.CUSTOMERS_IDX MONITORING USAGE;
+-- Disable
+ALTER INDEX STUDY.CUSTOMERS_IDX NOMONITORING USAGE;
+```
 
 ```sql
 SELECT index_name, table_name, used FROM v$object_usage;
@@ -356,7 +387,9 @@ SELECT index_name, table_name, used FROM v$object_usage;
 * `under-construction`
 
 
-### 5.2. Optimizing SQL Queries - Bind Variables vs. Literals
+### 5.2. Optimizing SQL Queries - Others Strategies
+
+### 5.2.a. Optimizing SQL Queries - Bind Variables vs. Literals
 
 * Using literals can cause hard parsing, slowing down execution.
   * Bad practice (causes hard parsing):
@@ -371,7 +404,7 @@ SELECT * FROM orders WHERE order_id = 123;
 SELECT * FROM orders WHERE order_id = :order_id;
 ```
 
-### 5.3. Avoiding SELECT
+### 5.2.b. Avoiding SELECT *
 
 * Fetching unnecessary columns increases memory usage and I/O.
 
@@ -385,7 +418,7 @@ SELECT * FROM customers;
 SELECT name, email FROM customers;
 ```
 
-### 5.4. EXISTS vs. IN
+### 5.2.c. EXISTS vs. IN
 
 EXISTS is generally faster when checking for existence:
 
@@ -402,18 +435,19 @@ SELECT name FROM customers c
 WHERE customer_id IN (SELECT customer_id FROM orders);
 ```
 
-### 5.5. In-Memory Table and Columns
+### 5.2.d. In-Memory Table and Columns
 
 * `under-construction`
 
 
-### 5.6. Cursor Optimization
+### 5.2.e. Cursor Optimization
 
 * `under-construction`
 
-### 5.7. Optimizing Joins and Aggregations
 
-#### 5.7.1. Choosing the Right Join Type
+### 5.3. Optimizing Joins and Aggregations
+
+#### 5.3.1. Choosing the Right Join Type
 
 * Nested Loops: Best for small datasets and indexed joins.
 * Hash Join: Efficient for large, unindexed datasets.
@@ -421,7 +455,7 @@ WHERE customer_id IN (SELECT customer_id FROM orders);
 
 Check which join is being used with EXPLAIN PLAN.
 
-#### 5.7.2. Using the RIGHT Aggregation Strategy
+#### 5.3.2. Using the RIGHT Aggregation Strategy
 
 * Avoid DISTINCT if GROUP BY works
 
@@ -505,20 +539,24 @@ SELECT /*+ PARALLEL(o 4) */ * FROM orders o;
 
 Laboratories is a practical use of performance concepts
 
-## I.1. Lab-I.1: Create Sample Tables using scripts
+## I.Lab-1: Create Sample Tables using scripts
 
 * Pre-requisites:
   * [Laboratory - Oracle OCI FreeTier](../labs/Oracle-OCI-FreeTier/README.md)
-* Step-1: Create Tables, Constraints, Sequences, etc - Run Script [`01_tables_pk_ak_seq_check.sql`](./sql/01_tables_pk_ak_seq_check.sql)
-* Step-2: Create Function auxiliar - Run Script [`11_function_get_array_element.sql`](./sql/11_function_get_array_element.sql)
-* Step-3: Create Procedure Load Customers - Run Script [`12_procedure_load_customers.sql`](./sql/12_procedure_load_customers.sql)
-* Step-4: Load 200.000 rows into `customers` tables - Run Script [`13_execute_load_customers.sql`](./sql/13_execute_load_customers.sql)
+
+### I.Lab-1-Step-1: Create Tables, Constraints, Sequences, etc - Run Script [`01_tables_pk_ak_seq_check.sql`](./sql/01_tables_pk_ak_seq_check.sql)
+
+### I.Lab-1-Step-2: Create Function auxiliar - Run Script [`11_function_get_array_element.sql`](./sql/11_function_get_array_element.sql)
+
+### I.Lab-1-Step-3: Create Procedure Load Customers - Run Script [`12_procedure_load_customers.sql`](./sql/12_procedure_load_customers.sql)
+
+### I.Lab-1-Step-4: Load 200.000 rows into `customers` tables - Run Script [`13_execute_load_customers.sql`](./sql/13_execute_load_customers.sql)
 
 ```sql
 EXECUTE load_customers(200000) -- 200.000 rows
 ```
 
-* Step-5: Understand table `STUDY.customers`: number of rows, columns, distinct values
+### I.Lab-1-Step-5: Understand table `STUDY.customers` on scenario 00-INITIAL: number of rows, columns, distinct values
   * Table `customers` has 200.000 rows
   * Column `customers.customer_type_id` has 2 distinct values: (**F** Fisica, **J** Juridica)
   * Column `customers.code` is alternate key CNPJ/CPF, has 200.000 distincts keys
@@ -592,10 +630,10 @@ FROM STUDY.customers;
 
 ---
 
-## I.2. Lab-I.2: Query metrics scenario INITIAL
+## I.Lab-2: Query metrics scenario INITIAL
 
 * Pre-requisites:
-  * [I.1. Lab-I.1: Create Sample Tables using scripts](#i1-lab-i1-create-sample-tables-using-scripts)
+  * [I.Lab-1: Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
 
 * Step-1: Check if Table Has Statistics Collected
 
@@ -643,15 +681,14 @@ CUSTOMERS  OBS                          0           0        150500            N
 ```
 
 * Step-3: Collect statistics 
-
-* Simple
+  - Simple
 
 ```sql
 -- This will collect row count, column statistics, and index statistics
 EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'CUSTOMERS');
 ```
 
-* Estimate auto, histogram if benefical
+  - Estimate auto, histogram if benefical
 
 ```sql
 -- More
@@ -663,19 +700,12 @@ EXEC DBMS_STATS.GATHER_TABLE_STATS(
 );
 ```
 
-* New results after collect statistics
-
-```result
-TABLE_NAME LAST_ANALYZED NUM_ROWS BLOCKS AVG_ROW_LEN
----------- ------------- -------- ------ -----------
-CUSTOMERS  02/04/25      200000   7174   247
-```
 
 ---
 
-## II. Performance Tuning Cheatsheet
+## II. Performance Tuning CheatSheet
 
-## II.1. Turn Trace On/Of, Explain Plan, Execution Plan Golden step
+## II CheatSheet.1: Turn Trace On/Of, Explain Plan, Execution Plan Golden step
 
 * **Scenario**:
   * Usefull when ... you have a query and want to determine how does this query costs
@@ -715,7 +745,7 @@ select * from table(dbms_xplan.display_cursor(format => 'ALLSTATS LAST +COST +BY
 ```
 
 
-## II.2. Query object statistics
+## II CheatSheet.2: Query object statistics
 
 * **Scenario**:
   * Usefull when ... you have a table and want do see if statistics are up to date
@@ -747,7 +777,7 @@ WHERE owner = 'STUDY' AND table_name = 'CUSTOMERS'
 ORDER BY owner, table_name;
 ```
 
-## II.3. Query indexed columns
+## II CheatSheet.3: Query indexed columns
 
 * **Scenario**:
   * Usefull when ... you want to identify what indexes does a table has
@@ -773,9 +803,9 @@ SYS_C0056973      ID          1               ASC
 ```
 
 
-## II.99. Quick Wins, Blogs, Vlogs, etc
+## II Cheatsheet.99: Quick Wins, Blogs, Vlogs, etc
 
-## II.99.a. Default Simple Response, Quick Wins, What should you do
+## II Cheatsheet.99.a. Default Simple Response, Quick Wins, What should you do
 
 * **Scenario**:
   * Usefull when ... someone asks you what do you do to improve performance
@@ -808,7 +838,7 @@ SYS_C0056973      ID          1               ASC
       - 
 
 
-## II.99.b. Usefull Commands
+## II Cheatsheet.99.b. Usefull Commands
 
 * Commands
   - Flush Shared Pool, Buffer Cache

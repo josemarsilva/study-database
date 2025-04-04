@@ -34,6 +34,7 @@
 <node CREATED="1743429073711" ID="ID_153622293" MODIFIED="1743429078919" TEXT="Online Real Time"/>
 <node CREATED="1743429080215" ID="ID_1339918110" MODIFIED="1743430871619" TEXT="AWR History time frames"/>
 <node CREATED="1743799137058" ID="ID_130440621" MODIFIED="1743799167283" TEXT="Tracing business process"/>
+<node CREATED="1743804272779" ID="ID_855159711" MODIFIED="1743804289664" TEXT="Monitoring &amp; Observability"/>
 </node>
 <node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1743428921946" POSITION="left" STYLE="fork">
 <richcontent TYPE="NODE"><html>
@@ -157,17 +158,17 @@
 </html>
 </richcontent>
 </node>
-<node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743803424748">
+<node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743804257690">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Code rewrite strategies: procedures,
+      Code &amp; Architecture rewrite strategies:
     </p>
     <p>
-      partitioning, jobs, mv, tmp, architecture,
+      procedures, partitioning, jobs, mv, tmp,
     </p>
     <p>
       client-server, networking, etc

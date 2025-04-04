@@ -30,16 +30,16 @@
   * [4.2 Monitoring Performance over Time AWR](#42-monitoring-performance-over-time-with-awr-and-ash)
   * [4.3 Look for Locks and DeadLocks](#43-look-for-locks-and-deadlocks)
   * [4.4 Diagnostics with Oracle Enterprise Manager OEM](#44-diagnostics-with-oracle-enterprise-manager-oem)
-* [5. Optimizing SQL Queries](#5-optimizing-sql-queries)
-  * [5.1. Indexing Strategies](#51-indexing-strategies)
-    * [5.1.1. B-tree Index](#511-b-tree-index)
-    * [5.1.2. Bitmap Index](#512-bitmap-index)
-    * [5.1.3. Function-Based Index](#513-function-based-index)
-    * [5.1.4. Partitioned Index](#514-partitioned-index)
-    * [5.1.5. Check Index Usage](#515-check-index-usage)
-    * [5.1.6. Clustering Factor](#516-clustering-factor)
-    * [5.1.7. Index Reverse Key](#517-index-reverse-key)
-    * [5.1.8. Index Organized Table](#518-index-organized-table)
+* [5. Optimizing Issues Identified](#5-optimizing-issues-identified)
+  * [5.1. Optimizing SQL Queries - Indexing Strategies](#51-optimizing-sql-queries---indexing-strategies)
+    * [5.1.a. B-tree Index](#51a-b-tree-index)
+    * [5.1.b. Bitmap Index](#51b-bitmap-index)
+    * [5.1.c. Function-Based Index](#51c-function-based-index)
+    * [5.1.d. Partitioned Index](#51d-partitioned-index)
+    * [5.1.e. Check Index Usage](#51e-check-index-usage)
+    * [5.1.f. Clustering Factor](#51f-clustering-factor)
+    * [5.1.g. Index Reverse Key](#51g-index-reverse-key)
+    * [5.1.h. Index Organized Table](#51h-index-organized-table)
   * [5.2. Bind Variables vs. Literals](#52-bind-variables-vs-literals)
   * [5.3. Avoiding SELECT](#53-avoiding-select)
   * [5.4. EXISTS vs. IN](#54-exists-vs-in)
@@ -304,21 +304,21 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 ---
 
-## 5. Optimizing SQL Queries
+## 5. Optimizing Issues Identified
 
-### 5.1. Indexing Strategies
+## 5.1. Optimizing SQL Queries - Indexing Strategies
 
 * Indexes improve query performance but can also degrade insert/update performance if overused.
 
-#### 5.1.1. B-tree Index
+#### 5.1.a. B-tree Index
 
 Best for selective queries.
 
-#### 5.1.2. Bitmap Index
+#### 5.1.b. Bitmap Index
 
 Good for low-cardinality columns (e.g., gender, status).
 
-#### 5.1.3. Function-Based Index
+#### 5.1.c. Function-Based Index
 
 Useful when queries involve functions:
 
@@ -326,11 +326,11 @@ Useful when queries involve functions:
 CREATE INDEX idx_upper_lastname ON employees (UPPER(last_name));
 ```
 
-#### 5.1.4. Partitioned Index
+#### 5.1.d. Partitioned Index
 
 Improves performance for large tables.
 
-#### 5.1.5. Check Index Usage
+#### 5.1.e. Check Index Usage
 
 * Check index usage:
 
@@ -338,21 +338,20 @@ Improves performance for large tables.
 SELECT index_name, table_name, used FROM v$object_usage;
 ```
 
-
-#### 5.1.6. Clustering Factor
+#### 5.1.f. Clustering Factor
 
 * `under-construction`
 
-#### 5.1.7. Index Reverse Key
+#### 5.1.g. Index Reverse Key
 
 * `under-construction` tabelas que sofrem unique scan
 
-#### 5.1.8. Index Organized Table
+#### 5.1.h. Index Organized Table
 
 * `under-construction`
 
 
-### 5.2. Bind Variables vs. Literals
+### 5.2. Optimizing SQL Queries - Bind Variables vs. Literals
 
 * Using literals can cause hard parsing, slowing down execution.
   * Bad practice (causes hard parsing):

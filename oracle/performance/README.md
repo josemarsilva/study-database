@@ -261,9 +261,10 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
       - Hash Access
       - Cluster Access
       - Bit Map Index
-    * [Join Method](https://www.youtube.com/watch?v=pJWCwfv983Q)
+    * Join Method
+      - [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method)
 * Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
-  * `under-construction`
+      - [Join Method - nested loop, hash, and merge joins](https://www.youtube.com/watch?v=pJWCwfv983Q)
 
 
 ---
@@ -338,13 +339,16 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 * Indexes improve query performance but can also degrade insert/update performance if overused.
 
+
 #### 5.1.a. B-tree Index
 
 Best for selective queries.
 
+
 #### 5.1.b. Bitmap Index
 
 Good for low-cardinality columns (e.g., gender, status) but should be avoided in high-write environments.
+
 
 #### 5.1.c. Function-Based Index
 
@@ -353,6 +357,7 @@ Useful when queries involve functions:
 ```sql
 CREATE INDEX idx_upper_lastname ON employees (UPPER(last_name));
 ```
+
 
 #### 5.1.d. Partitioned Index
 
@@ -374,13 +379,16 @@ ALTER INDEX STUDY.CUSTOMERS_IDX NOMONITORING USAGE;
 SELECT index_name, table_name, used FROM v$object_usage;
 ```
 
+
 #### 5.1.f. Clustering Factor
 
 * `under-construction`
 
+
 #### 5.1.g. Index Reverse Key
 
 * `under-construction` tabelas que sofrem unique scan
+
 
 #### 5.1.h. Index Organized Table
 
@@ -454,6 +462,7 @@ WHERE customer_id IN (SELECT customer_id FROM orders);
 * Sort Merge Join: Used when data is pre-sorted.
 
 Check which join is being used with EXPLAIN PLAN.
+
 
 #### 5.3.2. Using the RIGHT Aggregation Strategy
 

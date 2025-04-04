@@ -62,6 +62,22 @@ BEGIN
       NULL; -- Ignore duplicate key error
   END;
   --
+  BEGIN
+    INSERT INTO customer_statuses(id, name) 
+    VALUES (4, 'RESTRICTED - ORDER <= CONFIG 1');
+  EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN 
+      NULL; -- Ignore duplicate key error
+  END;
+  --
+  BEGIN
+    INSERT INTO customer_statuses(id, name) 
+    VALUES (5, 'RESTRICTED - CUSTOM IN CONFIG');
+  EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN 
+      NULL; -- Ignore duplicate key error
+  END;
+  --
   -- Step-3: customers
   --
   FOR i IN 1..p_count LOOP

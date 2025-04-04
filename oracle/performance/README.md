@@ -57,6 +57,14 @@
   * [6.6. Query Partition](#66-query-partition)
 * [7. Parallel Execution](#7-parallel-execution)
   * [7.1. Using Parallel Queries](#71-using-parallel-queries)
+* [I. Laboratories](#i-laboratories)
+  * [I.1. Create Sample Tables using scripts](#i1-lab-i1-create-sample-tables-using-scripts)
+  * [I.2. Query metrics scenario initial](#i2-lab-i2-query-metrics-scenario-initial)
+* [II. Performance Tuning Cheatsheet](#ii-performance-tuning-cheatsheet)
+  * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii1-turn-trace-onof-explain-plan)
+  * [II.2. Query Object Statistics](#ii2-query-object-statisticsplan)
+  * [II.3. Query Indexed Columns](#ii3-query-indexed-columns)
+  * [II.99. Quick Wins, Blogs, etc](#ii99-quick-wins-blogs-etc)
 
 
 ---
@@ -127,9 +135,10 @@ The physical structure represents the operating system files that store the data
   * [Oracle Database](https://docs.oracle.com/en/database/oracle/oracle-database/index.html)
   * [Oracle Database - Administration]https://docs.oracle.com/en/database/oracle/oracle-database/23/administration.html
   * [Oracle Database - Administration - SQL Tuning Guide](https://docs.oracle.com/en/database/oracle/oracle-database/23/tgsql/index.html)
-* [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw)
-  * Chapters: database & instance, memory structures, type of process, server process, background process, putting all together
-
+* Blog/Videos
+  * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: database & instance, memory structures, type of process, server process, background process, putting all together
+* Laboratories / Attachemnts
+  * n/a
 
 ---
 
@@ -231,7 +240,7 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
 
 ---
 
-## 4. Identifying Performance Bottlenecks
+## 4. Identifying and DiagnosticingPerformance Bottlenecks
 
 ### 4.1. Using V$ Views for Query Monitoring
 
@@ -515,10 +524,11 @@ EXECUTE load_customers(200000) -- 200.000 rows
   * Index Unique `customers.customer_code`
 
 
-* Describe 
+* Describe `STUDY.customers`, `STUDY.customer_types`, `STUDY.customer_statuses`
 
 ```sql
 DESCRIBE STUDY.customers
+
 Name               Null?    Type           
 ------------------ -------- -------------- 
 ID                 NOT NULL NUMBER         
@@ -538,6 +548,24 @@ SINCE_AT                    DATE
 LAST_ORDER_AT               DATE           
 OBS                         VARCHAR2(1000) 
 ```
+
+```sql
+DESCRIBE customer_types
+
+Name Null?    Type         
+---- -------- ------------ 
+ID   NOT NULL VARCHAR2(1)  
+NAME NOT NULL VARCHAR2(30) 
+```
+
+```sql
+DESCRIBE customer_statuses
+Name Null?    Type         
+---- -------- ------------ 
+ID   NOT NULL VARCHAR2(1)  
+NAME NOT NULL VARCHAR2(30) 
+```
+
 
 * CARDINALITY
 
@@ -568,19 +596,49 @@ FROM STUDY.customers;
 * Step-1: Check if Table Has Statistics Collected
 
 ```sql
-SELECT table_name, last_analyzed, num_rows, blocks, avg_row_len
-FROM dba_tab_statistics 
+SELECT table_name, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed, num_rows, blocks, avg_row_len
+FROM all_tab_statistics 
 WHERE owner = 'STUDY' 
 AND table_name = 'CUSTOMERS';
 ```
 
 ```result
-TABLE_NAME LAST_ANALYZED NUM_ROWS BLOCKS AVG_ROW_LEN
----------- ------------- -------- ------ -----------
-CUSTOMERS  NULL          NULL     NULL   NULL
+TABLE_NAME LAST_ANALYZED          NUM_ROWS BLOCKS AVG_ROW_LEN
+---------- ---------------------- -------- ------ -----------
+CUSTOMERS  04-APR-2025 12:40:5151 150500   5410   248
 ```
 
-* Step-2: Collect statistics 
+* Step-2: Check table columns statistics
+
+```sql
+SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
+FROM all_tab_col_statistics
+WHERE owner = 'STUDY' AND table_name = 'CUSTOMERS'
+ORDER BY owner, table_name;
+```
+
+```result
+TABLE_NAME COLUMN_NAME        NUM_DISTINCT DENSITY NUM_NULLS LOW_VALUE HIGH_VALUE HISTOGRAM LAST_ANALYZED
+---------  ------------------ ------------ ------- --------- -----------------------------------------------
+CUSTOMERS  ID                 150500    0,000007    0        HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  NAME               150500    0,000007    0        AAAATXDEDBQEZILCIGBI XPTADDHPLQHKQHOKUVORUJBDWELQYF GYFKREDIPEOK    ZZZVUXTGRDHLYGFXWZMQ MAMQEXFHELDWGKSLJTQFWCEGFJRVKG PEXLVEWFDZIW    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  CUSTOMER_TYPE_ID   2         0,000003322 0        F    J    FREQUENCY    04-APR-2025 12:40:5151
+CUSTOMERS  CODE               150500    0,000007    0        10000018473    99999447843158    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  CUSTOMER_STATUS_ID 1         0,000003331 0        FREQUENCY    04-APR-2025 12:40:5151
+CUSTOMERS  EMAIL              150500    0,000007    0        aaaamhljwwjzxnythjmp@example.com    zzzyfsyhfwatwfsldgdy@example.com    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  PHONE              148167    0,000007    0        +55 11100000696    +55 11999998358    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  ADDRESS_STREET     150500    0,000007    0        Rua AABQMQdFysDnxLFpzanu aBmGVyhpTEIFuNHSljoyXwJvGWQHrr    Rua zzzVePqQJJjLbPtdqveg MQucctYONvmRHAiGDmvxmXciNZNBBe    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  ADDRESS_UNIT       898       0,001112    0        100    999    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  ADDRESS_DETAILS    75250     0,000013    75250    AAFFDAlKGahuDVVCBlJR    zzsghMctqSgSYixyEZiD    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  ADDRESS_ZIP_CODE   150500    0,000007    0        L    db    HYBRID    04-APR-2025 12:40:5151
+CUSTOMERS  ADDRESS_CITY       27        0,000003322 0        Aracaju    Vitoria    FREQUENCY    04-APR-2025 12:40:5151
+CUSTOMERS  ADDRESS_STATE      27        0,000003322 0        AC    TO    FREQUENCY    04-APR-2025 12:40:5151
+CUSTOMERS  SINCE_AT                     0           0        150500            NONE    04-APR-2025 12:40:5151
+CUSTOMERS  LAST_ORDER_AT                0           0        150500            NONE    04-APR-2025 12:40:5151
+CUSTOMERS  OBS                          0           0        150500            NONE    04-APR-2025 12:40:5151
+```
+
+* Step-3: Collect statistics 
 
 * Simple
 
@@ -607,4 +665,151 @@ EXEC DBMS_STATS.GATHER_TABLE_STATS(
 TABLE_NAME LAST_ANALYZED NUM_ROWS BLOCKS AVG_ROW_LEN
 ---------- ------------- -------- ------ -----------
 CUSTOMERS  02/04/25      200000   7174   247
+```
+
+---
+
+## II. Performance Tuning Cheatsheet
+
+## II.1. Turn Trace On/Of, Explain Plan, Execution Plan Golden step
+
+* **Scenario**:
+  * Usefull when ... you have a query and want to determine how does this query costs
+* **Analysis**:
+  * Use autot expl to evaluate query metrics
+* **Conclusion**:
+  * Evaluate metrics to recommend query performance improvements
+
+```sql
+-- Turn AUTOTRACE TRACEONLY ON
+set autot trace
+-- Turn AUTOTRACE TRACEONLY ON with option EXPLAIN STATISTICS
+set autot trace exp stat 
+-- Turn AUTOTRACE OFF
+set autot trace OFF
+```
+
+```sql
+set serveroutput off
+set linesize 400
+
+variable app_session number;
+variable app_id number;
+
+BEGIN
+    :app_session := 999;
+    :app_id      := 666;
+END;
+/
+-- end of special instruction for bind variables
+
+SELECT /*+ gather_plan_statistics */ ...
+FROM ...;
+
+select * from table(dbms_xplan.display_cursor(format => 'ALLSTATS LAST +COST'));
+select * from table(dbms_xplan.display_cursor(format => 'ALLSTATS LAST +COST +BYTES'));
+```
+
+
+## II.2. Query object statistics
+
+* **Scenario**:
+  * Usefull when ... you have a table and want do see if statistics are up to date
+* **Analysis**:
+  * Check how recent the LAST_ANALYZED timestamp is.
+  * Check if NUM_ROWS is consistent with the expected volume of data.
+  * Compare NUM_DISTINCT values for key columns (like alternate keys or filtering columns).
+  * Evaluate if important columns have histograms when there is data skew.
+* **Conclusion**:
+  * Out-of-date or missing statistics may lead the optimizer to generate suboptimal execution plans.
+  * If LAST_ANALYZED is null or very old, or if NUM_ROWS does not reflect reality, performance issues may arise.
+  * Regularly collecting statistics (manually or via scheduled jobs) is essential for maintaining optimal performance.
+  * It's especially critical after significant data loads, deletions, or structural changes to the table.
+
+
+```sql
+-- 
+SELECT table_name, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed, num_rows, blocks, avg_row_len
+FROM all_tab_statistics -- or dba_tab_statistics (require dba privileges)
+WHERE owner = 'STUDY' 
+AND table_name = 'CUSTOMERS';
+ORDER BY owner, table_name;
+```
+
+```sql
+SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
+FROM all_tab_col_statistics
+WHERE owner = 'STUDY' AND table_name = 'CUSTOMERS'
+ORDER BY owner, table_name;
+```
+
+## II.3. Query indexed columns
+
+* **Scenario**:
+  * Usefull when ... you want to identify what indexes does a table has
+* **Analysis**:
+  * Indexes, well used, can improve query performance
+* **Conclusion**:
+  * Analyse table indexes to recommend better Indexing Strategy
+
+```sql
+-- Query table Indexes
+SELECT index_name, column_name, column_position, descend
+FROM all_ind_columns
+WHERE table_name = 'CUSTOMERS'
+  AND index_owner = 'STUDY'
+ORDER BY index_name, column_position;
+```
+
+```result
+INDEX_NAME        COLUMN_NAME COLUMN_POSITION DESCEND
+----------------- ----------- --------------- -------
+AK_CUSTOMERS_CODE CODE        1               ASC
+SYS_C0056973      ID          1               ASC
+```
+
+
+## II.99. Quick Wins, Blogs, etc
+
+## II.99.a. Default Simple Response, Quick Wins, What should you do
+
+* **Scenario**:
+  * Usefull when ... someone asks you what do you do to improve performance
+* **Analysis**:
+  * someone insists you must answer generical response not null. Answers "it depends on ..." should not be accepted
+* **Conclusion**:
+  * SQL Query Tuning
+    - Analyze execution plans
+    - Use indexes effectively
+    - Avoid full table scans
+  * Database Configuration
+    - Optimize SGA and PGA sizes
+    - Adjust init.ora parameters
+  * Monitoring and Troubleshooting
+    - Use AWR, ASH, and ADDM reports
+    - Monitor system performance metrics
+  * General Tips:
+    - [cardinality, column correlations vs data skews histograms](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#general-tip)
+    - keep all indexes small
+    - use hints as temporary solutions
+    - triggers on tables causes performance issues
+  * General Concepts:
+    - [What is a good plan for the Optimizer](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#general-concept)
+      - Optimizer different goals: 
+        - **cost**: the cheap, the better; 
+        - **performance**: the faster, the better
+    - [Data Access Method](https://techiedba.wordpress.com/2011/08/12/data-access-methods-in-oracle/)
+      - Full Table SCAN (FTS); Table Access by ROW-ID; Index Unique Scan; Index Range Scan; Index Skip Scan; Full Index Scan; Fast Full Index Scans; Index Joins; Hash Access; Cluster Access; Bit Map Index
+    - [Join Method](https://www.youtube.com/watch?v=pJWCwfv983Q)
+      - 
+
+
+## II.99.b. Usefull Commands
+
+* Commands
+  - Flush Shared Pool, Buffer Cache
+
+```sql
+alter system flush shared_pool;
+alter system flush buffer_cache;
 ```

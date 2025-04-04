@@ -53,8 +53,7 @@ PS:> docker rm -f mssql-labdb-2019
 
 ## 2.3. Diagram
 
-![Diagram sqlserver-scripts-migration-SQLServer-Tech-BackupRestore.drawio.png](../../../doc/diagrams/sqlserver-scripts-migration-SQLServer-Tech-BackupRestore.drawio.png) 
+![DeployDiagram-sqlserver-docker-migration-source-to-target-GroupedTasks-StepByStep.drawio.png](../../../doc/diagrams/DeployDiagram-sqlserver-docker-migration-source-to-target-GroupedTasks-StepByStep.drawio.png) 
 
-
-![Diagram sqlserver-scripts-migration-Lab-StepByStep-Migration-SQLServer.drawio.png](../../../doc/diagrams/sqlserver-scripts-migration-Lab-StepByStep-Migration-SQLServer.drawio.png) 
+![DeployDiagram-sqlserver-docker-migration-source-to-target.drawio.png](../../../doc/diagrams/DeployDiagram-sqlserver-docker-migration-source-to-target.drawio.png) 
 

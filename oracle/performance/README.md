@@ -62,6 +62,8 @@
     * [5.4.e. Indexing and Sorting](#54e-indexing-and-sorting)
     * [5.4.f. Application level handling](#54f-application-level-handling)
     * [5.4.g. Recommended strategy](#54g-recommended-strategy)
+  * [5.5. ](#55-use-of-hints) ![star-icon.png](../../doc/images/star-icon.png)
+    * [5.5.a. Using Parallel on Queries](#55a-using-parallel-on-queries)
 * [6. Table Partitioning](#6-table-partitioning)
   * [6.1. Range Partitioning](#61-range-partitioning)
   * [6.2. Hash Partitioning](#62-hash-partitioning)
@@ -621,6 +623,17 @@ export NLS_LANG=AMERICAN_AMERICA.WE8EBCDIC1047
 5.	Monitor performance if real-time conversion is needed
 
 
+### 5.5. Use of Hints
+
+#### 5.5.a. Using Parallel on Queries
+
+For large queries, you can enable parallel execution:
+
+```sql
+ALTER TABLE orders PARALLEL 4;
+SELECT /*+ PARALLEL(o 4) */ * FROM orders o;
+```
+
 ---
 
 ## 6. Table Partitioning
@@ -663,20 +676,6 @@ CREATE TABLE orders (
 * `under-construction`
 
 *  com queries em tabelas particionadas, ficar atento aos itens PSTART e PSTOP
-
-
----
-
-## 7. Parallel Execution
-
-### 7.1. Using Parallel Queries
-
-For large queries, you can enable parallel execution:
-
-```sql
-ALTER TABLE orders PARALLEL 4;
-SELECT /*+ PARALLEL(o 4) */ * FROM orders o;
-```
 
 
 ---

@@ -145,29 +145,30 @@
   </body>
 </html></richcontent>
 </node>
-<node CREATED="1743793334963" ID="ID_897098251" MODIFIED="1743799094952">
+<node CREATED="1743793334963" ID="ID_897098251" MODIFIED="1743831311978">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Query rewrite strategies:
+      Query review strategies:
     </p>
     <p>
       hints, mv, parallel, etc
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
-<node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743804257690">
+<node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743831322365">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Code &amp; Architecture rewrite strategies:
+      Code &amp; Architecture review strategies:
     </p>
     <p>
       procedures, partitioning, jobs, mv, tmp,
@@ -176,7 +177,8 @@
       client-server, networking, etc
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
 </node>
 </node>

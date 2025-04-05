@@ -62,7 +62,7 @@
     * [5.4.e. Indexing and Sorting](#54e-indexing-and-sorting)
     * [5.4.f. Application level handling](#54f-application-level-handling)
     * [5.4.g. Recommended strategy](#54g-recommended-strategy)
-  * [5.5. ](#55-use-of-hints) ![star-icon.png](../../doc/images/star-icon.png)
+  * [5.5. Use of Hints](#55-use-of-hints) ![star-icon.png](../../doc/images/star-icon.png)
     * [5.5.a. Using Parallel on Queries](#55a-using-parallel-on-queries)
 * [6. Table Partitioning](#6-table-partitioning)
   * [6.1. Range Partitioning](#61-range-partitioning)
@@ -84,7 +84,7 @@
     * [II.99.a. Default Simple Response, Quick Wins, What should you do](#ii-cheatsheet99a-default-simple-response-quick-wins-what-should-you-do)
     * [II.99.b. Usefull Commands](#ii-cheatsheet99b-usefull-commands)
     * [II.99.c. Usefull Commands - Limit number of rows outputed](#ii-cheatsheet99c-usefull-commands---limit-number-of-rows-outputed)
-    * [II.99.c. SQLDeveloper Hands On](#ii-cheatsheet99d-sqldeveloper-hands-on)
+    * [II.99.c. SQLDeveloper Hands On](#ii-cheatsheet99d-sqldeveloper-hands-on) ![star-icon.png](../../doc/images/star-icon.png)
 
 
 ---
@@ -1171,4 +1171,51 @@ table scans (rowid ranges)	29
 user calls	67
 workarea executions - optimal	11
 workarea memory allocated	-11
+```
+
+6. Execute a command and get execution plan (in text format) SQLDeveloper
+  * On `SQLDeveloper` body-multiline-text fill your `sql`
+  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
+  * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
+  * Statistics of execution will be shown in a `Query Result` result-sheet
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+  SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers where id = 10000;
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table-output
+Plan hash value: 1357369551
+ 
+-------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                               | Name         | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+-------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                        |              |     1 |     2 |     2   (0)| 00:00:01 |        |      |            |
+|   1 |  SORT AGGREGATE                         |              |     1 |     2 |            |          |        |      |            |
+|   2 |   PX COORDINATOR                        |              |       |       |            |          |        |      |            |
+|   3 |    PX SEND QC (RANDOM)                  | :TQ10002     |     1 |     2 |            |          |  Q1,02 | P->S | QC (RAND)  |
+|   4 |     SORT AGGREGATE                      |              |     1 |     2 |            |          |  Q1,02 | PCWP |            |
+|   5 |      VIEW                               | VW_DAG_0     |     1 |     2 |     2   (0)| 00:00:01 |  Q1,02 | PCWP |            |
+|   6 |       HASH GROUP BY                     |              |     1 |     7 |     2   (0)| 00:00:01 |  Q1,02 | PCWP |            |
+|   7 |        PX RECEIVE                       |              |     1 |     7 |     2   (0)| 00:00:01 |  Q1,02 | PCWP |            |
+|   8 |         PX SEND HASH                    | :TQ10001     |     1 |     7 |     2   (0)| 00:00:01 |  Q1,01 | P->P | HASH       |
+|   9 |          HASH GROUP BY                  |              |     1 |     7 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|  10 |           TABLE ACCESS BY INDEX ROWID   | CUSTOMERS    |     1 |     7 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|  11 |            PX RECEIVE                   |              |     1 |       |     1   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|  12 |             PX SEND HASH (BLOCK ADDRESS)| :TQ10000     |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|  13 |              PX SELECTOR                |              |       |       |            |          |  Q1,00 | SCWC |            |
+|* 14 |               INDEX UNIQUE SCAN         | SYS_C0056973 |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+-------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+  14 - access("ID"=10000)
+ 
+Note
+-----
+   - automatic DOP: Computed Degree of Parallelism is 2 because of no expensive parallel operation
 ```

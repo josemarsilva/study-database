@@ -263,8 +263,8 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
       - Bit Map Index
     * Join Method
       - [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method)
-    * [Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI) ![star.pgn](../../doc/images/star.pgn)
-      - [Correlations](https://www.youtube.com/watch?v=IYWmauKtwXI&t=220s), [Extended Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI&t=299s) and [Skews](https://www.youtube.com/watch?v=IYWmauKtwXI&t=330s) ![star.pgn](../../doc/images/star.pgn)
+    * [Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI) ![star.png](../../doc/images/star.png)
+      - [Correlations](https://www.youtube.com/watch?v=IYWmauKtwXI&t=220s), [Extended Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI&t=299s) and [Skews](https://www.youtube.com/watch?v=IYWmauKtwXI&t=330s) ![star.png](../../doc/images/star.png)
       - Cardinality and Selectivity
     * [Executions Plan, consistent gets](https://www.youtube.com/watch?v=Mt67FqYww_w&)
 * Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)

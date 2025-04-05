@@ -61,7 +61,7 @@
 * [I. Laboratories](#i-laboratories)
   * [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
   * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
-* [II. Performance Tuning Cheatsheet](#ii-performance-tuning-cheatsheet)
+* [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
   * [II.3. Query Indexed Columns](#ii-cheatsheet3-query-indexed-columns)
@@ -263,8 +263,15 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
       - Bit Map Index
     * Join Method
       - [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method)
+    * [Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI)
+      - [Correlations](https://www.youtube.com/watch?v=IYWmauKtwXI&t=220s), [Extended Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI&t=299s) and [Skews](https://www.youtube.com/watch?v=IYWmauKtwXI&t=330s)
+      - Cardinality and Selectivity
+    * [Executions Plan, consistent gets](https://www.youtube.com/watch?v=Mt67FqYww_w&)
 * Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
       - [Join Method - nested loop, hash, and merge joins](https://www.youtube.com/watch?v=pJWCwfv983Q)
+      - [Playlist Oracle Database for Developers](https://www.youtube.com/playlist?list=PL78V83xV2fYlT11CJXE77H0LD7C_gZmyf)
+      - [How to Read an Execution Plan](https://www.youtube.com/watch?v=NkXxRodAFUY)
+      - [What are Optimizer Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI)
 
 
 ---
@@ -832,7 +839,7 @@ SYS_C0056973      ID          1               ASC
     - Use AWR, ASH, and ADDM reports
     - Monitor system performance metrics
   * General Tips:
-    - [cardinality, column correlations vs data skews histograms](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#general-tip)
+    - [cardinality, column correlations, data skews, histograms](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#general-tip)
     - keep all indexes small
     - use hints as temporary solutions
     - triggers on tables causes performance issues

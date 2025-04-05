@@ -100,6 +100,12 @@
 </html></richcontent>
 </node>
 </node>
+<node CREATED="1743809963180" ID="ID_976799848" MODIFIED="1743809992743" POSITION="left" TEXT="Laboratories">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1743809996227" ID="ID_95828706" MODIFIED="1743810026828" POSITION="left" TEXT="CheatSheet">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
 <node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1743793316811" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -113,8 +119,7 @@
       Issues Identified
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1743793334963" ID="ID_699225170" MODIFIED="1743798822510">
 <richcontent TYPE="NODE"><html>
@@ -126,8 +131,7 @@
       Indexing strategies
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1743793334963" ID="ID_1316410889" MODIFIED="1743798817609">
 <richcontent TYPE="NODE"><html>
@@ -139,8 +143,7 @@
       Statistics strategies
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1743793334963" ID="ID_897098251" MODIFIED="1743799094952">
 <richcontent TYPE="NODE"><html>
@@ -155,8 +158,7 @@
       hints, mv, parallel, etc
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743804257690">
 <richcontent TYPE="NODE"><html>
@@ -174,8 +176,7 @@
       client-server, networking, etc
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>

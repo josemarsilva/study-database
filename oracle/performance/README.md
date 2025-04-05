@@ -25,7 +25,7 @@
 * [3. Understanding the Oracle Optimizer](#3-understanding-the-oracle-optimizer)
   * [3.1. How the Optimizer Works](#31-how-the-optimizer-works)
   * [3.2. Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
-  * [3.3. Execution Plan (SQL Developer)](#33-execution-plan-sqldeveloper)
+  * [3.3. Execution Plan (SQLDeveloper)](#33-execution-plan-sqldeveloper) ![star-icon.png](../../doc/images/star-icon.png)
   * [3.4. Execution Plan (SQL*Plus)](#34-execution-plan-sqlplus)
   * [3.99. References](#399-references)
 * [4. Identifying Performance Bottlenecks](#4-identifying-and-diagnosticing-performance-bottlenecks)
@@ -78,7 +78,11 @@
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
   * [II.3. Query Indexed Columns](#ii-cheatsheet3-query-indexed-columns)
-  * [II.99. Quick Wins, Blogs, etc](#ii-cheatsheet99-quick-wins-blogs-vlogs-etc)
+  * [II.99. Quick Wins, Blogs, Vlogs, etc](#ii-cheatsheet99-quick-wins-blogs-vlogs-etc)
+    * [II.99.a. Default Simple Response, Quick Wins, What should you do](#ii-cheatsheet99a-default-simple-response-quick-wins-what-should-you-do)
+    * [II.99.b. Usefull Commands](#ii-cheatsheet99b-usefull-commands)
+    * [II.99.c. Usefull Commands - Limit number of rows outputed](#ii-cheatsheet99c-usefull-commands---limit-number-of-rows-outputed)
+    * [II.99.c. SQLDeveloper Hands On](#ii-cheatsheet99d-sqldeveloper-hands-on)
 
 
 ---
@@ -259,13 +263,31 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
 
 ### 3.3. Execution Plan (SQLDeveloper)
 
-  * `under-construction`
+* Open `SQLDeveloper`
+  * Click menu-item `SQLDeveloper` :: `Tools >> Preferences`
+  * On dialog-box `Preferences` fill text-box left-top-level with value `autotr` 
+  * On dialog-box `Preferences` list-box-hierarchical `Database >> Autotrace/Explain Plan` check-select auto-trace-listbox `Autotrace` the followings keys and click `OK`
+
+```sqldeveloper-tools-preferences-dialog-box
+Autotrace
+ [LAST_OUTPUT_ROWS]
+ [LAST_STARTS]
+
+[X] Fetch all rows
+```
+
+Now in `SQLDeveloper` worksheet, when you choose (F6) or icon `Autotrace...` columns for metrics `LAST_OUTPUT_ROWS` AND `LAST_STARTS` will be shown
 
 
 ### 3.4. Execution Plan (SQL*Plus)
 
-  * `under-construction`
-
+```sql
+set lines 999
+set pages 999
+set autot trace exp stat 
+set autot trace off
+set timing on
+```
 
 ### 3.99. References
 
@@ -289,6 +311,9 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
     * [Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI) ![star-icon.png](../../doc/images/star-icon.png)
       - [Correlations](https://www.youtube.com/watch?v=IYWmauKtwXI&t=220s), [Extended Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI&t=299s) and [Skews](https://www.youtube.com/watch?v=IYWmauKtwXI&t=330s) ![star-icon.png](../../doc/images/star-icon.png)
       - Cardinality and Selectivity
+        - Selectivity: proportion. ` 1 / number_of_distinct * total_rows`; Ex: `select 1 / COUNT(DISTINCT customer_type_id) /* 2: 'F', 'J' */ from STUDY.customers`; Result: `0.5`
+        - Cardinality: total rows of table. Ex: `select 1 / COUNT(1) from STUDY.customers`; Result: `200.000`
+        - Cardinality(total rows operation): `rows estimated = Selectivity * Cardinality`; Ex: `0.5 * 200000`; Results: `200000`
     * [Executions Plan, consistent gets](https://www.youtube.com/watch?v=Mt67FqYww_w&)
 * Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
   - [Join Method - nested loop, hash, and merge joins](https://www.youtube.com/watch?v=pJWCwfv983Q) ![star-icon.png](../../doc/images/star-icon.png)
@@ -994,3 +1019,157 @@ WHERE ROWNUM <= 100;
 ```
 
 
+## II Cheatsheet.99.d. SQLDeveloper hands on
+
+1. Execute a command
+  * On `SQLDeveloper` body-multiline-text fill your `sql`
+  * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
+
+```sql
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+```
+
+
+2. Execute more than one command at once
+  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
+  * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
+  * Each command line separeted by `;` will be shown in a differente `Query Result` result-sheet
+
+```sql
+SELECT 1 / COUNT(DISTINCT customer_status_id) AS selectivity FROM STUDY.customers;
+SELECT 1 / COUNT(DISTINCT customer_type_id)   AS selectivity FROM STUDY.customers;
+SELECT 1 / COUNT(DISTINCT address_state)      AS selectivity FROM STUDY.customers;
+```
+
+3. Execute a command and get statistics using SET AUTOT TRACE EXPL STAT
+  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
+  * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
+  * Each command line separeted by `;` will be shown in a differente `Query Result` result-sheet
+  * Statistics of execution will be shown in a `Script Output` result-sheet
+
+```sql
+SET AUTOT TRACE EXPL STAT
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+```
+
+```script-output
+Autotrace TraceOnly
+ Exhibits the performance statistics with silent query output
+>>Query Run In:Query Result 1
+
+PLAN_TABLE_OUTPUT                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SQL_ID: 0xt1gmwhjjw3t, child number: 0 cannot be found 
+ 
+
+Statistics
+-----------------------------------------------------------
+            6958  RM usage
+              10  non-idle wait count
+               1  opened cursors cumulative
+               1  opened cursors current
+               1  pinned cursors current
+               1  user calls
+```
+
+3. Execute a command and get execution plan using icon SQLDeveloper
+  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
+  * On `SQLDeveloper` top-sheet icon-play `Autotrace ...` or click (F5)
+  * Statistics of execution will be shown in a `Autotrace` result-sheet
+
+```sql
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+```
+
+* Image available [SQLDeveloper-ExecPlan.png](../../doc/images/SQLDeveloper-ExecPlan.png) 
+
+
+4. Execute a command and get execution plan and statistics using icon SQLDeveloper
+  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
+  * On `SQLDeveloper` top-sheet icon-play `Autotrace ...` or click (F6)
+  * Statistics of execution will be shown in a `Autotrace` result-sheet
+  * Statistics V$STATNAME of execution will be shown above `Autotrace` result-sheet
+
+```sql
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+```
+
+* Image available [SQLDeveloper-ExecPlan.png](../../doc/images/SQLDeveloper-ExecPlan.png) 
+
+
+```autotrace-v$statsname
+buffer is not pinned count	63
+bytes received via SQL*Net from client	2693
+bytes sent via SQL*Net to client	95855
+calls to get snapshot scn: kcmgss	12
+calls to kcmgcs	281
+CCursor + sql area evicted	1
+consistent gets	7447
+consistent gets examination	7
+consistent gets examination (fastpath)	7
+consistent gets from cache	7447
+consistent gets pin	7440
+consistent gets pin (fastpath)	7440
+CPU used by this session	8
+CPU used when call started	3
+DB time	22
+DFO trees parallelized	1
+enqueue conversions	8
+enqueue releases	14
+enqueue requests	18
+enqueue waits	2
+execute count	11
+global enqueue gets sync	230
+global enqueue releases	218
+in call idle wait time	15
+index fetch by key	3
+logical read bytes from cache	61005824
+messages sent	2
+no work - consistent read gets	7174
+non-idle wait count	86
+opened cursors cumulative	12
+OS Block input operations	166989796
+OS Block output operations	126791960
+OS Involuntary context switches	1460955
+OS Maximum resident set size	3592724
+OS Page reclaims	14677362
+OS System time used	224014
+OS User time used	2729163
+OS Voluntary context switches	36523313
+Parallel operations not downgraded	1
+parse count (hard)	6
+parse count (total)	14
+parse time cpu	1
+parse time elapsed	1
+process last non-idle time	1
+PX local messages recv'd	86
+PX local messages sent	86
+queries parallelized	1
+recursive calls	26
+recursive cpu usage	5
+Requests to/from client	46
+RM usage	90899
+rows fetched via callback	1
+scheduler wait time	1
+session cursor cache hits	1
+session logical reads	7447
+session pga memory	458752
+sorts (memory)	4
+sorts (rows)	4062
+sql area evicted	1
+sql area purged	1
+SQL*Net roundtrips to/from client	46
+table fetch by rowid	1
+table scan blocks gotten	7174
+table scan disk non-IMC rows gotten	200000
+table scan rows gotten	200000
+table scans (long tables)	29
+table scans (rowid ranges)	29
+user calls	67
+workarea executions - optimal	11
+workarea memory allocated	-11
+```

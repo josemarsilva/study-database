@@ -1,10 +1,22 @@
 -- ----------------------------------------------------------------------------
--- filename   : 21_scenario_02_changes_states_sp_mg_rj_cities_645__92.sql
+-- filename   : 21_scenario_02_changes_states_sp_mg_rj_cities_645_853_92.sql
 -- revision   : 2025-04-04 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------
 
 -- Scenario 01 CHANGES: address_states IN ('SP', 'MG', 'RJ') has much more cities (645, ?, 92)
+
+/*
+  * Table `customers` has 200.000 rows
+  * Column `customers.customer_type_id` has 2 distinct values: (**F** Fisica, **J** Juridica)
+  * Column `customers.code` is alternate key CNPJ/CPF, has 200.000 distincts keys
+  * Column `customer_status_id` has a 4 distinct values: (0: INACTIVE; 1: ACTIVE; 2:BLOCKED; 3:RESTRICTED - ONLY WITHDRAWS)
+  * Column `customers.address_city` IN states ('SP', 'MG', 'RJ') has respectively (645, 853, 92) distinct values
+  * Column `customers.address_city` IN states ('SP', 'MG', 'RJ') has only 1 (one) distinct values for each state, so 25 distinct values
+  * Column `customers.address_state` is 27 distinct values: 'AC', 'AL', ..., 'TO'
+  * Index Unique `customers.customer_code` - scenario 01 INITIAL
+*/
+
 
 UPDATE customers
 SET    address_city = get_array_element(id, 'Adamantina,Adolfo,Aguai,Aguas da Prata,Aguas de Lindoia,Aguas de Santa Barbara,Aguas de Sao Pedro,Alambari,Alfredo Marcondes,Altair,Alto Alegre,Aluminio,Alvares Florence,Alvares Machado,Alvaro de Carvalho,Alvinlandia,Americana,Americo Brasiliense,Americo de Campos,Amparo,Analandia,Anhumas,Aparecida,Aparecida d`Oeste,Aracariguama,Aracoiaba da Serra,Aramina,Arandu,Arapei,Araras,Arco-Iris,Arealva,Areias,Areiopolis,Ariranha,Artur Nogueira,Aruja,Aspasia,Assis,Atibaia,Auriflama,Avai,Avanhandava,Bady Bassitt,Balbinos,Balsamo,Bananal,Barao de Antonina,Barbosa,Bariri,Barra Bonita,Barra do Chapeu,Barrinha,Barueri,Bastos,Bauru,Bento de Abreu,Bernardino de Campos,Bertioga,Bilac,Birigui,Biritiba Mirim,Bocaina,Bofete,Boituva,Bom Jesus dos Perdoes,Bom Sucesso de Itarare,Bora,Boraceia,Borborema,Borebi,Braganca Paulista,Brauna,Brejo Alegre,Brodowski,Buritama,Buritizal,Cabralia Paulista,Cabreuva,Cacapava,Cachoeira Paulista,Caconde,Caiabu,Caieiras,Caiua,Cajamar,Cajati,Cajobi,Cajuru,Campina do Monte Alegre,Campo Limpo Paulista,Campos do Jordao,Campos Novos Paulista,Canas,Candido Mota,Candido Rodrigues,Canitar,Capela do Alto,Capivari,Caraguatatuba,Carapicuiba,Cardoso,Cassia dos Coqueiros,Catanduva,Catigua,Cedral,Cerqueira Cesar,Cerquilho,Cesario Lange,Charqueada,Chavantes,Clementina,Colina,Conchal,Conchas,Cordeiropolis,Coroados,Coronel Macedo,Corumbatai,Cosmopolis,Cosmorama,Cotia,Cravinhos,Cristais Paulista,Cruzalia,Cruzeiro,Cubatao,Diadema,Dirce Reis,Divinolandia,Dobrada,Dois Corregos,Dolcinopolis,Dourado,Dracena,Duartina,Dumont,Echapora,Elias Fausto,Elisiario,Embauba,Embu das Artes,Embu-Guacu,Emilianopolis,Engenheiro Coelho,Espirito Santo do Pinhal,Espirito Santo do Turvo,Estiva Gerbi,Estrela d`Oeste,Estrela do Norte,Euclides da Cunha Paulista,Fartura,Fernando Prestes,Fernandopolis,Fernao,Ferraz de Vasconcelos,Flora Rica,Floreal,Florida Paulista,Florinea,Franca,Francisco Morato,Franco da Rocha,Gabriel Monteiro,Galia,Garca,Gastao Vidigal,Gaviao Peixoto,General Salgado,Getulina,Glicerio,Guaicara,Guaimbê,Guapiacu,Guapiara,Guara,Guaracai,Guaraci,Guarani d`Oeste,Guaranta,Guararema,Guarei,Guariba,Guaruja,Guarulhos,Guatapara,Guzolandia,Herculandia,Holambra,Hortolandia,Iacanga,Iacri,Iaras,Ibate,Ibira,Ibirarema,Icem,Iepê,Igaracu do Tietê,Igarapava,Igarata,Ilha Comprida,Ilha Solteira,Ilhabela,Indaiatuba,Indiana,Indiapora,Inubia Paulista,Ipaussu,Ipero,Ipeuna,Ipigua,Ipua,Iracemapolis,Irapua,Irapuru,Itajobi,Itaju,Itanhaem,Itaoca,Itapecerica da Serra,Itapevi,Itapira,Itapirapua Paulista,Itaporanga,Itapui,Itapura,Itaquaquecetuba,Itariri,Itatiba,Itirapina,Itirapua,Itobi,Itu,Itupeva,Jaborandi,Jacarei,Jaci,Jaguariuna,Jales,Jambeiro,Jandira,Jardinopolis,Jarinu,Jeriquara,Joanopolis,Joao Ramalho,Julio Mesquita,Jumirim,Jundiai,Junqueiropolis,Juquitiba,Lagoinha,Laranjal Paulista,Lavinia,Lavrinhas,Leme,Limeira,Lindoia,Lins,Lorena,Lourdes,Lucelia,Lucianopolis,Luiz Antonio,Luiziania,Lupercio,Lutecia,Macatuba,' ||

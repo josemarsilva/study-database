@@ -262,16 +262,16 @@ Look for costly operations like TABLE ACCESS FULL, which usually indicates a ful
       - Cluster Access
       - Bit Map Index
     * Join Method
-      - [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method)
+      - [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method): **Hash join**, **Nested Loop**, **(Sort) Merge join**, **Cartesian join**
     * [Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI) ![star-icon.png](../../doc/images/star-icon.png)
       - [Correlations](https://www.youtube.com/watch?v=IYWmauKtwXI&t=220s), [Extended Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI&t=299s) and [Skews](https://www.youtube.com/watch?v=IYWmauKtwXI&t=330s) ![star-icon.png](../../doc/images/star-icon.png)
       - Cardinality and Selectivity
     * [Executions Plan, consistent gets](https://www.youtube.com/watch?v=Mt67FqYww_w&)
 * Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
-      - [Join Method - nested loop, hash, and merge joins](https://www.youtube.com/watch?v=pJWCwfv983Q)
-      - [Playlist Oracle Database for Developers](https://www.youtube.com/playlist?list=PL78V83xV2fYlT11CJXE77H0LD7C_gZmyf)
-      - [How to Read an Execution Plan](https://www.youtube.com/watch?v=NkXxRodAFUY)
-      - [What are Optimizer Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI)
+  - [Join Method - nested loop, hash, and merge joins](https://www.youtube.com/watch?v=pJWCwfv983Q) ![star-icon.png](../../doc/images/star-icon.png)
+  - [Playlist Oracle Database for Developers](https://www.youtube.com/playlist?list=PL78V83xV2fYlT11CJXE77H0LD7C_gZmyf) ![star-icon.png](../../doc/images/star-icon.png)
+  - [How to Read an Execution Plan](https://www.youtube.com/watch?v=NkXxRodAFUY)
+  - [What are Optimizer Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI)
 
 
 ---

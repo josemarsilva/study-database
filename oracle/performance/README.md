@@ -25,6 +25,9 @@
 * [3. Understanding the Oracle Optimizer](#3-understanding-the-oracle-optimizer)
   * [3.1. How the Optimizer Works](#31-how-the-optimizer-works)
   * [3.2. Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
+  * [3.3. Execution Plan (SQL Developer)](#33-execution-plan-sqldeveloper)
+  * [3.4. Execution Plan (SQL*Plus)](#34-execution-plan-sqlplus)
+  * [3.99. References](#399-references)
 * [4. Identifying Performance Bottlenecks](#4-identifying-and-diagnosticing-performance-bottlenecks)
   * [4.1 Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
   * [4.2 Monitoring Performance over Time AWR](#42-monitoring-performance-over-time-with-awr-and-ash)
@@ -46,9 +49,18 @@
     * [5.2.c. EXISTS vs. IN](#52c-exists-vs-in)
     * [5.2.d. In-Memory Table and Columns](#52d-in-memory-table-and-columns)
     * [5.2.e. Cursor Optimization](#52e-cursor-optimization)
+    * [5.2.f. Encoding issues when using EBCDIC](#52f-encoding-issues-when-using-ebcdic)
   * [5.3. Optimizing Joins and Aggregations](#53-optimizing-joins-and-aggregations)
-      * [5.3.a. Choosing the Right Join Type](#571-choosing-the-right-join-type)
-      * [5.3.b. Using the RIGHT Aggregation Strategy](#572-using-the-right-aggregation-strategy)
+      * [5.3.a. Choosing the Right Join Type](#531-choosing-the-right-join-type)
+      * [5.3.b. Using the RIGHT Aggregation Strategy](#532-using-the-right-aggregation-strategy)
+  * [5.4. Encoding issues: when using EBCDIC](#54-encoding-issues-when-using-ebcdic) ![star-icon.png](../../doc/images/star-icon.png)
+    * [5.4.a. Character Set Conversion](#54a-character-set-conversion)
+    * [5.4.b. NLS_LANG and charset mismatch](#54b-nls_lang-and-charset-mismatch)
+    * [5.4.c. Data integrity during transfer](#54c-data-integrity-during-transfer)
+    * [5.4.d. Performance considerations](#54d-performance-considerations)
+    * [5.4.e. Indexing and Sorting](#54e-indexing-and-sorting)
+    * [5.4.f. Application level handling](#54f-application-level-handling)
+    * [5.4.g. Recommended strategy](#54g-recommended-strategy)
 * [6. Table Partitioning](#6-table-partitioning)
   * [6.1. Range Partitioning](#61-range-partitioning)
   * [6.2. Hash Partitioning](#62-hash-partitioning)
@@ -244,7 +256,17 @@ SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 Look for costly operations like TABLE ACCESS FULL, which usually indicates a full table scan.
 
 
-### 3.2.1. References
+### 3.3. Execution Plan (SQLDeveloper)
+
+  * `under-construction`
+
+
+### 3.4. Execution Plan (SQL*Plus)
+
+  * `under-construction`
+
+
+### 3.99. References
 
 * Official Documentation
   * `under-construction`
@@ -349,20 +371,20 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 #### 5.1.a. B-tree Index
 
-Best for selective queries.
+* Best for selective queries
 
 
 #### 5.1.b. Bitmap Index
 
-Good for low-cardinality columns (e.g., gender, status) but should be avoided in high-write environments.
+* Good for **low-cardinality** columns (e.g., gender, status) but should be avoided in high-write environments
 
 
 #### 5.1.c. Function-Based Index
 
-Useful when queries involve functions:
+* Useful when queries involve functions
 
 ```sql
-CREATE INDEX idx_upper_lastname ON employees (UPPER(last_name));
+CREATE INDEX idx_customers_address_city ON customers (UPPER(idx_customers_address_city));
 ```
 
 
@@ -394,7 +416,7 @@ SELECT index_name, table_name, used FROM v$object_usage;
 
 #### 5.1.g. Index Reverse Key
 
-* `under-construction` tabelas que sofrem unique scan
+* `under-construction` normally better when **UNIQUE SCAN**
 
 
 #### 5.1.h. Index Organized Table
@@ -411,12 +433,12 @@ SELECT index_name, table_name, used FROM v$object_usage;
 
 ```sql
 -- Bad practice using hard parse
-SELECT * FROM orders WHERE order_id = 123;
+SELECT * FROM customers WHERE id = 123;
 ```
 
 ```sql
 -- Better practice avoid hard parse
-SELECT * FROM orders WHERE order_id = :order_id;
+SELECT * FROM customers WHERE id = :customer_id;
 ```
 
 ### 5.2.b. Avoiding SELECT *
@@ -435,7 +457,8 @@ SELECT name, email FROM customers;
 
 ### 5.2.c. EXISTS vs. IN
 
-EXISTS is generally faster when checking for existence:
+* `EXISTS` is generally faster when checking for existence
+* `EXISTS` AND `IN` are not "same things" nether produces "same execution plan"
 
 ```sql
 -- Better: Exists only checks existence
@@ -452,7 +475,26 @@ WHERE customer_id IN (SELECT customer_id FROM orders);
 
 ### 5.2.d. In-Memory Table and Columns
 
-* `under-construction`
+### 5.2.d.1. On Regular Oracle Infrastructure (non-Exadata)
+
+* Pinning a table in-memory (using INMEMORY PRIORITY CRITICAL) ensures that Oracle keeps that table resident in the In-Memory Column Store (IMCS)
+* This reduces disk or buffer cache access and speeds up analytic queries significantly
+
+### 5.2.d.2. On On Exadata
+
+* Oracle Exadata introduces: `Smart Scan`, `Storage Indexes`, `Hybrid Columnar Compression`, and `Flash Cache`, all of which significantly optimize I/O and query execution even without IMCS
+* Advantages of In-Memory on Exadata:
+  * Still beneficial for complex analytics where vectorized execution and in-memory joins/aggregates shine
+  * Eliminates some overhead of Smart Scan when the data is already in-memory
+  * Works great when latency is critical and predictable performance is required
+* Considerations:
+  * Exadata already caches data very efficiently in its Smart Flash Cache, reducing the benefit of in-memory pinning
+  * The Storage Cells in Exadata perform Smart Scans and push filtering/projections to storage layer — sometimes more efficient than IMCS, especially for large table scans
+  * If memory is limited, pinning data in-memory may evict other useful segments that could be handled more efficiently by Exadata's storage tier
+* Best Practice on Exadata:
+  * Use In-Memory selectively: Don't pin all data — pin only the hot, frequently queried analytical tables
+  * Test query performance with and without pinning, because Exadata Smart Scan may outperform in-memory in certain large-scale scenarios
+  * Consider letting Oracle manage it dynamically (INMEMORY PRIORITY AUTO) unless you have solid reasons to pin
 
 
 ### 5.2.e. Cursor Optimization
@@ -491,6 +533,67 @@ SELECT emp_id, salary,
 FROM employees;
 ```
 
+### 5.4. Encoding issues: when using EBCDIC
+
+Using EBCDIC-encoded data in an Oracle Exadata environment is fairly uncommon today, but still relevant for organizations integrating with mainframe systems (like IBM z/OS). Since Oracle natively uses Unicode (AL32UTF8) or ASCII-based encodings, using EBCDIC introduces some unique challenges and precautions.
+
+### 5.4.a. Character Set Conversion
+
+* Oracle Database does not natively store EBCDIC — you’ll need to convert EBCDIC to a supported character set, typically AL32UTF8 or WE8ISO8859P1, during load
+* Use Oracle SQL*Loader, External Tables, or Data Integrator (ODI) with proper conversion options
+* Best Practice: Can be used in SQL*Loader control files if you're importing raw EBCDIC data.
+
+```sql-loader-ctl-file
+CHARACTERSET WE8EBCDIC1047
+```
+
+
+### 5.4.b. NLS_LANG and Charset Mismatch
+
+* Setting the correct NLS_LANG on client environments is critical. A mismatch can result in:
+  * Garbled characters
+  * Inserted data becoming unreadable
+  * Failed conversions
+  * Examples:
+
+```bash
+export NLS_LANG=AMERICAN_AMERICA.WE8EBCDIC1047
+```
+
+
+### 5.4.c. Data Integrity During Transfer
+
+* When moving data from EBCDIC to Exadata:
+  * Use binary-safe transport (e.g., FTP in binary mode)
+  * Avoid automatic conversions by network utilities (e.g., ASCII mode in FTP)
+
+### 5.4.d. Performance Considerations
+
+* Conversion overhead: If you're querying EBCDIC-encoded flat files via **external tables**, character set conversion can impact performance
+* When loading EBCDIC data into Oracle tables, it's ideal to **convert once during ETL** and store in UTF-8 or a standard Oracle charset
+
+### 5.4.e. Indexing and Sorting
+
+* EBCDIC has a different sort order than ASCII/Unicode
+* If not converted properly, sorting and indexing may behave unpredictably
+  * For example: 'A' < 'a' in ASCII, but not necessarily in EBCDIC
+* Always **normalize to Unicode** before relying on character-based operations
+
+
+### 5.4.f. Application-Level Handling
+
+* If your application expects EBCDIC and your database is UTF-8, make sure:
+  * Your app layer performs encoding/decoding correctly
+  * Or you use Oracle functions like CONVERT(..., 'WE8EBCDIC1047', 'AL32UTF8') appropriately
+
+### 5.4.g. Recommended Strategy
+
+1.	Convert EBCDIC to UTF-8 during ETL
+2.	Store in Oracle using AL32UTF8
+3.	Use external tables or SQL*Loader with proper charset config
+4.	Validate with test data for round-trip correctness
+5.	Monitor performance if real-time conversion is needed
+
 
 ---
 
@@ -513,7 +616,8 @@ CREATE TABLE orders (
 
 ### 6.2. Hash Partitioning
 
-Useful when data is evenly distributed but queries use different keys.
+* `under-construction` - Useful when data is evenly distributed but queries use different keys.
+
 
 ### 6.3. Partition Pruning
 
@@ -526,7 +630,7 @@ Useful when data is evenly distributed but queries use different keys.
 ### 6.5. Drop Partition
 
 * `under-construction`
-- Drop de partições onde a PK da tabela não faz parte da chave de particionamento, o índice da PK fica em status unusable
+  - Drop de partições onde a PK da tabela não faz parte da chave de particionamento, o índice da PK fica em status unusable
 
 ### 6.6. Query Partition 
 
@@ -863,3 +967,29 @@ SYS_C0056973      ID          1               ASC
 alter system flush shared_pool;
 alter system flush buffer_cache;
 ```
+
+## II Cheatsheet.99.c. Usefull Commands - Limit number of rows outputed
+
+* If you're using Oracle 12c or newer (most common now):
+
+```sql
+SELECT * 
+FROM study.customers
+ORDER BY id -- You should specify order before fetch here
+FETCH FIRST 100 ROWS ONLY;
+
+```
+
+* If you're using Oracle 11g or earlier
+  * `ROWNUM` is assigned before ORDER BY, so it may not work well if ordering is needed.
+
+```sql
+SELECT * 
+FROM (
+  SELECT * 
+  FROM study.customers
+) 
+WHERE ROWNUM <= 100;
+```
+
+

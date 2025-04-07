@@ -8,6 +8,24 @@
 --
 -- 1. DROP/CREATE TABLE, ADD CONSTRAINT
 --
+DROP TABLE cities;
+
+CREATE TABLE cities (
+    id NUMBER PRIMARY KEY,
+    state VARCHAR(2) NOT NULL,
+    city VARCHAR(50) NOT NULL
+);
+
+DROP SEQUENCE cities_seq;
+
+CREATE SEQUENCE cities_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+ALTER TABLE cities ADD CONSTRAINT ak_cities_name UNIQUE (state,city);
+
+
+--
+-- 2. DROP/CREATE TABLE, ADD CONSTRAINT
+--
 DROP TABLE customer_types;
 
 CREATE TABLE customer_types (
@@ -20,7 +38,7 @@ ALTER TABLE customer_types ADD CONSTRAINT ak_customer_types_name UNIQUE (name);
 
 
 --
--- 2. DROP/CREATE TABLE, ADD CONSTRAINT
+-- 3. DROP/CREATE TABLE, ADD CONSTRAINT
 --
 DROP TABLE customer_statuses;
 
@@ -34,7 +52,7 @@ ALTER TABLE customer_statuses ADD CONSTRAINT ak_customer_statuses_name UNIQUE (n
 
 
 --
--- 3. DROP/CREATE TABLE, DROP/CREATE SEQUENCE, ADD CONSTRAINT
+-- 4. DROP/CREATE TABLE, DROP/CREATE SEQUENCE, ADD CONSTRAINT
 --
 DROP TABLE customers CASCADE CONSTRAINTS;
 

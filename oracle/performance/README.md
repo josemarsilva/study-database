@@ -27,13 +27,14 @@
   * [3.2. Execution Plan (EXPLAIN PLAN)](#32-execution-plan-explain-plan)
   * [3.3. Execution Plan (SQLDeveloper)](#33-execution-plan-sqldeveloper) ![star-icon.png](../../doc/images/star-icon.png)
   * [3.4. Execution Plan (SQL*Plus)](#34-execution-plan-sqlplus)
+  * [3.5. Statistics - Correlations, Extended Statistics, Cardinality and Selectivity](#35-statistics---correlations-extended-statistics-cardinality-and-selectivity)
   * [3.99. References](#399-references)
 * [4. Identifying Performance Bottlenecks](#4-identifying-and-diagnosticing-performance-bottlenecks)
   * [4.1 Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
   * [4.2 Monitoring Performance over Time AWR](#42-monitoring-performance-over-time-with-awr-and-ash)
   * [4.3 Look for Locks and DeadLocks](#43-look-for-locks-and-deadlocks)
   * [4.4 Diagnostics with Oracle Enterprise Manager OEM](#44-diagnostics-with-oracle-enterprise-manager-oem)
-* [5. Optimizing Performance Issues Identified](#5-optimizing-issues-identified)
+* [5. Optimizing Performance Issues Identified](#5-optimizing-performance-issues-identified)
   * [5.1. Optimizing SQL Queries - Indexing Strategies](#51-optimizing-sql-queries---indexing-strategies)
     * [5.1.a. B-tree Index](#51a-b-tree-index)
     * [5.1.b. Bitmap Index](#51b-bitmap-index)
@@ -75,7 +76,9 @@
   * [7.1. Using Parallel Queries](#71-using-parallel-queries)
 * [I. Laboratories](#i-laboratories)
   * [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
-  * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
+  * [I.2. Query metrics scenario INITIAL](#ilab-2-query-metrics-scenario-initial)
+  * [I.3. Query by Indexed Primary Key Columns](#ilab-3-query-by-indexed-primary-key-columns)
+  * [I.4. Query by Non Indexed Columns](#ilab-4-query-by-non-indexed-columns)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -157,7 +160,7 @@ The physical structure represents the operating system files that store the data
   * [Oracle Database - Administration - SQL Tuning Guide](https://docs.oracle.com/en/database/oracle/oracle-database/23/tgsql/index.html)
 * Blog/Videos
   * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: database & instance, memory structures, type of process, server process, background process, putting all together
-* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii-cheatsheet99-quick-wins-blogs-vlogs-etc)
   * `under-construction`
 
 ---
@@ -225,7 +228,7 @@ The smallest storage unit in Oracle (default size is 8 KB).
   * `under-construction`
 * Blog/Videos
   * [Video: Oracle Database Architecture - Part1](https://www.youtube.com/watch?v=cvx9wCQZnKw): Chapters: single instance & RAC, logical storage structures
-* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii-cheatsheet99-quick-wins-blogs-vlogs-etc)
   * `under-construction`
 
 
@@ -291,6 +294,16 @@ set autot trace off
 set timing on
 ```
 
+### 3.5. Statistics - Correlations, Extended Statistics, Cardinality and Selectivity
+
+* [Correlations](https://www.youtube.com/watch?v=IYWmauKtwXI&t=220s), [Extended Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI&t=299s) and [Skews](https://www.youtube.com/watch?v=IYWmauKtwXI&t=330s) ![star-icon.png](../../doc/images/star-icon.png)
+* Cardinality:
+  - Cardinality: total rows of table. Ex: `select 1 / COUNT(1) from STUDY.customers`; Result: `200.000`
+  - Cardinality(total rows operation): `rows estimated = Selectivity * Cardinality`; Ex: `0.5 * 200000`; Results: `200000`
+* Selectivity:
+  - Selectivity: proportion. ` 1 / number_of_distinct * total_rows`; Ex: `select 1 / COUNT(DISTINCT customer_type_id) /* 2: 'F', 'J' */ from STUDY.customers`; Result: `0.5`
+
+
 ### 3.99. References
 
 * Official Documentation
@@ -317,7 +330,8 @@ set timing on
         - Cardinality: total rows of table. Ex: `select 1 / COUNT(1) from STUDY.customers`; Result: `200.000`
         - Cardinality(total rows operation): `rows estimated = Selectivity * Cardinality`; Ex: `0.5 * 200000`; Results: `200000`
     * [Executions Plan, consistent gets](https://www.youtube.com/watch?v=Mt67FqYww_w&)
-* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii99-quick-wins-blogs-vlogs-etc)
+* Laboratories / [Quick Wins, Blogs, Vlogs, etc](#ii-cheatsheet99-quick-wins-blogs-vlogs-etc)
+  - [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts) and [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
   - [Join Method - nested loop, hash, and merge joins](https://www.youtube.com/watch?v=pJWCwfv983Q) ![star-icon.png](../../doc/images/star-icon.png)
   - [Playlist Oracle Database for Developers](https://www.youtube.com/playlist?list=PL78V83xV2fYlT11CJXE77H0LD7C_gZmyf) ![star-icon.png](../../doc/images/star-icon.png)
   - [How to Read an Execution Plan](https://www.youtube.com/watch?v=NkXxRodAFUY)
@@ -395,6 +409,7 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 ## 5.1. Optimizing SQL Queries - Indexing Strategies
 
 * Indexes improve query performance but can also degrade insert/update performance if overused.
+* Simple explanation [How to Create Database Indexes: Databases for Developers](https://www.youtube.com/watch?v=7wLFr7ZnKPU&)
 
 
 #### 5.1.a. B-tree Index
@@ -616,11 +631,11 @@ export NLS_LANG=AMERICAN_AMERICA.WE8EBCDIC1047
 
 ### 5.4.g. Recommended Strategy
 
-1.	Convert EBCDIC to UTF-8 during ETL
-2.	Store in Oracle using AL32UTF8
-3.	Use external tables or SQL*Loader with proper charset config
-4.	Validate with test data for round-trip correctness
-5.	Monitor performance if real-time conversion is needed
+1. Convert EBCDIC to UTF-8 during ETL
+2. Store in Oracle using AL32UTF8
+3. Use external tables or SQL*Loader with proper charset config
+4. Validate with test data for round-trip correctness
+5. Monitor performance if real-time conversion is needed
 
 
 ### 5.5. Use of Hints
@@ -689,27 +704,32 @@ Laboratories is a practical use of performance concepts
 * Pre-requisites:
   * [Laboratory - Oracle OCI FreeTier](../labs/Oracle-OCI-FreeTier/README.md)
 
-### I.Lab-1-Step-1: Create Tables, Constraints, Sequences, etc - Run Script [`01_tables_pk_ak_seq_check.sql`](./sql/01_tables_pk_ak_seq_check.sql)
+### I.Lab-1-Step-1: Create Tables, Constraints, Sequences, etc
 
-### I.Lab-1-Step-2: Create Function auxiliar - Run Script [`11_function_get_array_element.sql`](./sql/11_function_get_array_element.sql)
+* Run Script [`01_tables_pk_ak_seq_check.sql`](./sql/01_tables_pk_ak_seq_check.sql)
 
-### I.Lab-1-Step-3: Create Procedure Load Customers - Run Script [`12_procedure_load_customers.sql`](./sql/12_procedure_load_customers.sql)
+### I.Lab-1-Step-2: Create Function auxiliar
 
-### I.Lab-1-Step-4: Load 200.000 rows into `customers` tables - Run Script [`13_execute_load_customers.sql`](./sql/13_execute_load_customers.sql)
+* Run Script [`11_function_get_array_element.sql`](./sql/11_function_get_array_element.sql)
+
+### I.Lab-1-Step-3: Create Procedure Load Customers
+
+* Run Script [`12_procedure_load_customers.sql`](./sql/12_procedure_load_customers.sql)
+
+### I.Lab-1-Step-4: Load 200.000 rows into `customers` tables
+
+* Run Script [`13_execute_load_customers.sql`](./sql/13_execute_load_customers.sql)
 
 ```sql
 EXECUTE load_customers(200000) -- 200.000 rows
 ```
 
-### I.Lab-1-Step-5: Understand table `STUDY.customers` on scenario 00-INITIAL: number of rows, columns, distinct values
-  * Table `customers` has 200.000 rows
-  * Column `customers.customer_type_id` has 2 distinct values: (**F** Fisica, **J** Juridica)
-  * Column `customers.code` is alternate key CNPJ/CPF, has 200.000 distincts keys
-  * Column `customer_status_id` has a 4 distinct values: (0: INACTIVE; 1: ACTIVE; 2:BLOCKED; 3:RESTRICTED - ONLY WITHDRAWS)
-  * Column `customers.address_city` is 27 distinct values: 'Rio Branco', 'Maceio', ..., 'Palmas'
-  * Column `customers.address_state` is 27 distinct values: 'AC', 'AL', ..., 'TO'
-  * Index Unique `customers.customer_code`
+### I.Lab-1-Step-5: Load `cities` tables, one chaptal city for each state and a lot of cities for 'SP', 'MG', 'RJ'
 
+* Run Script [`13_execute_load_cities.sql`](./sql/13_execute_load_cities.sql)
+
+
+### I.Lab-1-Step-6: Understand table `STUDY.customers` on scenario 00 changes INITIAL: number of rows, columns, distinct values
 
 * Describe `STUDY.customers`, `STUDY.customer_types`, `STUDY.customer_statuses`
 
@@ -736,28 +756,10 @@ LAST_ORDER_AT               DATE
 OBS                         VARCHAR2(1000) 
 ```
 
-```sql
-DESCRIBE customer_types
-
-Name Null?    Type         
----- -------- ------------ 
-ID   NOT NULL VARCHAR2(1)  
-NAME NOT NULL VARCHAR2(30) 
-```
-
-```sql
-DESCRIBE customer_statuses
-Name Null?    Type         
----- -------- ------------ 
-ID   NOT NULL VARCHAR2(1)  
-NAME NOT NULL VARCHAR2(30) 
-```
-
-
 * CARDINALITY
 
 ```sql
-select count(*) from customers -- 200.000
+SELECT COUNT(*) FROM customers -- 200.000
 ```
 
 * SELECTIVITY
@@ -767,10 +769,22 @@ SELECT
     COUNT(DISTINCT code),               -- 2 keys: (CPF;CNPJ)
     COUNT(DISTINCT name),               -- 200.000 keys
     COUNT(DISTINCT customer_type_id),   -- 2 keys: [ 'F', 'J' ]
-    COUNT(DISTINCT customer_status_id), -- 4 keys: [ 0, 1, 2, 3 ]
+    COUNT(DISTINCT customer_status_id), -- 1 keys: [ 0 ] 
     COUNT(DISTINCT address_state)       -- ['AC','AL',...,'TO']
 FROM STUDY.customers;
 ```
+
+### I.Lab-1-Step-7: Laboratory analysis and conclusions
+
+* Table `customers` has 200.000 rows
+* Column `customers.customer_type_id` has 2 distinct values: (**F** Fisica, **J** Juridica)
+* Column `customers.code` is alternate key CNPJ/CPF, has 200.000 distincts keys
+* Column `customer_status_id` has a 6 distinct values: (0: INACTIVE; 1: ACTIVE; 2:BLOCKED; 3:RESTRICTED - ONLY WITHDRAWS, 4:RESTRICTED - ORDER <= CONFIG 1, 5:RESTRICTED - CUSTOM IN CONFIG )
+* Column `customers.address_city` is 27 distinct values: 'Rio Branco', 'Maceio', ..., 'Palmas'
+* Column `customers.address_state` is 27 distinct values: 'AC', 'AL', ..., 'TO'
+* Column `customers.address_details` has 100.000 distincts values but another 100.000 NULL values
+* Index Unique `customers.customer_code`
+
 
 
 ---
@@ -780,7 +794,10 @@ FROM STUDY.customers;
 * Pre-requisites:
   * [I.Lab-1: Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
 
-* Step-1: Check if Table Has Statistics Collected
+### I.Lab-2-Step-1: Check if Table Has Statistics Collected
+
+* [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
+
 
 ```sql
 SELECT table_name, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed, num_rows, blocks, avg_row_len
@@ -792,10 +809,10 @@ AND table_name = 'CUSTOMERS';
 ```result
 TABLE_NAME LAST_ANALYZED          NUM_ROWS BLOCKS AVG_ROW_LEN
 ---------- ---------------------- -------- ------ -----------
-CUSTOMERS  04-APR-2025 12:40:5151 150500   5410   248
+CUSTOMERS  04-APR-2025 17:24:4242 200000   7174   248
 ```
 
-* Step-2: Check table columns statistics
+### I.Lab-2-Step-2: Check table columns statistics
 
 ```sql
 SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
@@ -805,28 +822,31 @@ ORDER BY owner, table_name;
 ```
 
 ```result
-TABLE_NAME COLUMN_NAME        NUM_DISTINCT DENSITY NUM_NULLS LOW_VALUE HIGH_VALUE HISTOGRAM LAST_ANALYZED
----------  ------------------ ------------ ------- --------- -----------------------------------------------
-CUSTOMERS  ID                 150500    0,000007    0        HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  NAME               150500    0,000007    0        AAAATXDEDBQEZILCIGBI XPTADDHPLQHKQHOKUVORUJBDWELQYF GYFKREDIPEOK    ZZZVUXTGRDHLYGFXWZMQ MAMQEXFHELDWGKSLJTQFWCEGFJRVKG PEXLVEWFDZIW    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  CUSTOMER_TYPE_ID   2         0,000003322 0        F    J    FREQUENCY    04-APR-2025 12:40:5151
-CUSTOMERS  CODE               150500    0,000007    0        10000018473    99999447843158    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  CUSTOMER_STATUS_ID 1         0,000003331 0        FREQUENCY    04-APR-2025 12:40:5151
-CUSTOMERS  EMAIL              150500    0,000007    0        aaaamhljwwjzxnythjmp@example.com    zzzyfsyhfwatwfsldgdy@example.com    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  PHONE              148167    0,000007    0        +55 11100000696    +55 11999998358    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  ADDRESS_STREET     150500    0,000007    0        Rua AABQMQdFysDnxLFpzanu aBmGVyhpTEIFuNHSljoyXwJvGWQHrr    Rua zzzVePqQJJjLbPtdqveg MQucctYONvmRHAiGDmvxmXciNZNBBe    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  ADDRESS_UNIT       898       0,001112    0        100    999    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  ADDRESS_DETAILS    75250     0,000013    75250    AAFFDAlKGahuDVVCBlJR    zzsghMctqSgSYixyEZiD    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  ADDRESS_ZIP_CODE   150500    0,000007    0        L    db    HYBRID    04-APR-2025 12:40:5151
-CUSTOMERS  ADDRESS_CITY       27        0,000003322 0        Aracaju    Vitoria    FREQUENCY    04-APR-2025 12:40:5151
-CUSTOMERS  ADDRESS_STATE      27        0,000003322 0        AC    TO    FREQUENCY    04-APR-2025 12:40:5151
-CUSTOMERS  SINCE_AT                     0           0        150500            NONE    04-APR-2025 12:40:5151
-CUSTOMERS  LAST_ORDER_AT                0           0        150500            NONE    04-APR-2025 12:40:5151
-CUSTOMERS  OBS                          0           0        150500            NONE    04-APR-2025 12:40:5151
+TABLE_NAME COLUMN_NAME        NUM_DISTINCT DENSITY      NUM_NULLS LOW_VALUE HIGH_VALUE HISTOGRAM LAST_ANALYZED
+---------  ------------------ ------------ --------     --------- -----------------------------------------------
+CUSTOMERS  ID                 200000       0,000005               HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  NAME               199760       0,000005     0         AAAATXDEDBQEZILCIGBI XPTADDHPLQHKQHOKUVORUJBDWELQYF GYFKREDIPEOK    ZZZVUXTGRDHLYGFXWZMQ MAMQEXFHELDWGKSLJTQFWCEGFJRVKG PEXLVEWFDZIW    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  CUSTOMER_TYPE_ID   2            0,0000025    0         F    J    FREQUENCY    04-APR-2025 17:24:4242
+CUSTOMERS  CODE               200000       0,000005     0         10000018473    99999447843158    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  CUSTOMER_STATUS_ID 1            0,0000024977 0         FREQUENCY    04-APR-2025 17:24:4242
+CUSTOMERS  EMAIL              200000       0,000005     0         aaaamhljwwjzxnythjmp@example.com    zzzyfsyhfwatwfsldgdy@example.com    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  PHONE              200000       0,000005     0         +55 11100000696    +55 11999998358    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_STREET     200000       0,000005     0         Rua AABQMQdFysDnxLFpzanu aBmGVyhpTEIFuNHSljoyXwJvGWQHrr    Rua zzzVePqQJJjLbPtdqveg MQucctYONvmRHAiGDmvxmXciNZNBBe    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_UNIT       898          0,001112     0         100    999    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_DETAILS    100000       0,00001      100000    AAFFDAlKGahuDVVCBlJR    zzzjKSTdJZAhYVxQQEsD    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_ZIP_CODE   200000       0,000005     0         L     db$    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_CITY       27           0,0000025    0         Aracaju    Vitoria    FREQUENCY    04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_STATE      27           0,0000025    0         AC    TO    FREQUENCY    04-APR-2025 17:24:4242
+CUSTOMERS  SINCE_AT                        0            0         200000            NONE    04-APR-2025 17:24:4242
+CUSTOMERS  LAST_ORDER_AT                   0            0         200000            NONE    04-APR-2025 17:24:4242
+CUSTOMERS  OBS                             0            0         200000            NONE    04-APR-2025 17:24:4242
 ```
 
-* Step-3: Collect statistics 
+### I.Lab-2-Step-3: Collect statistics 
   - Simple
+
+* [`gather_statistics.sql`](../scripts/gather_statistics.sql)
+
 
 ```sql
 -- This will collect row count, column statistics, and index statistics
@@ -844,6 +864,205 @@ EXEC DBMS_STATS.GATHER_TABLE_STATS(
     method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
 );
 ```
+
+### I.Lab-2-Step-4: Laboratory analysis and conclusions
+
+* Table, columns and data analysis: Cardinality, Selectivity
+* Collected vs Actual table, columns and indexes statistics are OK
+
+
+---
+
+## I.Lab-3: Query by Indexed Primary Key Columns
+
+* Pre-requisites:
+  * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
+
+### I.Lab-3-Step-1: Analyse Execution Plan query customer id = 100000
+
+* [`explain_plan_for.sql`](./../scripts/explain_plan_for.sql)
+
+```sql
+-- On SQLDeveloper :: "Exec Plan ... (F10)" or "SET AUTOT ... EXPLAIN PLAN FOR ... SELECT TABLE(DBMS_XPLAN.DISPLAY) ... SET AUTOT OFF"
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+  SELECT * FROM customers WHERE id = 100000;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+* Analysis:
+  * INDEX UNIQUE SCAN using predicate WHERE id = 100000
+  * 1 rows, low cost
+
+```result
+Plan hash value: 1323999688
+ 
+-------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                         | Name         | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+-------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                  |              |     1 |   247 |     2   (0)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                   |              |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)             | :TQ10001     |     1 |   247 |     2   (0)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|   3 |    TABLE ACCESS BY INDEX ROWID    | CUSTOMERS    |     1 |   247 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                   |              |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                   |              |     1 |       |     1   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)| :TQ10000     |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                |              |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX UNIQUE SCAN         | SYS_C0056973 |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+-------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   8 - access("ID"=100000)
+ 
+Note
+-----
+   - automatic DOP: Computed Degree of Parallelism is 2 because of no expensive parallel operation
+```
+
+
+### I.Lab-3-Step-2: Analyse statistics for query customer id = 100000
+
+* [`explain_plan_for.sql`](./../scripts/explain_plan_for.sql)
+
+```sql
+-- On SQLDeveloper :: "Autotrace ... (F6)"
+SELECT * FROM customers WHERE id = 100000;
+```
+
+* Analysis:
+  * INDEX SYS_C0056973 UNIQUE SCAN, Filter Predicates: WHERE id = 100000
+    * Card: 1, Cost: 2 (good)
+    * Index is primary key
+  * TABLE ACCESS CUSTOMERS BY ROWID
+    * Card: 1, Cost: 2
+  * Statistics v$statsname
+    * consistent gets	3
+   
+
+
+```autotrace
+:
+consistent gets	3
+consistent gets examination	3
+consistent gets examination (fastpath)	3
+consistent gets from cache	3
+CPU used by this session	4
+CPU used when call started	2
+:
+```
+
+### I.Lab-3-Step-3: Laboratory analysis and conclusions
+
+* Exec Plan access by index primary key (very good)
+* Consistent get 3 (low)
+
+---
+
+## I.Lab-4: Query by Non Indexed Columns
+
+* Pre-requisites:
+  * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
+
+### I.Lab-4-Step-1: Analyse Execution Plan query customer by Non Indexed Columns
+
+* [`explain_plan_for.sql`](./../scripts/explain_plan_for.sql)
+
+```sql
+SELECT * FROM customers WHERE email = 'dphicfzgjynepoykrxch@example.com';
+SELECT * FROM customers WHERE name = 'DPLOSDEHZKDBQVLFJARP EAJZWPKZESQFUJUBRJCTEMOQXTZONN SPCQMZFWOXWUNUUYDHENYNNFGCUIOJ';
+SELECT * FROM customers WHERE customer_type_id = 'F';
+SELECT * FROM customers WHERE customer_status_id = 1;
+SELECT * FROM customers WHERE address_details = 'lXUWcxeEuuNhnGCXOaAQ';
+SELECT * FROM customers WHERE address_city = 'Sao Paulo';
+```
+
+* Analysis:
+  * FULL TABLE ACCESS, filter predicates - each query filter by a different column:  email = '...' / name = '...' / customer_type_id = ...
+  * **consistent gets 7692**
+    - all predicates variations has the same consistent gets because de work is the same to get data throught database buffer caches
+  * **Cost** 1082/1081 (sometimes with a little variations)
+    - sometimes rounding differentes values
+  * **Cardinality** sometimes 1 (email, name, customer_type_id, address_details); sometimes 200.000 (customer_status_id); sometimes 7.407 (address_city)
+    - cardinality is a proportional calculated planned value using statistics
+
+### I.Lab-4-Step-2: Laboratory analysis and conclusions
+
+* Exec Plan access by full table
+* Statname: "Consistent get" a metric of work to get data from buffers is the same, because optmizer should check all data blocks do find what he wants
+* Sometimes a little cardinality variation because some distincts count values
+* The work to check equality = for a column number and a string are very similar
+* Statname: "bytes received via SQL*Net from client" are very different between conditions that results only one row and conditions that results a lot off rows. Usually the size of final results set does not matter
+* Usually Low "Consistent get" represents low work efforts and better performance
+
+---
+
+## I.Lab-5: Query by Non Indexed Columns vs Indexed Columns 
+
+* Pre-requisites:
+  * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
+
+### I.Lab-5-Step-1: SCENARIO 02 - Let's index all columns to compare performance between Non Indexed and Indexed columns
+
+```sql
+CREATE INDEX idx_customers_email              on customers(email);
+CREATE INDEX idx_customers_name               on customers(name);
+CREATE INDEX idx_customers_customer_type_id   on customers(customer_type_id);
+CREATE INDEX idx_customers_customer_status_id on customers(customer_status_id);
+CREATE INDEX idx_customers_address_details    on customers(address_details);
+CREATE INDEX idx_customers_address_city       on customers(address_city);
+```
+
+```sql
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'customers');
+```
+
+```sql
+SELECT * FROM customers WHERE email = 'dphicfzgjynepoykrxch@example.com';
+SELECT * FROM customers WHERE name = 'DPLOSDEHZKDBQVLFJARP EAJZWPKZESQFUJUBRJCTEMOQXTZONN SPCQMZFWOXWUNUUYDHENYNNFGCUIOJ';
+SELECT * FROM customers WHERE customer_type_id = 1;
+SELECT * FROM customers WHERE customer_status_id = 1;
+SELECT * FROM customers WHERE address_details = 'lXUWcxeEuuNhnGCXOaAQ';
+SELECT * FROM customers WHERE address_city = 'Sao Paulo';
+```
+
+* Comparison Indexed non Indexed
+
+```
++ ------------------------ + ---------------------------------- +
+|                          |     N o n        I n d e x e d     |
+|                          + --------------------------- + ---- + ---------------- + ------------------------------ + -------------- + ---- +
+| where predicate          | ACCESS     | Consistent get | Cost | ACCESS           | INDEX_NAME                     | Consistent get | Cost |
+| ------------------------ + ---------- + -------------- + ---- + ---------------- + ------------------------------ + -------------- + ---- +
+| email = ...              | FULL TABLE |      7692      | 1082 | INDEX RANGE SCAN | IDX_CUSTOMERS_EMAIL            |       4        |   3  |
+| name = ...               | FULL TABLE |      7692      | 1082 | INDEX RANGE SCAN | IDX_CUSTOMERS_NAME             |       8        |   3  |
+| customer_type_id = ...   | FULL TABLE |      7692      | 1082 | TABLE FULL       |                                |      7696      | 1082 |
+| customer_status_id = ... | FULL TABLE |      7692      | 1082 | TABLE FULL       |                                |      7696      | 1082 |
+| addresss_details = ...   | FULL TABLE |      7692      | 1082 | INDEX RANGE SCAN | IDX_CUSTOMERS_ADDRESS_DETAILS  |       3        |   1  |
+| address_city = ....      | FULL TABLE |      7692      | 1082 | TABLE FULL       |                                |      7696      | 1082 |
+| ------------------------ + ---------- + -------------- + ---- + ---------------- + ------------------------------ + -------------- + ---- + 
+```
+
+
+* Analysis:
+  * Non Indexed Columns queries runs FULL TABLE ACCESS and produced consistent gets 7692
+  * After Indexing Columns, **SOME** access changes to INDEX RANGE SCAN and produces **LOW** consistent gets between 3 and 8
+  * Why not **ALL** access chagned to INDEXED?
+    * All rows from table customers has customer_status_id = 1 and 50% of rows has customer_type_id = 'F'
+	* using index in this circustances should produces 200.000 reads of index and the same 200.000 reads of data (customer_status_id = 1) and 100.000 reads of data (customer_type_id = 'F')
+    * sometimes when column selectivity is low, it is better do not use index
+  * What changed in Execution Plan?
+    * because indexed access must first read index blocks and with rowid pointers read data from table
+
+
+### I.Lab-5-Step-2: Laboratory analysis and conclusions
+
+* Some indexed columns produces INDEX RANGE SCAN to access index data and uses rowid to access table TABLE ACCESS BY INDEX ROWID
+  - Index access consumes (low) 4 ~ 8 consistent gets and after using rowid information access table data directlry
+  - lower consistent gets better performance
+
 
 
 ---
@@ -905,13 +1124,14 @@ select * from table(dbms_xplan.display_cursor(format => 'ALLSTATS LAST +COST +BY
   * Regularly collecting statistics (manually or via scheduled jobs) is essential for maintaining optimal performance.
   * It's especially critical after significant data loads, deletions, or structural changes to the table.
 
+* [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
 
 ```sql
 -- 
 SELECT table_name, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed, num_rows, blocks, avg_row_len
 FROM all_tab_statistics -- or dba_tab_statistics (require dba privileges)
 WHERE owner = 'STUDY' 
-AND table_name = 'CUSTOMERS';
+AND table_name = 'CUSTOMERS'
 ORDER BY owner, table_name;
 ```
 
@@ -930,6 +1150,8 @@ ORDER BY owner, table_name;
   * Indexes, well used, can improve query performance
 * **Conclusion**:
   * Analyse table indexes to recommend better Indexing Strategy
+
+* [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
 
 ```sql
 -- Query table Indexes
@@ -1101,76 +1323,76 @@ SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
 
 
 ```autotrace-v$statsname
-buffer is not pinned count	63
-bytes received via SQL*Net from client	2693
-bytes sent via SQL*Net to client	95855
-calls to get snapshot scn: kcmgss	12
-calls to kcmgcs	281
-CCursor + sql area evicted	1
-consistent gets	7447
-consistent gets examination	7
-consistent gets examination (fastpath)	7
-consistent gets from cache	7447
-consistent gets pin	7440
-consistent gets pin (fastpath)	7440
-CPU used by this session	8
-CPU used when call started	3
-DB time	22
-DFO trees parallelized	1
-enqueue conversions	8
-enqueue releases	14
-enqueue requests	18
-enqueue waits	2
-execute count	11
-global enqueue gets sync	230
-global enqueue releases	218
-in call idle wait time	15
-index fetch by key	3
-logical read bytes from cache	61005824
-messages sent	2
-no work - consistent read gets	7174
-non-idle wait count	86
-opened cursors cumulative	12
-OS Block input operations	166989796
-OS Block output operations	126791960
-OS Involuntary context switches	1460955
-OS Maximum resident set size	3592724
-OS Page reclaims	14677362
-OS System time used	224014
-OS User time used	2729163
-OS Voluntary context switches	36523313
-Parallel operations not downgraded	1
-parse count (hard)	6
-parse count (total)	14
-parse time cpu	1
-parse time elapsed	1
-process last non-idle time	1
-PX local messages recv'd	86
-PX local messages sent	86
-queries parallelized	1
-recursive calls	26
-recursive cpu usage	5
-Requests to/from client	46
-RM usage	90899
-rows fetched via callback	1
-scheduler wait time	1
-session cursor cache hits	1
-session logical reads	7447
-session pga memory	458752
-sorts (memory)	4
-sorts (rows)	4062
-sql area evicted	1
-sql area purged	1
-SQL*Net roundtrips to/from client	46
-table fetch by rowid	1
-table scan blocks gotten	7174
-table scan disk non-IMC rows gotten	200000
-table scan rows gotten	200000
-table scans (long tables)	29
-table scans (rowid ranges)	29
-user calls	67
-workarea executions - optimal	11
-workarea memory allocated	-11
+buffer is not pinned count 63
+bytes received via SQL*Net from client 2693
+bytes sent via SQL*Net to client 95855
+calls to get snapshot scn: kcmgss 12
+calls to kcmgcs 281
+CCursor + sql area evicted 1
+consistent gets 7447
+consistent gets examination 7
+consistent gets examination (fastpath) 7
+consistent gets from cache 7447
+consistent gets pin 7440
+consistent gets pin (fastpath) 7440
+CPU used by this session 8
+CPU used when call started 3
+DB time 22
+DFO trees parallelized 1
+enqueue conversions 8
+enqueue releases 14
+enqueue requests 18
+enqueue waits 2
+execute count 11
+global enqueue gets sync 230
+global enqueue releases 218
+in call idle wait time 15
+index fetch by key 3
+logical read bytes from cache 61005824
+messages sent 2
+no work - consistent read gets 7174
+non-idle wait count 86
+opened cursors cumulative 12
+OS Block input operations 166989796
+OS Block output operations 126791960
+OS Involuntary context switches 1460955
+OS Maximum resident set size 3592724
+OS Page reclaims 14677362
+OS System time used 224014
+OS User time used 2729163
+OS Voluntary context switches 36523313
+Parallel operations not downgraded 1
+parse count (hard) 6
+parse count (total) 14
+parse time cpu 1
+parse time elapsed 1
+process last non-idle time 1
+PX local messages recv'd 86
+PX local messages sent 86
+queries parallelized 1
+recursive calls 26
+recursive cpu usage 5
+Requests to/from client 46
+RM usage 90899
+rows fetched via callback 1
+scheduler wait time 1
+session cursor cache hits 1
+session logical reads 7447
+session pga memory 458752
+sorts (memory) 4
+sorts (rows) 4062
+sql area evicted 1
+sql area purged 1
+SQL*Net roundtrips to/from client 46
+table fetch by rowid 1
+table scan blocks gotten 7174
+table scan disk non-IMC rows gotten 200000
+table scan rows gotten 200000
+table scans (long tables) 29
+table scans (rowid ranges) 29
+user calls 67
+workarea executions - optimal 11
+workarea memory allocated -11
 ```
 
 6. Execute a command and get execution plan (in text format) SQLDeveloper
@@ -1218,4 +1440,15 @@ Predicate Information (identified by operation id):
 Note
 -----
    - automatic DOP: Computed Degree of Parallelism is 2 because of no expensive parallel operation
+```
+
+
+7. On SQLDeveloper your user requires some GRANTS to execute `Autotrace (F6) ...` 
+
+* Grants required for Autotrace and reconnect
+
+```sql
+GRANT SELECT_CATALOG_ROLE   TO STUDY;
+GRANT SELECT ANY DICTIONARY TO STUDY;
+-- reconnect required after grants
 ```

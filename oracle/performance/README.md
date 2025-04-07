@@ -79,6 +79,8 @@
   * [I.2. Query metrics scenario INITIAL](#ilab-2-query-metrics-scenario-initial)
   * [I.3. Query by Indexed Primary Key Columns](#ilab-3-query-by-indexed-primary-key-columns)
   * [I.4. Query by Non Indexed Columns](#ilab-4-query-by-non-indexed-columns)
+  * [I.5. Query by Non Indexed Columns vs Indexed Columns](#ilab-5-query-by-non-indexed-columns-vs-indexed-columns)
+  * [I.6. Query by Indexed Columns, Low Selectvity, Data Skew](#ilab-6-query-by-indexed-columns-low-selectvity-data-skew)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -408,8 +410,18 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 ## 5.1. Optimizing SQL Queries - Indexing Strategies
 
-* Indexes improve query performance but can also degrade insert/update performance if overused.
 * Simple explanation [How to Create Database Indexes: Databases for Developers](https://www.youtube.com/watch?v=7wLFr7ZnKPU&)
+* Indexes improve query performance but can also degrade insert/update performance if overused.
+* Indexes on high-cardinality  could be beneficial for query performance.
+* Indexes on column that has a high number of NULL values, should be considered in query design and indexing strategies.
+* Avoid creating indexes on columns with low selectivity (few distinct values) as they may not be used.
+* Regularly update statistics to ensure the optimizer makes accurate decisions about index usage.
+* Index Selectivity:
+  - Index selectivity is typically defined as `(Number of Distinct Values) / (Total Number of Rows)`
+  - Oracle's Decision Process: 
+    - The optimizer estimates the cost of two approaches: a) Using the index and then accessing the table; b) Performing a full table scan;
+    - Threshold for Index Usage depends on various factors: a) Table size; b) Index clustering factor; c) Available system resources; d) Cost of random I/O vs. sequential I/O
+    - General Rule of Thumb: indexes tend to be beneficial when they select less than 10-15% of the rows
 
 
 #### 5.1.a. B-tree Index
@@ -776,7 +788,7 @@ FROM STUDY.customers;
 
 ### I.Lab-1-Step-7: Laboratory analysis and conclusions
 
-* Table `customers` has 200.000 rows
+* Table `customers` has 200.000 rows and occupies 7.174 blocks with avarage rows length 248 bytes
 * Column `customers.customer_type_id` has 2 distinct values: (**F** Fisica, **J** Juridica)
 * Column `customers.code` is alternate key CNPJ/CPF, has 200.000 distincts keys
 * Column `customer_status_id` has a 6 distinct values: (0: INACTIVE; 1: ACTIVE; 2:BLOCKED; 3:RESTRICTED - ONLY WITHDRAWS, 4:RESTRICTED - ORDER <= CONFIG 1, 5:RESTRICTED - CUSTOM IN CONFIG )
@@ -867,9 +879,19 @@ EXEC DBMS_STATS.GATHER_TABLE_STATS(
 
 ### I.Lab-2-Step-4: Laboratory analysis and conclusions
 
-* Table, columns and data analysis: Cardinality, Selectivity
 * Collected vs Actual table, columns and indexes statistics are OK
-
+* Table Statistics:
+  - Table `customers` has 200.000 rows and occupies 7.174 blocks with avarage rows length 248 bytes
+* Columns Statistics:
+  - Columns `ID`, `CODE`, `EMAIL`, `PHONE`, and `ADDRESS_STREET` have high cardinality (200,000 distinct values each). Indexes on high-cardinality could be beneficial for query performance.
+  - Column `CUSTOMER_TYPE_ID` has low cardinality (2 distinct values).
+  - Column `CUSTOMER_STATUS_ID` has very low cardinality (1 distinct value in this sample).
+  - Column `ADDRESS_CITY` and ADDRESS_STATE both have 27 distinct values.
+  - Column `ADDRESS_UNIT` has 898 distinct values.
+  - Column `ADDRESS_DETAILS` has 100,000 distinct values and 100,000 NULL values (high number of NULL values) which should be considered in query design and indexing strategies.
+* Histograms:
+   - Most columns have `HYBRID` histograms, which is appropriate for columns with **skewed** data distribution.
+   - `CUSTOMER_TYPE_ID`, `CUSTOMER_STATUS_ID`, `ADDRESS_CITY`, and `ADDRESS_STATE` have **FREQUENCY** histograms, which is suitable for **low-cardinality** columns.
 
 ---
 
@@ -997,9 +1019,10 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
 * Statname: "bytes received via SQL*Net from client" are very different between conditions that results only one row and conditions that results a lot off rows. Usually the size of final results set does not matter
 * Usually Low "Consistent get" represents low work efforts and better performance
 
+
 ---
 
-## I.Lab-5: Query by Non Indexed Columns vs Indexed Columns 
+## I.Lab-5: Query by Non Indexed Columns vs Indexed Columns
 
 * Pre-requisites:
   * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
@@ -1031,8 +1054,8 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
 * Comparison Indexed non Indexed
 
 ```
-+ ------------------------ + ---------------------------------- +
-|                          |     N o n        I n d e x e d     |
++ ------------------------ + ---------------------------------- + ------------------------------------------------------------------------- +
+|                          |     N o n        I n d e x e d     |               I   n   d   e   x   e   d                                   |
 |                          + --------------------------- + ---- + ---------------- + ------------------------------ + -------------- + ---- +
 | where predicate          | ACCESS     | Consistent get | Cost | ACCESS           | INDEX_NAME                     | Consistent get | Cost |
 | ------------------------ + ---------- + -------------- + ---- + ---------------- + ------------------------------ + -------------- + ---- +
@@ -1052,9 +1075,13 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
   * Why not **ALL** access chagned to INDEXED?
     * All rows from table customers has customer_status_id = 1 and 50% of rows has customer_type_id = 'F'
 	* using index in this circustances should produces 200.000 reads of index and the same 200.000 reads of data (customer_status_id = 1) and 100.000 reads of data (customer_type_id = 'F')
-    * sometimes when column selectivity is low, it is better do not use index
+    * Sometimes when column selectivity is low, it is better do not use index
+    * Avoid creating indexes on columns with low selectivity (few distinct values) as they may not be used
+    * Regularly update statistics to ensure the optimizer makes accurate decisions about index usage.
   * What changed in Execution Plan?
     * because indexed access must first read index blocks and with rowid pointers read data from table
+  * References
+    * [Optimizing SQL Queries - Indexing Strategies](#51-optimizing-sql-queries---indexing-strategies)
 
 
 ### I.Lab-5-Step-2: Laboratory analysis and conclusions
@@ -1063,6 +1090,116 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
   - Index access consumes (low) 4 ~ 8 consistent gets and after using rowid information access table data directlry
   - lower consistent gets better performance
 
+
+
+
+---
+
+## I.Lab-6: Query by Indexed Columns, Low Selectvity, Data Skew
+
+* Pre-requisites:
+  * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
+
+### I.Lab-6-Step-1: SCENARIO 02 - Let's update an indexed column customer_status_id with abnormal data distribution: data skew
+
+```sql
+-- UPDATE 
+UPDATE customers SET customer_status_id = 0 WHERE id = 150000;
+UPDATE customers SET customer_status_id = 2 WHERE id = 160000;
+UPDATE customers SET customer_status_id = 3 WHERE id = 170000;
+UPDATE customers SET customer_status_id = 4 WHERE id = 180000;
+UPDATE customers SET customer_status_id = 5 WHERE id = 180000;
+
+-- GATHER_TABLE_STATS
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'customers');
+```
+
+
+```sql
+SELECT i.index_name, ic.column_name, ic.column_position, i.distinct_keys, i.num_rows, ic.column_length, i.uniqueness, i.index_type
+FROM all_indexes i
+JOIN all_ind_columns ic ON i.index_name = ic.index_name AND i.owner = ic.index_owner
+WHERE i.owner = 'STUDY'
+  AND i.table_name = 'CUSTOMERS'
+  AND ic.column_name = 'CUSTOMER_STATUS_ID'
+ORDER BY i.index_name, ic.column_position;
+```
+
+```result
+INDEX_NAME                       COLUMN_NAME        COLUMN_POSITION DISTINCT_KEYS NUM_ROWS COLUMN_LENGTH UNIQUENESS INDEX_TYPE
+-------------------------------- ------------------ --------------- ------------- -------- ------------- ---------- -----------
+IDX_CUSTOMERS_CUSTOMER_STATUS_ID CUSTOMER_STATUS_ID 1               5             200000   22            NONUNIQUE  NORMAL
+```
+
+### I.Lab-6-Step-2: SCENARIO 02 - Let's query customer_status_id = 1 that has a **(lot of) 199.996**  rows
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT COUNT(1) AS COUNT_ROWS FROM customers WHERE customer_status_id = 1;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table
+		:
+---------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name      | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+---------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |           |   199K|    47M|  1082   (1)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR      |           |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000  |   199K|    47M|  1082   (1)| 00:00:01 |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |           |   199K|    47M|  1082   (1)| 00:00:01 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| CUSTOMERS |   199K|    47M|  1082   (1)| 00:00:01 |  Q1,00 | PCWP |            |
+---------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - filter("CUSTOMER_STATUS_ID"=1)
+		:
+```
+
+### I.Lab-6-Step-3: SCENARIO 02 - Let's query customer_status_id = 0 that has **only (1) one** rows 
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT COUNT(1) AS COUNT_ROWS FROM customers WHERE customer_status_id = 0;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table
+		:
+------------------------------------------------------------------------------------------------------
+| Id  | Operation         | Name                             | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |                                  |     1 |     3 |     1   (0)| 00:00:01 |
+|   1 |  SORT AGGREGATE   |                                  |     1 |     3 |            |          |
+|*  2 |   INDEX RANGE SCAN| IDX_CUSTOMERS_CUSTOMER_STATUS_ID |     1 |     3 |     1   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("CUSTOMER_STATUS_ID"=0)
+   :
+```
+
+
+### I.Lab-6-Step-3: Laboratory analysis and conclusions
+
+* Why there are different Exec Plan for similar queries, WHERE customer_status_id = 0 vs customer_status_id = 0
+  * Explanation of Different Execution Plans:
+    * Selectivity / Cost-Based Optimizer Decision:
+	  - For customer_status_id = 1, the query is highly non-selective (returns 99.998% of rows); Using the index would require scanning almost the entire index and then fetching almost all table rows; A full table scan is more efficient as it reads the table sequentially;
+	  - For customer_status_id = 0, the query is highly selective (returns 0.0005% of rows); The index can quickly identify the single row that matches;  It's much more efficient to use the index than to scan the entire table;
+    * Statistics and Histograms:
+	  - The optimizer is aware of the data distribution thanks to accurate statistics and likely a histogram on the customer_status_id column
+	  - This allows it to make different decisions based on the specific value in the WHERE clause
+  * Adaptive Plans: This demonstrates Oracle's ability to choose different plans based on the specific predicate values
+  * Statistics Importance: Accurate and up-to-date statistics, including histograms, are crucial for the optimizer to make these intelligent decisions
 
 
 ---

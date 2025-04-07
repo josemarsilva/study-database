@@ -18,7 +18,7 @@ ORDER BY owner, table_name;
 
 
 --
--- Option n. 2: Table Columns Statistics
+-- Option n. 2: Columns Statistics
 --
 
 SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
@@ -28,7 +28,7 @@ ORDER BY owner, table_name;
 
 
 --
--- Option n. 3: Table Indexes Statistics
+-- Option n. 3: Index Statistics
 --
 
 SELECT i.index_name, 
@@ -49,7 +49,7 @@ ORDER BY i.index_name;
 
 
 --
--- Option n. 4: Table Columns Indexes Statistics
+-- Option n. 4: Indexed Columns Statistics
 --
 
 SELECT i.index_name,
@@ -57,9 +57,12 @@ SELECT i.index_name,
        ic.column_position,
        i.distinct_keys,
        i.num_rows,
-       ic.column_length
+       ic.column_length,
+       i.uniqueness, -- UNIQUE or NONUNIQUE
+       i.index_type  -- NORMAL, BITMAP, FUNCTION-BASED NORMAL
 FROM all_indexes i
 JOIN all_ind_columns ic ON i.index_name = ic.index_name AND i.owner = ic.index_owner
 WHERE i.owner = 'STUDY'
   AND i.table_name = 'CUSTOMERS'
 ORDER BY i.index_name, ic.column_position;
+

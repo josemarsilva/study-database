@@ -100,8 +100,9 @@
 </html></richcontent>
 </node>
 </node>
-<node CREATED="1743809963180" ID="ID_976799848" MODIFIED="1743809992743" POSITION="left" TEXT="Laboratories">
+<node CREATED="1743809963180" ID="ID_976799848" MODIFIED="1744065398806" POSITION="left" TEXT="Laboratories">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<icon BUILTIN="bookmark"/>
 </node>
 <node CREATED="1743809996227" ID="ID_95828706" MODIFIED="1743810026828" POSITION="left" TEXT="CheatSheet">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
@@ -158,8 +159,7 @@
       hints, mv, parallel, etc
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1743798890499" ID="ID_1560579609" MODIFIED="1743831322365">
 <richcontent TYPE="NODE"><html>
@@ -177,8 +177,7 @@
       client-server, networking, etc
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>

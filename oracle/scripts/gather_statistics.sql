@@ -39,15 +39,22 @@ END;
 
 
 --
--- Option n. 4: Collect index statistics for specific table
+-- Option n. 4: Collect Index statistics for specific table
+--
+EXEC DBMS_STATS.GATHER_INDEX_STATS('STUDY', 'idx_customers_address_state');
+
+
+--
+-- Option n. 5: Collect Table Index statistics for specific table
 --
 BEGIN
   DBMS_STATS.GATHER_INDEX_STATS(
-    ownname => 'SEU_SCHEMA',
-    indname => 'IDX_COD_STATUS',
+    ownname => 'STUDY',
+    indname => 'idx_customers_address_state',
     estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE,
     degree => DBMS_STATS.AUTO_DEGREE,
     granularity => 'ALL'
   );
 END;
 /
+

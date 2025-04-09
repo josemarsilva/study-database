@@ -64,7 +64,13 @@
     * [5.4.f. Application level handling](#54f-application-level-handling)
     * [5.4.g. Recommended strategy](#54g-recommended-strategy)
   * [5.5. Use of Hints](#55-use-of-hints) ![star-icon.png](../../doc/images/star-icon.png)
-    * [5.5.a. Using Parallel on Queries](#55a-using-parallel-on-queries)
+    * [5.5.a.Hints for Optimization Approaches and Goals](#55a-hints-for-optimization-approaches-and-goals)
+    * [5.5.b.Hints for Access Paths](#55b-hints-for-access-paths)
+    * [5.5.c.Hints for Query Transformations](#55c-hints-for-query-transformations)
+    * [5.5.d.Hints for Join Orders](#55d-hints-for-join-orders)
+    * [5.5.e.Hints for Join Operations](#55e-hints-for-join-operations)
+    * [5.5.f.Hints for Parallel Execution](#55f-hints-for-parallel-execution)
+    * [5.5.g. Additional Hints](#55g-additional-hints)
 * [6. Table Partitioning](#6-table-partitioning)
   * [6.1. Range Partitioning](#61-range-partitioning)
   * [6.2. Hash Partitioning](#62-hash-partitioning)
@@ -74,7 +80,7 @@
   * [6.6. Query Partition](#66-query-partition)
 * [7. Parallel Execution](#7-parallel-execution)
   * [7.1. Using Parallel Queries](#71-using-parallel-queries)
-* [I. Laboratories](#i-laboratories)
+* [I. Laboratories](#i-laboratories) ![star-icon.png](../../doc/images/star-icon.png)
   * [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
   * [I.2. Query metrics scenario INITIAL](#ilab-2-query-metrics-scenario-initial)
   * [I.3. Query by Indexed Primary Key Columns](#ilab-3-query-by-indexed-primary-key-columns)
@@ -89,7 +95,15 @@
     * [II.99.a. Default Simple Response, Quick Wins, What should you do](#ii-cheatsheet99a-default-simple-response-quick-wins-what-should-you-do)
     * [II.99.b. Usefull Commands](#ii-cheatsheet99b-usefull-commands)
     * [II.99.c. Usefull Commands - Limit number of rows outputed](#ii-cheatsheet99c-usefull-commands---limit-number-of-rows-outputed)
-    * [II.99.c. SQLDeveloper Hands On](#ii-cheatsheet99d-sqldeveloper-hands-on) ![star-icon.png](../../doc/images/star-icon.png)
+    * [II.99.d. SQLDeveloper Hands On](#ii-cheatsheet99d-sqldeveloper-hands-on) ![star-icon.png](../../doc/images/star-icon.png)
+      * [II.99.d.1. Execute one command on SQLDevelopers](#ii-cheatsheet99d1-execute-one-command-on-sqldevelopers)
+      * [II.99.d.2. Execute more than one command at once](#ii-cheatsheet99d2-execute-more-than-one-command-at-once)
+      * [II.99.d.3. Execute a command get execution plan (incomplete) and get statistics (incomplete) like using SET AUTOT TRACE EXPL STAT on SQLPlus](#ii-cheatsheet99d3-execute-a-command-get-execution-plan-incomplete-and-get-statistics-incomplete-like-using-set-autot-trace-expl-stat-on-sqlplus)
+      * [II.99.d.4. Execute a command get execution plan like using SET AUTOT TRACE EXPL STAT on SQLPlus](#ii-cheatsheet99d4-execute-a-command-and-get-execution-plan-like-using-set-autot-trace-expl-stat-on-sqlplus)
+      * [II.99.d.5. ](#ii-cheatsheet99d5-execute-a-command-get-execution-plan-using-icon-button-sqldeveloper-explain-plan--f10)
+      * [II.99.d.6. ](#ii-cheatsheet99d6-execute-a-command-get-execution-plan-and-statistics-like-using-set-autot-trace-expl-stat-on-sqlplus)
+      * [II.99.d.7. ](#ii-cheatsheet99d7-execute-a-command-get-execution-plan-and-statistics-using-icon-button-sqldeveloper-autotrace--f6)
+      * [II.99.d.7. ](#ii-cheatsheet99d8-users-grants-required-to-execute-autotrace-f6--on-sqldeveloper)
 
 
 ---
@@ -306,25 +320,66 @@ set timing on
   - Selectivity: proportion. ` 1 / number_of_distinct * total_rows`; Ex: `select 1 / COUNT(DISTINCT customer_type_id) /* 2: 'F', 'J' */ from STUDY.customers`; Result: `0.5`
 
 
+### 3.6. Data Access Method
+
+* [Data Access Method](https://techiedba.wordpress.com/2011/08/12/data-access-methods-in-oracle/):
+
+#### 3.6.a. Full Table SCAN (FTS)
+
+* `under-construction`
+
+#### 3.6.b. Table Access by ROW-ID
+
+* `under-construction`
+
+#### 3.6.c. Index Unique Scan
+
+* `under-construction`
+
+#### 3.6.d. Index Range Scan
+
+* `under-construction`
+
+#### 3.6.e. Index Skip Scan
+
+* `under-construction`
+
+#### 3.6.f. Full Index Scan
+
+* `under-construction`
+
+#### 3.6.g. Fast Full Index Scans
+
+* `under-construction`
+
+#### 3.6.h. Index Joins
+
+* `under-construction`
+
+#### 3.6.i. Hash Access
+
+* `under-construction`
+
+#### 3.6.j. Cluster Access
+
+* `under-construction`
+
+#### 3.6.k. Bit Map Index
+
+* `under-construction`
+
+
+### 3.7. Join Method
+
+* [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method): **Hash join**, **Nested Loop**, **(Sort) Merge join**, **Cartesian join**
+
+
 ### 3.99. References
 
 * Official Documentation
   * `under-construction`
 * Blog/Videos
-    * [Data Access Method](https://techiedba.wordpress.com/2011/08/12/data-access-methods-in-oracle/)
-      - Full Table SCAN (FTS)
-      - Table Access by ROW-ID
-      - Index Unique Scan
-      - Index Range Scan
-      - Index Skip Scan
-      - Full Index Scan
-      - Fast Full Index Scans
-      - Index Joins
-      - Hash Access
-      - Cluster Access
-      - Bit Map Index
-    * Join Method
-      - [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method): **Hash join**, **Nested Loop**, **(Sort) Merge join**, **Cartesian join**
+    * [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method): **Hash join**, **Nested Loop**, **(Sort) Merge join**, **Cartesian join**
     * [Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI) ![star-icon.png](../../doc/images/star-icon.png)
       - [Correlations](https://www.youtube.com/watch?v=IYWmauKtwXI&t=220s), [Extended Statistics](https://www.youtube.com/watch?v=IYWmauKtwXI&t=299s) and [Skews](https://www.youtube.com/watch?v=IYWmauKtwXI&t=330s) ![star-icon.png](../../doc/images/star-icon.png)
       - Cardinality and Selectivity
@@ -410,7 +465,11 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 ## 5.1. Optimizing SQL Queries - Indexing Strategies
 
-* Simple explanation [How to Create Database Indexes: Databases for Developers](https://www.youtube.com/watch?v=7wLFr7ZnKPU&)
+* VLog - Simple explanation [How to Create Database Indexes: Databases for Developers](https://www.youtube.com/watch?v=7wLFr7ZnKPU)
+  * [How to Create Database Indexes - Balance](https://youtu.be/7wLFr7ZnKPU?t=234&si=EjEQDzSfHt5OsbUy)
+  * [How to Create Database Indexes - Btree](https://youtu.be/7wLFr7ZnKPU?t=264&si=sMXhTgkCkK4S4WT9)
+  * [How to Create Database Indexes - Index Full Scan](https://youtu.be/7wLFr7ZnKPU?t=403&si=1PsFg480zbiQ7bG-)
+  * [How to Create Database Indexes - Multi Columns Indexes](https://youtu.be/7wLFr7ZnKPU?t=489&si=h5wrDCrxLv5Sp3gn)
 * Indexes improve query performance but can also degrade insert/update performance if overused.
 * Indexes on high-cardinality  could be beneficial for query performance.
 * Indexes on column that has a high number of NULL values, should be considered in query design and indexing strategies.
@@ -427,6 +486,8 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 #### 5.1.a. B-tree Index
 
 * Best for selective queries
+  * VLog - [How to Create Database Indexes - Balance](https://youtu.be/7wLFr7ZnKPU?t=234&si=EjEQDzSfHt5OsbUy)
+  * VLog - [How to Create Database Indexes - Btree](https://youtu.be/7wLFr7ZnKPU?t=264&si=sMXhTgkCkK4S4WT9)
 
 
 #### 5.1.b. Bitmap Index
@@ -652,14 +713,39 @@ export NLS_LANG=AMERICAN_AMERICA.WE8EBCDIC1047
 
 ### 5.5. Use of Hints
 
-#### 5.5.a. Using Parallel on Queries
+* Complete Oracle Documentation References for [Optimizer Hints](https://docs.oracle.com/cd/B13789_01/server.101/b10752/hintsref.htm)
+* Type of Hints: `Single-Table`, `Multi-Table`, `Query-Block`, `Statement`
+* Hints sintax `{DELETE|INSERT|MERGE|SELECT|UPDATE}  /*+ hint [text] [hint[text]]... */`
 
-For large queries, you can enable parallel execution:
 
-```sql
-ALTER TABLE orders PARALLEL 4;
-SELECT /*+ PARALLEL(o 4) */ * FROM orders o;
-```
+#### 5.5.a. Hints for Optimization Approaches and Goals
+
+#### 5.5.b. Hints for Access Paths
+
+#### 5.5.c. Hints for Query Transformations
+
+#### 5.5.d. Hints for Join Orders
+
+#### 5.5.e. Hints for Join Operations
+
+#### 5.5.f. Hints for Parallel Execution
+
+#### 5.5.g. Additional Hints
+
+* `APPEND`: In direct-path INSERT, data is appended to the end of the table, rather than using existing space currently allocated to the table. As a result, direct-path INSERT can be considerably faster than conventional INSERT.
+* `NOAPPEND`: The NOAPPEND hint enables conventional INSERT by disabling parallel mode for the duration of the INSERT statement.
+* `CACHE`: The CACHE hint specifies that the blocks retrieved for the table are placed at the most recently used end of the LRU list in the buffer cache when a full table scan is performed. This option is useful for small lookup tables.
+* `NOCACHE`: The NOCACHE hint specifies that the blocks retrieved for the table are placed at the least recently used end of the LRU list in the buffer cache when a full table scan is performed. This is the normal behavior of blocks in the buffer cache.
+* `PUSH_PRED`: The PUSH_PRED hint forces pushing of a join predicate into the view.
+* `NO_PUSH_PRED`: The NO_PUSH_PRED hint prevents pushing of a join predicate into the view.
+* `PUSH_SUBQ`: The PUSH_SUBQ hint causes non-merged subqueries to be evaluated at the earliest possible step in the execution plan. Generally, subqueries that are not merged are executed as the last step in the execution plan. If the subquery is relatively inexpensive and reduces the number of rows significantly, then it improves performance to evaluate the subquery earlier.
+* `NO_PUSH_SUBQ`: The NO_PUSH_SUBQ hint causes non-merged subqueries to be evaluated as the last step in the execution plan. 
+* `QB_NAME`: Use the QB_NAME hint to define a name for a query block. This name can then be used in another query block to hint tables appearing in the named query block.
+* `CURSOR_SHARING_EXACT`: Oracle can replace literals in SQL statements with bind variables, if it is safe to do so. This is controlled with the CURSOR_SHARING startup parameter. The CURSOR_SHARING_EXACT hint causes this behavior to be switched off. In other words, Oracle executes the SQL statement without any attempt to replace literals by bind variables.
+* `DRIVING_SITE`: The DRIVING_SITE hint forces query execution to be done for the table at a different site than that selected by Oracle.
+* `DYNAMIC_SAMPLING`: The DYNAMIC_SAMPLING hint lets you control dynamic sampling to improve server performance by determining more accurate predicate selectivity and statistics for tables and indexes. You can set the value of DYNAMIC_SAMPLING to a value from 0 to 10. The higher the level, the more effort the compiler puts into dynamic sampling and the more broadly it is applied. Sampling defaults to cursor level unless you specify a table.
+* `SPREAD_MIN_ANALYSIS`: This hint omits some of the compile time optimizations of the rules, mainly detailed dependency graph analysis, on spreadsheets. Some optimizations such as creating filters to selectively populate spreadsheet access structures and limited rule pruning are still used.
+
 
 ---
 
@@ -961,18 +1047,18 @@ SELECT * FROM customers WHERE id = 100000;
   * TABLE ACCESS CUSTOMERS BY ROWID
     * Card: 1, Cost: 2
   * Statistics v$statsname
-    * consistent gets	3
+    * consistent gets    3
    
 
 
 ```autotrace
 :
-consistent gets	3
-consistent gets examination	3
-consistent gets examination (fastpath)	3
-consistent gets from cache	3
-CPU used by this session	4
-CPU used when call started	2
+consistent gets    3
+consistent gets examination    3
+consistent gets examination (fastpath)    3
+consistent gets from cache    3
+CPU used by this session    4
+CPU used when call started    2
 :
 ```
 
@@ -1027,7 +1113,9 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
 * Pre-requisites:
   * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
 
-### I.Lab-5-Step-1: SCENARIO 02 - Let's index all columns to compare performance between Non Indexed and Indexed columns
+### I.Lab-5-Step-1: SCENARIO 01 - Let's index all columns to compare performance between Non Indexed and Indexed columns
+
+* Reference: [Optimizing SQL Queries - Indexing Strategies](#51-optimizing-sql-queries---indexing-strategies)
 
 ```sql
 CREATE INDEX idx_customers_email              on customers(email);
@@ -1074,7 +1162,7 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
   * After Indexing Columns, **SOME** access changes to INDEX RANGE SCAN and produces **LOW** consistent gets between 3 and 8
   * Why not **ALL** access chagned to INDEXED?
     * All rows from table customers has customer_status_id = 1 and 50% of rows has customer_type_id = 'F'
-	* using index in this circustances should produces 200.000 reads of index and the same 200.000 reads of data (customer_status_id = 1) and 100.000 reads of data (customer_type_id = 'F')
+    * using index in this circustances should produces 200.000 reads of index and the same 200.000 reads of data (customer_status_id = 1) and 100.000 reads of data (customer_type_id = 'F')
     * Sometimes when column selectivity is low, it is better do not use index
     * Avoid creating indexes on columns with low selectivity (few distinct values) as they may not be used
     * Regularly update statistics to ensure the optimizer makes accurate decisions about index usage.
@@ -1091,14 +1179,12 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
   - lower consistent gets better performance
 
 
-
-
 ---
 
 ## I.Lab-6: Query by Indexed Columns, Low Selectvity, Data Skew
 
 * Pre-requisites:
-  * [I.2. Query metrics scenario initial](#ilab-2-query-metrics-scenario-initial)
+  * [I.5. Step 1 - SCENARIO 01](#ilab-5-step-1-scenario-01---lets-index-all-columns-to-compare-performance-between-non-indexed-and-indexed-columns)
 
 ### I.Lab-6-Step-1: SCENARIO 02 - Let's update an indexed column customer_status_id with abnormal data distribution: data skew
 
@@ -1142,7 +1228,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table
-		:
+        :
 ---------------------------------------------------------------------------------------------------------------
 | Id  | Operation            | Name      | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
 ---------------------------------------------------------------------------------------------------------------
@@ -1157,7 +1243,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    4 - filter("CUSTOMER_STATUS_ID"=1)
-		:
+        :
 ```
 
 ### I.Lab-6-Step-3: SCENARIO 02 - Let's query customer_status_id = 0 that has **only (1) one** rows 
@@ -1171,7 +1257,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table
-		:
+        :
 ------------------------------------------------------------------------------------------------------
 | Id  | Operation         | Name                             | Rows  | Bytes | Cost (%CPU)| Time     |
 ------------------------------------------------------------------------------------------------------
@@ -1188,16 +1274,16 @@ Predicate Information (identified by operation id):
 ```
 
 
-### I.Lab-6-Step-3: Laboratory analysis and conclusions
+### I.Lab-6-Step-4: Laboratory analysis and conclusions
 
 * Why there are different Exec Plan for similar queries, WHERE customer_status_id = 0 vs customer_status_id = 0
   * Explanation of Different Execution Plans:
     * Selectivity / Cost-Based Optimizer Decision:
-	  - For customer_status_id = 1, the query is highly non-selective (returns 99.998% of rows); Using the index would require scanning almost the entire index and then fetching almost all table rows; A full table scan is more efficient as it reads the table sequentially;
-	  - For customer_status_id = 0, the query is highly selective (returns 0.0005% of rows); The index can quickly identify the single row that matches;  It's much more efficient to use the index than to scan the entire table;
+      - For customer_status_id = 1, the query is highly non-selective (returns 99.998% of rows); Using the index would require scanning almost the entire index and then fetching almost all table rows; A full table scan is more efficient as it reads the table sequentially;
+      - For customer_status_id = 0, the query is highly selective (returns 0.0005% of rows); The index can quickly identify the single row that matches;  It's much more efficient to use the index than to scan the entire table;
     * Statistics and Histograms:
-	  - The optimizer is aware of the data distribution thanks to accurate statistics and likely a histogram on the customer_status_id column
-	  - This allows it to make different decisions based on the specific value in the WHERE clause
+      - The optimizer is aware of the data distribution thanks to accurate statistics and likely a histogram on the customer_status_id column
+      - This allows it to make different decisions based on the specific value in the WHERE clause
   * Adaptive Plans: This demonstrates Oracle's ability to choose different plans based on the specific predicate values
   * Statistics Importance: Accurate and up-to-date statistics, including histograms, are crucial for the optimizer to make these intelligent decisions
 
@@ -1218,8 +1304,10 @@ Predicate Information (identified by operation id):
 ```sql
 -- Turn AUTOTRACE TRACEONLY ON
 set autot trace
--- Turn AUTOTRACE TRACEONLY ON with option EXPLAIN STATISTICS
+-- Turn AUTOTRACE TRACEONLY ON with option EXPLAIN STATISTICS (explain statistics does not work on SQLDeveloper)
 set autot trace exp stat 
+-- Get execution plan from plan table
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 -- Turn AUTOTRACE OFF
 set autot trace OFF
 ```
@@ -1379,20 +1467,22 @@ WHERE ROWNUM <= 100;
 
 ## II Cheatsheet.99.d. SQLDeveloper hands on
 
-1. Execute a command
+### II Cheatsheet.99.d.1. Execute one command on SQLDevelopers
+
   * On `SQLDeveloper` body-multiline-text fill your `sql`
   * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
 
 ```sql
-SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers;
 ```
 
 
-2. Execute more than one command at once
-  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
-  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
-  * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
-  * Each command line separeted by `;` will be shown in a differente `Query Result` result-sheet
+### II Cheatsheet.99.d.2. Execute more than one command at once
+
+* On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+* On `SQLDeveloper` body-multiline-text **select all** rows you want to run (they must be separeted by `;`);
+* On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
+* Each command line separeted by `;` will be shown in a differente `Query Result` result-sheet
 
 ```sql
 SELECT 1 / COUNT(DISTINCT customer_status_id) AS selectivity FROM STUDY.customers;
@@ -1400,17 +1490,33 @@ SELECT 1 / COUNT(DISTINCT customer_type_id)   AS selectivity FROM STUDY.customer
 SELECT 1 / COUNT(DISTINCT address_state)      AS selectivity FROM STUDY.customers;
 ```
 
-3. Execute a command and get statistics using SET AUTOT TRACE EXPL STAT
-  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
-  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
-  * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
-  * Each command line separeted by `;` will be shown in a differente `Query Result` result-sheet
-  * Statistics of execution will be shown in a `Script Output` result-sheet
+```Query-result(customer_status_id: 0, 1, 2, 3, 4, 5)
+0,2
+```
+
+```Query-result-1(customer_type_id: F, J)
+0,5
+```
+
+```Query-result-2(address_state: 27 values)
+0,037037037037037037037037037037037037037
+```
+
+### II Cheatsheet.99.d.3. Execute a command, get execution plan (incomplete) and get statistics (incomplete) like using SET AUTOT TRACE EXPL STAT on SQL*Plus
+
+* On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+* On `SQLDeveloper` body-multiline-text select all rows you want to run;
+* On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
+* Each command line separeted by `;` will be shown in a differente `Query Result` result-sheet
+* Statistics of execution will be shown in a `Script Output` result-sheet
 
 ```sql
 SET AUTOT TRACE EXPL STAT
-SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers;
+SET AUTOT OFF
 ```
+
+* But metrics shown are **INCOMPLETE AND SO POOR INFORMATIONS**! How to fix this?
 
 ```script-output
 Autotrace TraceOnly
@@ -1432,11 +1538,55 @@ Statistics
                1  user calls
 ```
 
-3. Execute a command and get execution plan using icon SQLDeveloper
-  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
-  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
-  * On `SQLDeveloper` top-sheet icon-play `Autotrace ...` or click (F5)
-  * Statistics of execution will be shown in a `Autotrace` result-sheet
+### II Cheatsheet.99.d.4. Execute a command and get execution plan like using SET AUTOT TRACE EXPL STAT on SQL*Plus
+
+* You do not need to SET AUTOTRACE a second output tab `Query Result 1` shows de cursor display with execution plan
+* **BUT** you still don't have metrics, how to get execution metrics?
+
+```sql
+EXPLAIN PLAN FOR
+    SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table-output
+  :
+SQL_ID  0xt1gmwhjjw3t, child number 2
+-------------------------------------
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+ 
+Plan hash value: 3095916820
+ 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                      | Name                           | Starts | E-Rows | A-Rows |   A-Time   | Buffers |  OMem |  1Mem | Used-Mem |
+------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT               |                                |      1 |        |      1 |00:00:00.04 |       5 |       |       |          |
+|   1 |  SORT AGGREGATE                |                                |      1 |      1 |      1 |00:00:00.04 |       5 |       |       |          |
+|   2 |   PX COORDINATOR               |                                |      1 |        |      2 |00:00:00.04 |       5 | 73728 | 73728 |          |
+|   3 |    PX SEND QC (RANDOM)         | :TQ10001                       |      0 |      1 |      0 |00:00:00.01 |       0 |       |       |          |
+|   4 |     SORT AGGREGATE             |                                |      0 |      1 |      0 |00:00:00.01 |       0 |       |       |          |
+|   5 |      VIEW                      | VW_DAG_0                       |      0 |      2 |      0 |00:00:00.01 |       0 |       |       |          |
+|   6 |       HASH GROUP BY            |                                |      0 |      2 |      0 |00:00:00.01 |       0 |  2442K|  2442K|  522K (0)|
+|   7 |        PX RECEIVE              |                                |      0 |      2 |      0 |00:00:00.01 |       0 |       |       |          |
+|   8 |         PX SEND HASH           | :TQ10000                       |      0 |      2 |      0 |00:00:00.01 |       0 |       |       |          |
+|   9 |          HASH GROUP BY         |                                |      0 |      2 |      0 |00:00:00.01 |       0 |  2442K|  2442K|  647K (0)|
+|  10 |           PX BLOCK ITERATOR    |                                |      0 |    200K|      0 |00:00:00.01 |       0 |       |       |          |
+|* 11 |            INDEX FAST FULL SCAN| IDX_CUSTOMERS_CUSTOMER_TYPE_ID |      0 |    200K|      0 |00:00:00.01 |       0 |       |       |          |
+------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+  11 - access(:Z>=:Z AND :Z<=:Z)
+  :  
+```
+
+### II Cheatsheet.99.d.5. Execute a command, get execution plan using icon-button SQLDeveloper Explain Plan ... (F10)
+
+* On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+* On `SQLDeveloper` body-multiline-text **select all rows you want to run**;
+* On `SQLDeveloper` top-sheet icon-play `Explain plan ...` or click (10)
+* Statistics of execution will be shown in a `Autotrace` result-sheet
 
 ```sql
 SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
@@ -1445,12 +1595,189 @@ SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
 * Image available [SQLDeveloper-ExecPlan.png](../../doc/images/SQLDeveloper-ExecPlan.png) 
 
 
-4. Execute a command and get execution plan and statistics using icon SQLDeveloper
-  * On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
-  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
-  * On `SQLDeveloper` top-sheet icon-play `Autotrace ...` or click (F6)
-  * Statistics of execution will be shown in a `Autotrace` result-sheet
-  * Statistics V$STATNAME of execution will be shown above `Autotrace` result-sheet
+
+### II Cheatsheet.99.d.6. Execute a command, get execution plan and statistics like using SET AUTOT TRACE EXPL STAT on SQL*Plus
+
+* You do not need to SET AUTOTRACE a second output tab `Query Result 1` shows de cursor display with execution plan
+* **BUT** you still don't have metrics, how to get execution metrics?
+
+```sql
+-- Step#1: Set statistics level
+SHOW PARAMETER STATISTICS_LEVEL;
+ALTER SESSION SET STATISTICS_LEVEL = ALL;
+
+-- Step#2: Run your query
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers;
+
+-- Step#3: Display cursor execution plan and statistics
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ADVANCED ALLSTATS LAST'));
+```
+
+* **BUT** you still don't have metrics, how to get execution metrics?
+
+```Script-Output
+NAME                    TYPE   VALUE   
+----------------------- ------ ------- 
+client_statistics_level string TYPICAL 
+statistics_level        string TYPICAL 
+
+Session altered.
+
+>>Query Run In:Query Result
+>>Query Run In:Query Result 1
+```
+
+```Query Result 1
+SQL_ID  0xt1gmwhjjw3t, child number 2
+-------------------------------------
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
+ 
+Plan hash value: 3095916820
+ 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                      | Name                           | Starts | E-Rows |E-Bytes| Cost (%CPU)| E-Time   |    TQ  |IN-OUT| PQ Distrib | A-Rows |   A-Time   | Buffers |  OMem |  1Mem | Used-Mem |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT               |                                |      1 |        |       |    63 (100)|          |        |      |            |      1 |00:00:00.04 |       5 |       |       |          |
+|   1 |  SORT AGGREGATE                |                                |      1 |      1 |     2 |            |          |        |      |            |      1 |00:00:00.04 |       5 |       |       |          |
+|   2 |   PX COORDINATOR               |                                |      1 |        |       |            |          |        |      |            |      2 |00:00:00.04 |       5 | 73728 | 73728 |          |
+|   3 |    PX SEND QC (RANDOM)         | :TQ10001                       |      0 |      1 |     2 |            |          |  Q1,01 | P->S | QC (RAND)  |      0 |00:00:00.01 |       0 |       |       |          |
+|   4 |     SORT AGGREGATE             |                                |      0 |      1 |     2 |            |          |  Q1,01 | PCWP |            |      0 |00:00:00.01 |       0 |       |       |          |
+|   5 |      VIEW                      | VW_DAG_0                       |      0 |      2 |     4 |    63   (7)| 00:00:01 |  Q1,01 | PCWP |            |      0 |00:00:00.01 |       0 |       |       |          |
+|   6 |       HASH GROUP BY            |                                |      0 |      2 |     4 |    63   (7)| 00:00:01 |  Q1,01 | PCWP |            |      0 |00:00:00.01 |       0 |  2442K|  2442K|  522K (0)|
+|   7 |        PX RECEIVE              |                                |      0 |      2 |     4 |    63   (7)| 00:00:01 |  Q1,01 | PCWP |            |      0 |00:00:00.01 |       0 |       |       |          |
+|   8 |         PX SEND HASH           | :TQ10000                       |      0 |      2 |     4 |    63   (7)| 00:00:01 |  Q1,00 | P->P | HASH       |      0 |00:00:00.01 |       0 |       |       |          |
+|   9 |          HASH GROUP BY         |                                |      0 |      2 |     4 |    63   (7)| 00:00:01 |  Q1,00 | PCWP |            |      0 |00:00:00.01 |       0 |  2442K|  2442K|  647K (0)|
+|  10 |           PX BLOCK ITERATOR    |                                |      0 |    200K|   390K|    59   (0)| 00:00:01 |  Q1,00 | PCWC |            |      0 |00:00:00.01 |       0 |       |       |          |
+|* 11 |            INDEX FAST FULL SCAN| IDX_CUSTOMERS_CUSTOMER_TYPE_ID |      0 |    200K|   390K|    59   (0)| 00:00:01 |  Q1,00 | PCWP |            |      0 |00:00:00.01 |       0 |       |       |          |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Query Block Name / Object Alias (identified by operation id):
+-------------------------------------------------------------
+  :
+ 
+Outline Data
+-------------
+  :
+Predicate Information (identified by operation id):
+---------------------------------------------------
+  :
+ 
+Column Projection Information (identified by operation id):
+-----------------------------------------------------------
+  :
+Note
+-----
+  :
+Query Block Registry:
+---------------------
+  :
+```
+
+
+* Option-1: Script to get metrics **BEFORE** and **AFTER** execution and calculate difference
+
+```sql
+-- Step#1: Run this immediately **BEFORE** run your query
+SELECT 
+    ms.sid, ms.con_id, sn.name, sn.class, ms.value
+FROM
+    v$mystat ms, 
+    v$statname sn 
+WHERE
+    sn.name = 'consistent gets' 
+    AND sn.statistic# = ms.statistic#
+ORDER BY ms.sid, ms.con_id, sn.name ;
+
+-- Step#2: Run your query here
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers;
+
+-- Step#3: Run this immediately **AFTER** run your query
+SELECT 
+    ms.sid, ms.con_id, sn.name, sn.class, ms.value
+FROM
+    v$mystat ms, 
+    v$statname sn 
+WHERE
+    sn.name = 'consistent gets' 
+    AND sn.statistic# = ms.statistic#
+ORDER BY ms.sid, ms.con_id, sn.name ;
+
+-- Step#4: Turn Statistics level off back again
+ALTER SESSION SET STATISTICS_LEVEL = TYPICAL;
+```
+
+* Now you can calculate differences between after and before: 3771 - 3118 = 653
+
+```Query Result 2
+SID   CON_ID NAME            CLASS VALUE
+----- ------ --------------- ----- -----
+29579 116    consistent gets 8     3118
+```
+
+```Query Result 3
+SID   CON_ID NAME            CLASS VALUE
+----- ------ --------------- ----- -----
+29579 116    consistent gets 8     3771
+```
+
+* Option-2: To discard or reinitialize a specific SQL statement from the shared pool
+
+```sql
+-- Step-1-Option-1: Discard/reinitialize cursor metrics
+-- * Pre-requisites: GRANT ON DBMS_SHARED_POOL package
+DECLARE
+  v_address       VARCHAR2(200);
+  v_hash_value    NUMBER;
+BEGIN
+  -- First, get the address and hash value for the SQL
+  SELECT address, hash_value
+  INTO v_address, v_hash_value
+  FROM v$sqlarea
+  WHERE sql_id = '0xt1gmwhjjw3t' AND plan_hash_value = 3095916820
+  AND ROWNUM = 1;
+
+  -- Now use these values to purge the SQL
+  IF v_address IS NOT NULL THEN
+    DBMS_SHARED_POOL.PURGE(
+      name => v_address || ',' || v_hash_value,
+      flag => 'C');
+    DBMS_OUTPUT.PUT_LINE('SQL purged successfully');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('SQL not found in shared pool');
+  END IF;
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('SQL not found in shared pool');
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+/
+```
+
+```sql
+-- Step#1: Run your query here
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers;
+
+-- Step#1: Get metrics here
+SELECT sql_id, plan_hash_value, executions, buffer_gets, disk_reads, rows_processed,  parse_calls, last_active_time, child_number
+FROM V$SQL
+WHERE sql_id = '0xt1gmwhjjw3t' AND plan_hash_value = 3095916820;
+```
+
+```Query-Result
+SQL_ID        PLAN_HASH_VALUE EXECUTIONS BUFFER_GETS DISK_READS ROWS_PROCESSED PARSE_CALLS LAST_ACTIVE_TIME CHILD_NUMBER
+------------- --------------- ---------- ----------- ---------- -------------- ----------- ---------------- ------------
+0xt1gmwhjjw3t 3095916820       1           653          0           1               5      09/04/25         1
+```
+
+
+### II Cheatsheet.99.d.7. Execute a command, get execution plan and statistics using icon-button SQLDeveloper Autotrace ... (F6)
+
+* On `SQLDeveloper` body-multiline-text fill your `sql` separating with `;`
+* On `SQLDeveloper` body-multiline-text select all rows you want to run;
+* On `SQLDeveloper` top-sheet icon-play `Autotrace ...` or click (F6)
+* Statistics of execution will be shown in a `Autotrace` result-sheet
+* Statistics V$STATNAME of execution will be shown above `Autotrace` result-sheet
 
 ```sql
 SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
@@ -1532,55 +1859,8 @@ workarea executions - optimal 11
 workarea memory allocated -11
 ```
 
-6. Execute a command and get execution plan (in text format) SQLDeveloper
-  * On `SQLDeveloper` body-multiline-text fill your `sql`
-  * On `SQLDeveloper` body-multiline-text select all rows you want to run;
-  * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
-  * Statistics of execution will be shown in a `Query Result` result-sheet
 
-```sql
-SET AUTOT TRACE 
-EXPLAIN PLAN FOR
-  SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers where id = 10000;
-
-SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
-```
-
-```plan-table-output
-Plan hash value: 1357369551
- 
--------------------------------------------------------------------------------------------------------------------------------------
-| Id  | Operation                               | Name         | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
--------------------------------------------------------------------------------------------------------------------------------------
-|   0 | SELECT STATEMENT                        |              |     1 |     2 |     2   (0)| 00:00:01 |        |      |            |
-|   1 |  SORT AGGREGATE                         |              |     1 |     2 |            |          |        |      |            |
-|   2 |   PX COORDINATOR                        |              |       |       |            |          |        |      |            |
-|   3 |    PX SEND QC (RANDOM)                  | :TQ10002     |     1 |     2 |            |          |  Q1,02 | P->S | QC (RAND)  |
-|   4 |     SORT AGGREGATE                      |              |     1 |     2 |            |          |  Q1,02 | PCWP |            |
-|   5 |      VIEW                               | VW_DAG_0     |     1 |     2 |     2   (0)| 00:00:01 |  Q1,02 | PCWP |            |
-|   6 |       HASH GROUP BY                     |              |     1 |     7 |     2   (0)| 00:00:01 |  Q1,02 | PCWP |            |
-|   7 |        PX RECEIVE                       |              |     1 |     7 |     2   (0)| 00:00:01 |  Q1,02 | PCWP |            |
-|   8 |         PX SEND HASH                    | :TQ10001     |     1 |     7 |     2   (0)| 00:00:01 |  Q1,01 | P->P | HASH       |
-|   9 |          HASH GROUP BY                  |              |     1 |     7 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
-|  10 |           TABLE ACCESS BY INDEX ROWID   | CUSTOMERS    |     1 |     7 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
-|  11 |            PX RECEIVE                   |              |     1 |       |     1   (0)| 00:00:01 |  Q1,01 | PCWP |            |
-|  12 |             PX SEND HASH (BLOCK ADDRESS)| :TQ10000     |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
-|  13 |              PX SELECTOR                |              |       |       |            |          |  Q1,00 | SCWC |            |
-|* 14 |               INDEX UNIQUE SCAN         | SYS_C0056973 |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | SCWP |            |
--------------------------------------------------------------------------------------------------------------------------------------
- 
-Predicate Information (identified by operation id):
----------------------------------------------------
- 
-  14 - access("ID"=10000)
- 
-Note
------
-   - automatic DOP: Computed Degree of Parallelism is 2 because of no expensive parallel operation
-```
-
-
-7. On SQLDeveloper your user requires some GRANTS to execute `Autotrace (F6) ...` 
+### II Cheatsheet.99.d.8. User's GRANTS requireD to execute `Autotrace (F6) ...` On SQLDeveloper 
 
 * Grants required for Autotrace and reconnect
 

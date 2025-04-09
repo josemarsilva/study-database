@@ -498,6 +498,8 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 #### 5.1.c. Function-Based Index
 
 * Useful when queries involve functions
+  * [How to Create Database Indexes - Function Base Indexes](https://youtu.be/7wLFr7ZnKPU?t=697&si=XOX_0aeNGQBRzKSq)
+
 
 ```sql
 CREATE INDEX idx_customers_address_city ON customers (UPPER(idx_customers_address_city));
@@ -527,7 +529,14 @@ SELECT index_name, table_name, used FROM v$object_usage;
 
 #### 5.1.f. Clustering Factor
 
-* `under-construction`
+* The clustering factor is a measure of how well ordered the rows in a table are in relation to an index. It indicates how many data blocks Oracle would need to read to satisfy a full index scan.
+  * The clustering factor can range from the number of blocks in the table **best case** to the number of rows in the table **worst case**
+  * How it's calculated: Oracle calculates the clustering factor by walking through the index in order and counting the number of times it has to switch to a different data block to fetch the next row.
+  * How to Improving clustering factor:
+    - Reorganize the table (e.g., using ALTER TABLE ... MOVE)
+    - Create a new table with ordered inserts and replace the old one
+    - Use index-organized tables where appropriate
+* VLogs - [Why Isn't My Query Using an Index? Databases for Developers](https://www.youtube.com/watch?v=7sS9bqdxM3g)
 
 
 #### 5.1.g. Index Reverse Key
@@ -1312,6 +1321,15 @@ SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 set autot trace OFF
 ```
 
+* VLog [Query Tuning Autotrace](https://www.youtube.com/watch?v=SH6os4zxvgM&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e)
+  - [Query Tuning 101 What to Look for in Autotrace Output](https://www.youtube.com/watch?v=SH6os4zxvgM&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e&index=1&pp=iAQB)
+  - [Query Tuning 101 How to Run Autotrace in SQL Developer](https://www.youtube.com/watch?v=GeCanC7u8cs&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e&index=2)
+  - [Query Tuning 101 Why Use Autotrace](https://www.youtube.com/watch?v=BSkDMaOB0xQ&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e&index=3)
+  - [Query Tuning 101: How to Compare Execution Plans](https://www.youtube.com/watch?v=9oxdORc0KAQ&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e&index=4)
+  - [Query Tuning 101: Access vs. Filter Predicates In Execution Plans](https://www.youtube.com/watch?v=K0f2Yzue7yw&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e&index=5)
+
+
+
 ```sql
 set serveroutput off
 set linesize 400
@@ -1509,6 +1527,8 @@ SELECT 1 / COUNT(DISTINCT address_state)      AS selectivity FROM STUDY.customer
 * On `SQLDeveloper` top-sheet icon-play `Run Statement (Ctrl+Enter)`
 * Each command line separeted by `;` will be shown in a differente `Query Result` result-sheet
 * Statistics of execution will be shown in a `Script Output` result-sheet
+* VLog [Query Tuning Autotrace](https://www.youtube.com/watch?v=SH6os4zxvgM&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e)
+
 
 ```sql
 SET AUTOT TRACE EXPL STAT

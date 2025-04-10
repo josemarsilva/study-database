@@ -1372,9 +1372,9 @@ Predicate Information (identified by operation id):
 ## I.Lab-7: Query by Indexed Columns vs Selectivity vs Rule of thumb
 
 * Pre-requisites:
-  * [I.5. Step 1 - SCENARIO 02](#ilab-6-step-1-scenario-02---lets-update-an-indexed-column-customer_status_id-with-abnormal-data-distribution-data-skew)
+  * [I.6. Step 1 - SCENARIO 02](#ilab-6-step-1-scenario-02---lets-update-an-indexed-column-customer_status_id-with-abnormal-data-distribution-data-skew)
 
-### I.Lab-7-Step-1: SCENARIO 02 - Let's update an indexed column customer_status_id Selectivity: 10%, 12%, 13%, 15%, 20%, 30% with low clustering factor and internal fragmentation
+### I.Lab-7-Step-1: SCENARIO 03 - Let's update an indexed column customer_status_id Selectivity: 10%, 12%, 13%, 15%, 20%, 30% with low clustering factor and internal fragmentation
 
 * UPDATE controlled distribution of column customer_status_id Selectivity 10%, 12%, 13%, 15%, 20%, 30% with low clustering factor problem
 
@@ -1416,7 +1416,7 @@ END;
 /
 ```
 
-### I.Lab-7-Step-3: SCENARIO 02 - Let's understand statistics
+### I.Lab-7-Step-2: SCENARIO 02 - Let's understand statistics
 
 * [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
 
@@ -1499,12 +1499,104 @@ Selectivity Predicate              consistent gets ACCESS           | Name      
 ```
 
 
-### I.Lab-7-Step-5: Laboratory analysis and conclusions
+### I.Lab-7-Step-4: Laboratory analysis and conclusions
 
 * Why there are different Exec Plan for similar queries only changing the Predicate WHERE customer_status_id = ...?
   * There's a general Rule of Thumb in Oracle that when a query's **selectivity is around 15% or less**, the optimizer tends to prefer using an index (if available). When selectivity is higher than about 15%, a full table scan often becomes more efficient.
   * The presence of accurate statistics and histograms allows the optimizer to make these fine-grained decisions based on data distribution.
   * Notice how the consistent gets (logical I/Os) increase significantly for the full table scans, but the optimizer still deems this more efficient for higher selectivity queries.
+
+
+---
+
+## I.Lab-8: Query by Indexed Columns vs Selectivity vs Hint Use Index
+
+* Pre-requisites:
+  * [I.7. Step 1 - SCENARIO 03](#ilab-7-step-1-scenario-03---lets-update-an-indexed-column-customer_status_id-selectivity-10-12-13-15-20-30-with-low-clustering-factor-and-internal-fragmentation)
+
+### I.Lab-8-Step-1: SCENARIO 03 - Let's force indexed access customer_status_id Selectivity: >= 15%, 20%, 30%
+
+* Let's remember data distribution
+
+```sql
+SELECT customer_status_id, COUNT(*), COUNT(*)/200000*100 AS PCT_SELECTIVITY FROM customers GROUP BY customer_status_id ORDER BY 1;
+```
+
+```Query-Result
+CUSTOMER_STATUS_ID COUNT(*) PCT_SELECTIVITY
+------------------ -------- ---------------
+0                  20000    10
+1                  24000    12
+2                  26000    13
+3                  30000    15
+4                  40000    20
+5                  60000    30
+```
+
+* Let's remember Comparative table where Oracle Optimizer decided to FULL TABLE SCAN on Selectivity % > 15%
+
+```txt-table
+Selectivity Predicate              consistent gets ACCESS           | Name                             | Rows  | Cost(%CPU)| Time     |
+----------- ---------------------- --------------- ------------------------------------------------------------------------------------
+10%         "CUSTOMER_STATUS_ID"=0             755 INDEX RANGE SCAN | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 20000 | 42(0)     | 00:00:01 |
+12%         "CUSTOMER_STATUS_ID"=1             918 INDEX RANGE SCAN | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 24000 | 50(0)     | 00:00:01 |
+13%         "CUSTOMER_STATUS_ID"=2             993 INDEX RANGE SCAN | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 26000 | 54(0)     | 00:00:01 |
+15%         "CUSTOMER_STATUS_ID"=3            7700 TABLE ACCESS FULL| CUSTOMERS                        | 30000 | 1082(1)   | 00:00:01 |
+20%         "CUSTOMER_STATUS_ID"=4            7709 TABLE ACCESS FULL| CUSTOMERS                        | 40000 | 1082(1)   | 00:00:01 |
+30%         "CUSTOMER_STATUS_ID"=5            7709 TABLE ACCESS FULL| CUSTOMERS                        | 59999 | 1082(1)   | 00:00:01 |
+```
+
+
+### I.Lab-8-Step-2: SCENARIO 02 - Let's query customer_status_id = 3 forcing Hint USE Index
+
+```sql
+-- customer_status_id = 3 - Selectivity: 15%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT  /*+ INDEX_RS(customers IDX_CUSTOMERS_CUSTOMER_STATUS_ID) */  * FROM customers WHERE customer_status_id = 3 /* 15% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+		:
+Plan hash value: 1137980775
+ 
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                             | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                                  | 30000 |  7236K|  1135   (1)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                       |                                  |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10001                         | 30000 |  7236K|  1135   (1)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|   3 |    TABLE ACCESS BY INDEX ROWID BATCHED| CUSTOMERS                        | 30000 |  7236K|  1135   (1)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                       |                                  |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                       |                                  | 30000 |       |    62   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)    | :TQ10000                         | 30000 |       |    62   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                    |                                  |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN              | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 30000 |       |    62   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   8 - access("CUSTOMER_STATUS_ID"=3)
+		:
+```
+
+```v$statsname
+	:
+consistent gets	1144
+	:
+```
+
+
+
+### I.Lab-8-Step-5: Laboratory analysis and conclusions
+
+* In this case forcing index reduces "consistent gets" from 7.700 to 1.144
+* Using hints can force the optimizer to use an execution plan that may not be the most efficient. Use with caution.
+* It's a good practice to test the query performance with and without the hint to ensure it's actually improving performance.
+* In more recent versions of Oracle, you can also use the INDEX_RS hint (Index Range Scan) if you specifically want a range scan of the index
 
 
 ---

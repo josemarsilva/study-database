@@ -88,7 +88,9 @@
   * [I.5. Query by Non Indexed Columns vs Indexed Columns](#ilab-5-query-by-non-indexed-columns-vs-indexed-columns)
   * [I.6. Query by Indexed Columns, Low Selectivity, Data Skew](#ilab-6-query-by-indexed-columns-low-selectivity-data-skew)
   * [I.7. Query by Indexed Columns vs Selectivity vs Rule of Thumb](#ilab-7-query-by-indexed-columns-vs-selectivity-vs-rule-of-thumb)
-  * [I.7. Query by Indexed Columns vs Selectivity vs Hint Use Index](#ilab-8-query-by-indexed-columns-vs-selectivity-vs-hint-use-index)
+  * [I.8. Query by Indexed Columns vs Selectivity vs Hint Use Index](#ilab-8-query-by-indexed-columns-vs-selectivity-vs-hint-use-index)
+  * [I.9. Query by Indexed Columns vs Parallel vs Hint No Parallel](#ilab-9-query-by-indexed-columns-vs-parallel-vs-hint-no-parallel)
+  * [I.10. Query by Indexed Columns vs High Clustering Factor](#ilab-10-query-by-indexed-columns-vs-high-clustering-factor)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -729,6 +731,7 @@ export NLS_LANG=AMERICAN_AMERICA.WE8EBCDIC1047
 * Hints sintax `{DELETE|INSERT|MERGE|SELECT|UPDATE}  /*+ hint [text] [hint[text]]... */`
 
 
+
 #### 5.5.a. Hints for Optimization Approaches and Goals
 
 #### 5.5.b. Hints for Access Paths
@@ -740,6 +743,12 @@ export NLS_LANG=AMERICAN_AMERICA.WE8EBCDIC1047
 #### 5.5.e. Hints for Join Operations
 
 #### 5.5.f. Hints for Parallel Execution
+
+* `PARALLEL`: The PARALLEL hint lets you specify the desired number of concurrent servers that can be used for a parallel operation. The hint applies to the SELECT, INSERT, UPDATE, and DELETE portions of a statement, as well as to the table scan portion.
+* `NO_PARALLEL`: The NO_PARALLEL hint overrides a PARALLEL specification in the table clause.
+* `PQ_DISTRIBUTE`: The PQ_DISTRIBUTE hint improves the performance of parallel join operations. Do this by specifying how rows of joined tables should be distributed among producer and consumer query servers. Using this hint overrides decisions the optimizer would normally make.
+* `PARALLEL_INDEX`: The PARALLEL_INDEX hint specifies the desired number of concurrent servers that can be used to parallelize index range scans for partitioned indexes.
+* `NO_PARALLEL_INDEX`: The NO_PARALLEL_INDEX hint overrides a PARALLEL attribute setting on an index to avoid a parallel index scan operation.
 
 #### 5.5.g. Additional Hints
 
@@ -1130,6 +1139,14 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
 * Reference: [Optimizing SQL Queries - Indexing Strategies](#51-optimizing-sql-queries---indexing-strategies)
 
 ```sql
+-- DROP INDEX (IF EXISTS)
+DROP INDEX idx_customers_email              ;
+DROP INDEX idx_customers_name               ;
+DROP INDEX idx_customers_customer_type_id   ;
+DROP INDEX idx_customers_customer_status_id ;
+DROP INDEX idx_customers_address_details    ;
+DROP INDEX idx_customers_address_city       ;
+
 CREATE INDEX idx_customers_email              on customers(email);
 CREATE INDEX idx_customers_name               on customers(name);
 CREATE INDEX idx_customers_customer_type_id   on customers(customer_type_id);
@@ -1590,6 +1607,29 @@ consistent gets	1144
 	:
 ```
 
+* Threshold Analysis with Hint: Repeat the experiment forcing index usage for different selectivity levels (20%, 25%, 30%, etc.) and determine at what point forced index usage ceases to be beneficial.
+
+```sql
+  SELECT  /*+ INDEX_RS(customers IDX_CUSTOMERS_CUSTOMER_STATUS_ID) */  * FROM customers WHERE customer_status_id = 4 /* 20% */;
+  SELECT  /*+ INDEX_RS(customers IDX_CUSTOMERS_CUSTOMER_STATUS_ID) */  * FROM customers WHERE customer_status_id = 5 /* 30% */;
+  SELECT  /*+ INDEX_RS(customers IDX_CUSTOMERS_CUSTOMER_STATUS_ID) */  * FROM customers WHERE customer_status_id IN (0,1,2,3) /* 30% */;
+```
+
+```txt-table
+                                   INDEX RANGE SCAN TABLE ACCESS FULL 
+Selectivity Predicate              consistent  gets  consistent  gets
+----------- ---------------------- ----------------  ----------------
+10%         "CUSTOMER_STATUS_ID"=0              755
+12%         "CUSTOMER_STATUS_ID"=1              918
+13%         "CUSTOMER_STATUS_ID"=2              993
+15%         "CUSTOMER_STATUS_ID"=3         (*) 1144              7700
+20%         "CUSTOMER_STATUS_ID"=4         (*) 1690              7709
+30%         "CUSTOMER_STATUS_ID"=5         (*) 2277              7709
+50%         "... _ID" IN(0,1,2,3)          (*) 7651              7709
+
+consistent gets	
+(*) USE HINT to force index
+```
 
 
 ### I.Lab-8-Step-5: Laboratory analysis and conclusions
@@ -1598,6 +1638,352 @@ consistent gets	1144
 * Using hints can force the optimizer to use an execution plan that may not be the most efficient. Use with caution.
 * It's a good practice to test the query performance with and without the hint to ensure it's actually improving performance.
 * In more recent versions of Oracle, you can also use the INDEX_RS hint (Index Range Scan) if you specifically want a range scan of the index
+
+---
+
+## I.Lab-9: Query by Indexed Columns vs Parallel vs Hint No Parallel
+
+* Pre-requisites:
+  * [I.8. Step 1 - SCENARIO 03](#ilab-8-step-1-scenario-03---lets-force-indexed-access-customer_status_id-selectivity--15-20-30)
+  * [5.5.f.Hints for Parallel Execution](#55f-hints-for-parallel-execution)
+
+
+### I.Lab-9-Step-1: SCENARIO 03 - Let's query customer_status_id = 4 /* 20% */
+
+```sql
+-- customer_status_id = 4 - Selectivity: 20%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 4 /* 20% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+	:
+Plan hash value: 2487033814
+ 
+---------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name      | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+---------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |           | 40000 |  9648K|  1082   (1)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR      |           |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000  | 40000 |  9648K|  1082   (1)| 00:00:01 |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |           | 40000 |  9648K|  1082   (1)| 00:00:01 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| CUSTOMERS | 40000 |  9648K|  1082   (1)| 00:00:01 |  Q1,00 | PCWP |            |
+---------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - filter("CUSTOMER_STATUS_ID"=4)
+	:
+```
+
+### I.Lab-9-Step-2: SCENARIO 03 - Let's query Hint NO_PARALLEL customer_status_id = 4 /* 20% */
+
+
+```sql
+-- customer_status_id = 4 - Selectivity: 20%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT /*+ NO_PARALLEL(customers) */ * FROM customers WHERE customer_status_id = 4 /* 20% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+	:
+Plan hash value: 238036326
+ 
+------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                           | Name                             | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                                  | 40000 |  9648K|  1514   (1)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| CUSTOMERS                        | 40000 |  9648K|  1514   (1)| 00:00:01 |
+|*  2 |   INDEX RANGE SCAN                  | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 40000 |       |    83   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("CUSTOMER_STATUS_ID"=4)
+	:
+```
+
+### I.Lab-9-Step-3: Analysis and Conclusions
+
+* In Oracle, when parallelism is enabled for a query, the optimizer often favors full table scans over index access methods. This is because:
+1. Full table scans can be easily parallelized, with different parallel execution servers reading different portions of the table simultaneously.
+2. Index access methods are often less efficient to parallelize, especially for B-tree indexes, as the index structure is hierarchical and not as easily divided among parallel processes.
+3. When dealing with a significant portion of a large table, parallel full table scans can often outperform index access, especially on systems with good I/O capabilities.
+4. The overhead of coordinating parallel index access and then accessing the table can sometimes be higher than simply scanning the table in parallel.
+This behavior is one reason why you might see the optimizer choosing a full table scan even when an apparently suitable index exists, particularly when the degree of parallelism is set to a value greater than 1 for the session or for the specific query.
+
+---
+
+## I.Lab-10: Query by Indexed Columns vs High Clustering Factor
+
+* Pre-requisites:
+  * [I.8. Step 1 - SCENARIO 03](#ilab-8-step-1-scenario-03)
+  * [5.1.f. Clustering Factor](#51f-clustering-factor)
+
+
+### I.Lab-10-Step-1: SCENARIO 04 - Let's update customer_status_id to produce High Clustering Factor
+
+```sql
+-- DROP INDEX ON customer_status_id
+DROP INDEX idx_customers_customer_status_id ;
+
+-- UPDATE controlled Selectivity distribution
+UPDATE customers SET customer_status_id = 1                     ; -- 100% - 10% = 90%
+COMMIT;
+UPDATE customers SET customer_status_id = 0 WHERE MOD(id,10) = 0; -- 10%
+COMMIT;
+
+-- CREATE INDEX ON customer_status_id
+CREATE INDEX idx_customers_customer_status_id on customers(customer_status_id);
+```
+
+* [`gather_statistics.sql`](../scripts/gather_statistics.sql)
+
+```sql
+-- GATHER_TABLE_STATS
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+  );
+END;
+/
+```
+
+### I.Lab-10-Step-2: Check if Table Has Statistics Collected High Clustering Factor
+
+* [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
+
+```sql
+SELECT table_name, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed, num_rows, blocks, avg_row_len
+FROM   all_tab_statistics
+WHERE  owner = 'STUDY' 
+AND    table_name = 'CUSTOMERS'
+ORDER  BY owner, table_name;
+```
+
+```Query-Result
+TABLE_NAME LAST_ANALYZED          NUM_ROWS BLOCKS AVG_ROW_LEN
+---------- ---------------------- -------- ------ -----------
+CUSTOMERS  10-APR-2025 20:28:1111 200000   7174   247
+```
+
+
+```sql
+SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
+FROM   all_tab_col_statistics
+WHERE  owner = 'STUDY' AND table_name = 'CUSTOMERS' AND column_name = 'CUSTOMER_STATUS_ID'
+ORDER  BY owner, table_name;
+```
+
+```Query-Result
+TABLE_NAME COLUMN_NAME        NUM_DISTINCT DENSITY   NUM_NULLS LOW_VALUE HIGH_VALUE HISTOGRAM LAST_ANALYZED
+---------- ------------------ ------------ --------- --------- --------- ---------- --------- ----------------------
+CUSTOMERS  CUSTOMER_STATUS_ID 2            0,0000025 0                              FREQUENCY 10-APR-2025 20:28:1111
+```
+
+```sql
+SELECT i.index_name, 
+       i.index_type, -- NORMAL, BITMAP, FUNCTION-BASED NORMAL
+       i.table_name,
+       i.uniqueness, -- UNIQUE or NONUNIQUE
+       i.clustering_factor,
+       i.num_rows,
+       i.leaf_blocks,
+       i.distinct_keys,
+       i.avg_leaf_blocks_per_key,
+       i.avg_data_blocks_per_key,
+       TO_CHAR(i.last_analyzed, 'DD-MON-YYYY HH24:MI:SS') AS last_analyzed
+FROM   all_indexes i
+WHERE  i.owner = 'STUDY' 
+  AND  i.table_name = 'CUSTOMERS'
+  AND  i.index_name = 'IDX_CUSTOMERS_CUSTOMER_STATUS_ID'
+ORDER  BY i.index_name;
+```
+
+```Query-Result
+INDEX_NAME                       INDEX_TYPE TABLE_NAME UNIQUENESS CLUSTERING_FACTOR NUM_ROWS LEAF_BLOCKS DISTINCT_KEYS AVG_LEAF_BLOCKS_PER_KEY AVG_DATA_BLOCKS_PER_KEY LAST_ANALYZED
+-------------------------------- ---------- ---------- ---------- ----------------- -------- ----------- ------------- ----------------------- ----------------------- -------------
+IDX_CUSTOMERS_CUSTOMER_STATUS_ID NORMAL     CUSTOMERS  NONUNIQUE  14286             200000   413         2             206                     7143                    10-APR-2025 20:28:12
+```
+
+* Clustering Factor de 14.286 (high) 
+
+
+### I.Lab-10-Step-3: Let's query Indexed column with High Clustering Factor
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 0;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+	:
+Plan hash value: 2487033814
+ 
+---------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name      | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+---------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |           | 20000 |  4824K|  1082   (1)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR      |           |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000  | 20000 |  4824K|  1082   (1)| 00:00:01 |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |           | 20000 |  4824K|  1082   (1)| 00:00:01 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| CUSTOMERS | 20000 |  4824K|  1082   (1)| 00:00:01 |  Q1,00 | PCWP |            |
+---------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - filter("CUSTOMER_STATUS_ID"=0)
+	:
+```
+
+### I.Lab-10-Step-4: SCENARIO 04 - Let's update customer_status_id to produce Low Clustering Factor
+
+```sql
+-- DROP INDEX ON customer_status_id
+DROP INDEX idx_customers_customer_status_id ;
+
+-- UPDATE controlled Selectivity distribution
+UPDATE customers SET customer_status_id = 1                     ; -- 100% - 10% = 90%
+COMMIT;
+UPDATE customers SET customer_status_id = 0 WHERE id <= 20000; -- 10%
+COMMIT;
+
+-- CREATE INDEX ON customer_status_id
+CREATE INDEX idx_customers_customer_status_id on customers(customer_status_id);
+```
+
+* [`gather_statistics.sql`](../scripts/gather_statistics.sql)
+
+```sql
+-- GATHER_TABLE_STATS
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+  );
+END;
+/
+```
+
+### I.Lab-10-Step-5: Check if Table Has Statistics Collected Low Clustering Factor
+
+* [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
+
+```sql
+SELECT table_name, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed, num_rows, blocks, avg_row_len
+FROM   all_tab_statistics
+WHERE  owner = 'STUDY' 
+AND    table_name = 'CUSTOMERS'
+ORDER  BY owner, table_name;
+```
+
+```Query-Result
+TABLE_NAME LAST_ANALYZED          NUM_ROWS BLOCKS AVG_ROW_LEN
+---------- ---------------------- -------- ------ -----------
+CUSTOMERS  10-APR-2025 21:23:4747 200000   7174   247
+```
+
+
+```sql
+SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
+FROM   all_tab_col_statistics
+WHERE  owner = 'STUDY' AND table_name = 'CUSTOMERS' AND column_name = 'CUSTOMER_STATUS_ID'
+ORDER  BY owner, table_name;
+```
+
+```Query-Result
+TABLE_NAME COLUMN_NAME        NUM_DISTINCT DENSITY   NUM_NULLS LOW_VALUE HIGH_VALUE HISTOGRAM LAST_ANALYZED
+---------- ------------------ ------------ --------- --------- --------- ---------- --------- ----------------------
+CUSTOMERS  CUSTOMER_STATUS_ID 2            0,0000025 0                              FREQUENCY 10-APR-2025 21:23:4747
+```
+
+```sql
+SELECT i.index_name, 
+       i.index_type, -- NORMAL, BITMAP, FUNCTION-BASED NORMAL
+       i.table_name,
+       i.uniqueness, -- UNIQUE or NONUNIQUE
+       i.clustering_factor,
+       i.num_rows,
+       i.leaf_blocks,
+       i.distinct_keys,
+       i.avg_leaf_blocks_per_key,
+       i.avg_data_blocks_per_key,
+       TO_CHAR(i.last_analyzed, 'DD-MON-YYYY HH24:MI:SS') AS last_analyzed
+FROM   all_indexes i
+WHERE  i.owner = 'STUDY' 
+  AND  i.table_name = 'CUSTOMERS'
+  AND  i.index_name = 'IDX_CUSTOMERS_CUSTOMER_STATUS_ID'
+ORDER  BY i.index_name;
+```
+
+```Query-Result
+INDEX_NAME                       INDEX_TYPE TABLE_NAME UNIQUENESS CLUSTERING_FACTOR NUM_ROWS LEAF_BLOCKS DISTINCT_KEYS AVG_LEAF_BLOCKS_PER_KEY AVG_DATA_BLOCKS_PER_KEY LAST_ANALYZED
+-------------------------------- ---------- ---------- ---------- ----------------- -------- ----------- ------------- ----------------------- ----------------------- -------------
+IDX_CUSTOMERS_CUSTOMER_STATUS_ID NORMAL     CUSTOMERS  NONUNIQUE  7144              200000   412         2             206                     3572                    10-APR-2025 21:23:49
+```
+
+### I.Lab-10-Step-6: Let's query Indexed column with Low Clustering Factor
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 0;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+	:
+Plan hash value: 1137980775
+ 
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                             | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                                  | 20000 |  4824K|   758   (1)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                       |                                  |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10001                         | 20000 |  4824K|   758   (1)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|   3 |    TABLE ACCESS BY INDEX ROWID BATCHED| CUSTOMERS                        | 20000 |  4824K|   758   (1)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                       |                                  |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                       |                                  | 20000 |       |    42   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)    | :TQ10000                         | 20000 |       |    42   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                    |                                  |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN              | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 20000 |       |    42   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   8 - access("CUSTOMER_STATUS_ID"=0)
+	:
+```
+
+
+### I.Lab-10-Step-3: Analysis and Conclusions
+
+* Table customers has 7.174 BLOCKS and 200.000 NUM_ROWS
+  * In First index creation data was MOD(id,10) 10% of rows but **High** CLUSTERING_FACTOR is 14.286
+  * In Second index creation data was id <= 20000 10% of rows but **Low** CLUSTERING_FACTOR is 7.144
+  * **Low** CLUSTERING_FACTOR ~ BLOCKS
+  * **High** CLUSTERING_FACTOR ~ NUM_ROWS
 
 
 ---

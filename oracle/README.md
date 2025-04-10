@@ -127,7 +127,8 @@ sqlplus / as sysdba
 
 ### 3.5. Scripts Oracle Database
 
-* Script diversos: `cdb_vs_pdb.sql`
+* [`./scripts`](./scripts/)
+
 
 ---
 

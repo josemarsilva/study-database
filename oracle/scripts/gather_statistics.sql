@@ -13,39 +13,29 @@ EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'CUSTOMERS');
 
 
 --
--- Option n. 2: Collect table statistics estimate percental of table
+-- Option n. 2: Collect table statistics for specific columns with histograms
 --
 
-EXEC DBMS_STATS.GATHER_TABLE_STATS(
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
     ownname      => 'STUDY',
     tabname      => 'CUSTOMERS',
     estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
-    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
-);
-
-
---
--- Option n. 3: Collect table statistics for specific columns with histograms
---
-
-BEGIN
-  DBMS_STATS.GATHER_TABLE_STATS(
-    ownname => 'STUDY',
-    tabname => 'CUSTOMERS',
-    method_opt => 'FOR COLUMNS customer_status_id SIZE AUTO'
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO'      -- Collect histograms if beneficial
   );
 END;
 /
 
 
 --
--- Option n. 4: Collect Index statistics for specific table
+-- Option n. 3: Collect Index statistics for specific table
 --
 EXEC DBMS_STATS.GATHER_INDEX_STATS('STUDY', 'idx_customers_address_state');
 
 
 --
--- Option n. 5: Collect Table Index statistics for specific table
+-- Option n. 4: Collect Table Index statistics for specific table
 --
 BEGIN
   DBMS_STATS.GATHER_INDEX_STATS(
@@ -58,3 +48,7 @@ BEGIN
 END;
 /
 
+
+-- ----------------------------------------------------------------------------
+--
+-- ----------------------------------------------------------------------------

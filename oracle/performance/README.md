@@ -86,7 +86,8 @@
   * [I.3. Query by Indexed Primary Key Columns](#ilab-3-query-by-indexed-primary-key-columns)
   * [I.4. Query by Non Indexed Columns](#ilab-4-query-by-non-indexed-columns)
   * [I.5. Query by Non Indexed Columns vs Indexed Columns](#ilab-5-query-by-non-indexed-columns-vs-indexed-columns)
-  * [I.6. Query by Indexed Columns, Low Selectvity, Data Skew](#ilab-6-query-by-indexed-columns-low-selectvity-data-skew)
+  * [I.6. Query by Indexed Columns, Low Selectivity, Data Skew](#ilab-6-query-by-indexed-columns-low-selectivity-data-skew)
+  * [I.7. Query by Indexed Columns vs Selectivity vs Rule of Thumb](#ilab-7-query-by-indexed-columns-vs-selectivity-vs-rule-of-thumb)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -960,16 +961,19 @@ CUSTOMERS  OBS                             0            0         200000        
 EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'CUSTOMERS');
 ```
 
-  - Estimate auto, histogram if benefical
+* Estimate auto, histogram if benefical
 
 ```sql
--- More
-EXEC DBMS_STATS.GATHER_TABLE_STATS(
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
     ownname      => 'STUDY',
     tabname      => 'CUSTOMERS',
     estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
     method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
-);
+  );
+END;
+/
 ```
 
 ### I.Lab-2-Step-4: Laboratory analysis and conclusions
@@ -1033,10 +1037,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    8 - access("ID"=100000)
- 
-Note
------
-   - automatic DOP: Computed Degree of Parallelism is 2 because of no expensive parallel operation
+  :
 ```
 
 
@@ -1075,6 +1076,7 @@ CPU used when call started    2
 
 * Exec Plan access by index primary key (very good)
 * Consistent get 3 (low)
+* See more [5.1. Optimizing SQL Queries - Indexing Strategies](#51-optimizing-sql-queries---indexing-strategies)
 
 ---
 
@@ -1190,25 +1192,44 @@ SELECT * FROM customers WHERE address_city = 'Sao Paulo';
 
 ---
 
-## I.Lab-6: Query by Indexed Columns, Low Selectvity, Data Skew
+## I.Lab-6: Query by Indexed Columns, Low Selectivity, Data Skew
 
 * Pre-requisites:
   * [I.5. Step 1 - SCENARIO 01](#ilab-5-step-1-scenario-01---lets-index-all-columns-to-compare-performance-between-non-indexed-and-indexed-columns)
 
 ### I.Lab-6-Step-1: SCENARIO 02 - Let's update an indexed column customer_status_id with abnormal data distribution: data skew
 
+* customer_status_id = 1 for 199996 rows, and customer_status_id in (0,2,3,4,5) for only one row
+
 ```sql
--- UPDATE 
+-- UPDATE abnormal data distribution of column customer_status_id
+-- ALL others rows has customer_status_id = 1
 UPDATE customers SET customer_status_id = 0 WHERE id = 150000;
 UPDATE customers SET customer_status_id = 2 WHERE id = 160000;
 UPDATE customers SET customer_status_id = 3 WHERE id = 170000;
 UPDATE customers SET customer_status_id = 4 WHERE id = 180000;
-UPDATE customers SET customer_status_id = 5 WHERE id = 180000;
-
--- GATHER_TABLE_STATS
-EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'customers');
+UPDATE customers SET customer_status_id = 5 WHERE id = 190000;
 ```
 
+* [`gather_statistics.sql`](../scripts/gather_statistics.sql)
+
+```sql
+-- GATHER_TABLE_STATS
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+  );
+END;
+/
+```
+
+### I.Lab-6-Step-2: SCENARIO 02 - Let's understand statistics
+
+* [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
 
 ```sql
 SELECT i.index_name, ic.column_name, ic.column_position, i.distinct_keys, i.num_rows, ic.column_length, i.uniqueness, i.index_type
@@ -1226,18 +1247,58 @@ INDEX_NAME                       COLUMN_NAME        COLUMN_POSITION DISTINCT_KEY
 IDX_CUSTOMERS_CUSTOMER_STATUS_ID CUSTOMER_STATUS_ID 1               5             200000   22            NONUNIQUE  NORMAL
 ```
 
-### I.Lab-6-Step-2: SCENARIO 02 - Let's query customer_status_id = 1 that has a **(lot of) 199.996**  rows
+```sql
+SELECT column_name, endpoint_number, endpoint_value, endpoint_actual_value
+FROM   ALL_TAB_HISTOGRAMS
+WHERE owner = 'STUDY' AND table_name = 'CUSTOMERS' AND column_name = 'CUSTOMER_STATUS_ID';
+```
+
+```results
+COLUMN_NAME        ENDPOINT_NUMBER ENDPOINT_VALUE ENDPOINT_ACTUAL_VALUE
+------------------ --------------- -------------- ---------------------
+CUSTOMER_STATUS_ID 1               0              0
+CUSTOMER_STATUS_ID 199996          1              1
+CUSTOMER_STATUS_ID 199997          2              2
+CUSTOMER_STATUS_ID 199998          3              3
+CUSTOMER_STATUS_ID 199999          4              4
+CUSTOMER_STATUS_ID 200000          5              5
+```
+
+### I.Lab-6-Step-3: SCENARIO 02 - Now, let's interpret the results:
+
+1. COLUMN_NAME: Always 'CUSTOMER_STATUS_ID' in this case, as that's the column we're examining.
+2. ENDPOINT_NUMBER: This represents the cumulative number of rows up to and including this endpoint value.
+3. ENDPOINT_VALUE: This is the encoded representation of the column value at this endpoint.
+4. ENDPOINT_ACTUAL_VALUE: This is the actual value of the column at this endpoint.
+
+Interpreting the results:
+
+1. The first row (0, 1) indicates that there is 1 row with CUSTOMER_STATUS_ID = 0.
+2. The second row (1, 199996) indicates that there are 199,995 additional rows (199,996 - 1) with CUSTOMER_STATUS_ID = 1.
+3. The third row (2, 199997) indicates there is 1 more row (199,997 - 199,996) with CUSTOMER_STATUS_ID = 2.
+4. The fourth row (3, 199998) indicates 1 more row with CUSTOMER_STATUS_ID = 3.
+5. The fifth row (4, 199999) indicates 1 more row with CUSTOMER_STATUS_ID = 4.
+6. The last row (5, 200000) indicates 1 more row with CUSTOMER_STATUS_ID = 5.
+
+This aligns with your UPDATE statements:
+- 1 row each for status 0, 2, 3, 4, and 5
+- All remaining rows (199,995) have status 1
+
+
+### I.Lab-6-Step-4: SCENARIO 02 - Let's query customer_status_id = 1 that has a **(lot of) 199.996**  rows
 
 ```sql
 SET AUTOT TRACE 
 EXPLAIN PLAN FOR
-    SELECT COUNT(1) AS COUNT_ROWS FROM customers WHERE customer_status_id = 1;
+    SELECT * FROM customers WHERE customer_status_id = 1;
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 SET AUTOT OFF
 ```
 
 ```plan-table
         :
+Plan hash value: 2487033814
+ 
 ---------------------------------------------------------------------------------------------------------------
 | Id  | Operation            | Name      | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
 ---------------------------------------------------------------------------------------------------------------
@@ -1252,40 +1313,49 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    4 - filter("CUSTOMER_STATUS_ID"=1)
+
         :
 ```
 
-### I.Lab-6-Step-3: SCENARIO 02 - Let's query customer_status_id = 0 that has **only (1) one** rows 
+### I.Lab-6-Step-5: SCENARIO 02 - Let's query customer_status_id = 0 that has **only (1) one** rows 
 
 ```sql
 SET AUTOT TRACE 
 EXPLAIN PLAN FOR
-    SELECT COUNT(1) AS COUNT_ROWS FROM customers WHERE customer_status_id = 0;
+    SELECT * FROM customers WHERE customer_status_id = 0;
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 SET AUTOT OFF
 ```
 
 ```plan-table
         :
-------------------------------------------------------------------------------------------------------
-| Id  | Operation         | Name                             | Rows  | Bytes | Cost (%CPU)| Time     |
-------------------------------------------------------------------------------------------------------
-|   0 | SELECT STATEMENT  |                                  |     1 |     3 |     1   (0)| 00:00:01 |
-|   1 |  SORT AGGREGATE   |                                  |     1 |     3 |            |          |
-|*  2 |   INDEX RANGE SCAN| IDX_CUSTOMERS_CUSTOMER_STATUS_ID |     1 |     3 |     1   (0)| 00:00:01 |
-------------------------------------------------------------------------------------------------------
+Plan hash value: 1137980775
+ 
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                             | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                                  |     1 |   247 |     2   (0)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                       |                                  |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10001                         |     1 |   247 |     2   (0)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|   3 |    TABLE ACCESS BY INDEX ROWID BATCHED| CUSTOMERS                        |     1 |   247 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                       |                                  |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                       |                                  |     1 |       |     1   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)    | :TQ10000                         |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                    |                                  |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN              | IDX_CUSTOMERS_CUSTOMER_STATUS_ID |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
  
 Predicate Information (identified by operation id):
 ---------------------------------------------------
  
-   2 - access("CUSTOMER_STATUS_ID"=0)
-   :
+   8 - access("CUSTOMER_STATUS_ID"=0)
+        :
 ```
 
 
-### I.Lab-6-Step-4: Laboratory analysis and conclusions
+### I.Lab-6-Step-6: Laboratory analysis and conclusions
 
-* Why there are different Exec Plan for similar queries, WHERE customer_status_id = 0 vs customer_status_id = 0
+* Why there are different Exec Plan for similar queries, WHERE customer_status_id = 0 vs customer_status_id = 1
   * Explanation of Different Execution Plans:
     * Selectivity / Cost-Based Optimizer Decision:
       - For customer_status_id = 1, the query is highly non-selective (returns 99.998% of rows); Using the index would require scanning almost the entire index and then fetching almost all table rows; A full table scan is more efficient as it reads the table sequentially;
@@ -1295,6 +1365,146 @@ Predicate Information (identified by operation id):
       - This allows it to make different decisions based on the specific value in the WHERE clause
   * Adaptive Plans: This demonstrates Oracle's ability to choose different plans based on the specific predicate values
   * Statistics Importance: Accurate and up-to-date statistics, including histograms, are crucial for the optimizer to make these intelligent decisions
+
+
+---
+
+## I.Lab-7: Query by Indexed Columns vs Selectivity vs Rule of thumb
+
+* Pre-requisites:
+  * [I.5. Step 1 - SCENARIO 02](#ilab-6-step-1-scenario-02---lets-update-an-indexed-column-customer_status_id-with-abnormal-data-distribution-data-skew)
+
+### I.Lab-7-Step-1: SCENARIO 02 - Let's update an indexed column customer_status_id Selectivity: 10%, 12%, 13%, 15%, 20%, 30% with low clustering factor and internal fragmentation
+
+* UPDATE controlled distribution of column customer_status_id Selectivity 10%, 12%, 13%, 15%, 20%, 30% with low clustering factor problem
+
+```sql
+-- DROP INDEX ON customer_status_id
+DROP INDEX idx_customers_customer_status_id ;
+
+-- UPDATE controlled Selectivity distribution
+UPDATE customers SET customer_status_id = 0 WHERE id BETWEEN       1 AND      1 + 20000 - 1; -- 10%
+COMMIT;
+UPDATE customers SET customer_status_id = 1 WHERE id BETWEEN   20001 AND  20001 + 24000 - 1; -- 12%
+COMMIT;
+UPDATE customers SET customer_status_id = 2 WHERE id BETWEEN   44001 AND  44001 + 26000 - 1; -- 13%
+COMMIT;
+UPDATE customers SET customer_status_id = 3 WHERE id BETWEEN   70001 AND  70001 + 30000 - 1; -- 15%
+COMMIT;
+UPDATE customers SET customer_status_id = 4 WHERE id BETWEEN  100001 AND 100001 + 40000 - 1; -- 20%
+COMMIT;
+UPDATE customers SET customer_status_id = 5 WHERE id BETWEEN  140001 AND 140001 + 60000 - 1; -- 30%
+COMMIT;
+
+-- CREATE INDEX ON customer_status_id
+CREATE INDEX idx_customers_customer_status_id on customers(customer_status_id);
+```
+
+* [`gather_statistics.sql`](../scripts/gather_statistics.sql)
+
+```sql
+-- GATHER_TABLE_STATS
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+  );
+END;
+/
+```
+
+### I.Lab-7-Step-3: SCENARIO 02 - Let's understand statistics
+
+* [`query_tab_col_ind_statistics.sql`](../scripts/query_tab_col_ind_statistics.sql)
+
+```sql
+SELECT column_name, endpoint_number, endpoint_value, endpoint_actual_value
+FROM   ALL_TAB_HISTOGRAMS
+WHERE owner = 'STUDY' AND table_name = 'CUSTOMERS' AND column_name = 'CUSTOMER_STATUS_ID';
+```
+
+```results
+COLUMN_NAME        ENDPOINT_NUMBER ENDPOINT_VALUE ENDPOINT_ACTUAL_VALUE
+------------------ --------------- -------------- ---------------------
+CUSTOMER_STATUS_ID 20000           0              0
+CUSTOMER_STATUS_ID 44000           1              1
+CUSTOMER_STATUS_ID 70000           2              2
+CUSTOMER_STATUS_ID 100000          3              3
+CUSTOMER_STATUS_ID 140000          4              4
+CUSTOMER_STATUS_ID 200000          5              5
+```
+
+* [Interpretation of results is the same](#ilab-6-step-4-scenario-02---now-lets-interpret-the-results)
+
+### I.Lab-7-Step-3: SCENARIO 02 - Let's query customer_status_id = 0, 1, 2, ... What is the Rule of thumb Selectivity %
+
+```sql
+-- customer_status_id = 0 - Selectivity: 10%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 0 /* 10% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- customer_status_id = 1 - Selectivity: 12%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 1 /* 12% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- customer_status_id = 2 - Selectivity: 13%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 2 /* 13% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- customer_status_id = 3 - Selectivity: 15%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 3 /* 15% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- customer_status_id = 4 - Selectivity: 20%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 4 /* 20% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- customer_status_id = 5 - Selectivity: 30%
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE customer_status_id = 5 /* 30% */;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+* Comparative 
+
+```txt-table
+Selectivity Predicate              consistent gets ACCESS           | Name                             | Rows  | Cost(%CPU)| Time     |
+----------- ---------------------- --------------- ------------------------------------------------------------------------------------
+10%         "CUSTOMER_STATUS_ID"=0             755 INDEX RANGE SCAN | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 20000 | 42(0)     | 00:00:01 |
+12%         "CUSTOMER_STATUS_ID"=1             918 INDEX RANGE SCAN | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 24000 | 50(0)     | 00:00:01 |
+13%         "CUSTOMER_STATUS_ID"=2             993 INDEX RANGE SCAN | IDX_CUSTOMERS_CUSTOMER_STATUS_ID | 26000 | 54(0)     | 00:00:01 |
+15%         "CUSTOMER_STATUS_ID"=3            7700 TABLE ACCESS FULL| CUSTOMERS                        | 30000 | 1082(1)   | 00:00:01 |
+20%         "CUSTOMER_STATUS_ID"=4            7709 TABLE ACCESS FULL| CUSTOMERS                        | 40000 | 1082(1)   | 00:00:01 |
+30%         "CUSTOMER_STATUS_ID"=5            7709 TABLE ACCESS FULL| CUSTOMERS                        | 59999 | 1082(1)   | 00:00:01 |
+```
+
+
+### I.Lab-7-Step-5: Laboratory analysis and conclusions
+
+* Why there are different Exec Plan for similar queries only changing the Predicate WHERE customer_status_id = ...?
+  * There's a general Rule of Thumb in Oracle that when a query's **selectivity is around 15% or less**, the optimizer tends to prefer using an index (if available). When selectivity is higher than about 15%, a full table scan often becomes more efficient.
+  * The presence of accurate statistics and histograms allows the optimizer to make these fine-grained decisions based on data distribution.
+  * Notice how the consistent gets (logical I/Os) increase significantly for the full table scans, but the optimizer still deems this more efficient for higher selectivity queries.
 
 
 ---

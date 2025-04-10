@@ -105,10 +105,10 @@
       * [II.99.d.2. Execute more than one command at once](#ii-cheatsheet99d2-execute-more-than-one-command-at-once)
       * [II.99.d.3. Execute a command get execution plan (incomplete) and get statistics (incomplete) like using SET AUTOT TRACE EXPL STAT on SQLPlus](#ii-cheatsheet99d3-execute-a-command-get-execution-plan-incomplete-and-get-statistics-incomplete-like-using-set-autot-trace-expl-stat-on-sqlplus)
       * [II.99.d.4. Execute a command get execution plan like using SET AUTOT TRACE EXPL STAT on SQLPlus](#ii-cheatsheet99d4-execute-a-command-and-get-execution-plan-like-using-set-autot-trace-expl-stat-on-sqlplus)
-      * [II.99.d.5. ](#ii-cheatsheet99d5-execute-a-command-get-execution-plan-using-icon-button-sqldeveloper-explain-plan--f10)
-      * [II.99.d.6. ](#ii-cheatsheet99d6-execute-a-command-get-execution-plan-and-statistics-like-using-set-autot-trace-expl-stat-on-sqlplus)
-      * [II.99.d.7. ](#ii-cheatsheet99d7-execute-a-command-get-execution-plan-and-statistics-using-icon-button-sqldeveloper-autotrace--f6)
-      * [II.99.d.7. ](#ii-cheatsheet99d8-users-grants-required-to-execute-autotrace-f6--on-sqldeveloper)
+      * [II.99.d.5. Execute a command, get execution plan using icon-button SQLDeveloper Explain Plan ... (F10)](#ii-cheatsheet99d5-execute-a-command-get-execution-plan-using-icon-button-sqldeveloper-explain-plan--f10)
+      * [II.99.d.6. Execute a command, get execution plan and statistics like using SET AUTOT TRACE EXPL STAT on SQL*Plus](#ii-cheatsheet99d6-execute-a-command-get-execution-plan-and-statistics-like-using-set-autot-trace-expl-stat-on-sqlplus)
+      * [II.99.d.7. Execute a command, get execution plan and statistics using icon-button SQLDeveloper Autotrace ... (F6)](#ii-cheatsheet99d7-execute-a-command-get-execution-plan-and-statistics-using-icon-button-sqldeveloper-autotrace--f6)
+      * [II.99.d.7. User's GRANTS required to execute `Autotrace (F6) ...` On SQLDeveloper ](#ii-cheatsheet99d8-users-grants-required-to-execute-autotrace-f6--on-sqldeveloper)
 
 
 ---
@@ -2730,7 +2730,7 @@ workarea memory allocated -11
 ```
 
 
-### II Cheatsheet.99.d.8. User's GRANTS requireD to execute `Autotrace (F6) ...` On SQLDeveloper 
+### II Cheatsheet.99.d.8. User's GRANTS required to execute `Autotrace (F6) ...` On SQLDeveloper 
 
 * Grants required for Autotrace and reconnect
 

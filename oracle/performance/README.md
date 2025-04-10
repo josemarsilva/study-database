@@ -88,6 +88,7 @@
   * [I.5. Query by Non Indexed Columns vs Indexed Columns](#ilab-5-query-by-non-indexed-columns-vs-indexed-columns)
   * [I.6. Query by Indexed Columns, Low Selectivity, Data Skew](#ilab-6-query-by-indexed-columns-low-selectivity-data-skew)
   * [I.7. Query by Indexed Columns vs Selectivity vs Rule of Thumb](#ilab-7-query-by-indexed-columns-vs-selectivity-vs-rule-of-thumb)
+  * [I.7. Query by Indexed Columns vs Selectivity vs Hint Use Index](#ilab-8-query-by-indexed-columns-vs-selectivity-vs-hint-use-index)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)

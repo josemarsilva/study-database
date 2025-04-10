@@ -91,6 +91,7 @@
   * [I.8. Query by Indexed Columns vs Selectivity vs Hint Use Index](#ilab-8-query-by-indexed-columns-vs-selectivity-vs-hint-use-index)
   * [I.9. Query by Indexed Columns vs Parallel vs Hint No Parallel](#ilab-9-query-by-indexed-columns-vs-parallel-vs-hint-no-parallel)
   * [I.10. Query by Indexed Columns vs High Clustering Factor](#ilab-10-query-by-indexed-columns-vs-high-clustering-factor)
+  * [I.11. Query by Indexed Columns vs Function Based Index](#ilab-11-query-by-indexed-columns-vs-function-based-index)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -506,7 +507,7 @@ SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 R
 
 
 ```sql
-CREATE INDEX idx_customers_address_city ON customers (UPPER(idx_customers_address_city));
+CREATE INDEX idx_customers_email ON customers (LOWER(email));
 ```
 
 
@@ -1725,7 +1726,7 @@ This behavior is one reason why you might see the optimizer choosing a full tabl
 ## I.Lab-10: Query by Indexed Columns vs High Clustering Factor
 
 * Pre-requisites:
-  * [I.8. Step 1 - SCENARIO 03](#ilab-8-step-1-scenario-03)
+  * [I.8. Step 1 - SCENARIO 03](#ilab-8-step-1-scenario-03---lets-force-indexed-access-customer_status_id-selectivity--15-20-30)
   * [5.1.f. Clustering Factor](#51f-clustering-factor)
 
 
@@ -1852,7 +1853,8 @@ Predicate Information (identified by operation id):
 	:
 ```
 
-### I.Lab-10-Step-4: SCENARIO 04 - Let's update customer_status_id to produce Low Clustering Factor
+### I.Lab-10-Step-4: SCENARIO 05 - Let's update customer_status_id to produce Low Clustering Factor
+
 
 ```sql
 -- DROP INDEX ON customer_status_id
@@ -1986,6 +1988,165 @@ Predicate Information (identified by operation id):
   * **High** CLUSTERING_FACTOR ~ NUM_ROWS
 
 
+---
+
+## I.Lab-11: Query by Indexed Columns vs Function Based Index
+
+* Pre-requisites:
+  * [I.10. Step 4 - SCENARIO 05](#ilab-10-step-4-scenario-05---lets-update-customer_status_id-to-produce-low-clustering-factor)
+  * [5.1.c. Function-Based Index](#51c-function-based-index)
+
+
+### I.Lab-11-Step-1: SCENARIO 06 - Let's update indexed column email with UPPERCASE and lowercase but try to query only UPPERCASE
+
+```sql
+UPDATE customers SET email = 'JOSEMARSILVA@inmetrics.com.br' WHERE id = 100000;
+COMMIT;
+```
+
+* Query CASE SENSITIVE will find record
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE email = 'JOSEMARSILVA@inmetrics.com.br';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+	:
+Plan hash value: 3924700570
+ 
+------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                     |     1 |   247 |     4   (0)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                       |                     |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10001            |     1 |   247 |     4   (0)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|   3 |    TABLE ACCESS BY INDEX ROWID BATCHED| CUSTOMERS           |     1 |   247 |     4   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                       |                     |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                       |                     |     1 |       |     3   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)    | :TQ10000            |     1 |       |     3   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                    |                     |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN              | IDX_CUSTOMERS_EMAIL |     1 |       |     3   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   8 - access("EMAIL"='JOSEMARSILVA@inmetrics.com.br')
+	:
+```
+
+* Query CONVERTING CASE will find record BUT DO NOT USE INDEX
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE LOWER(email) = LOWER('JOSEMARSILVA@inmetrics.com.br');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+	:
+Plan hash value: 2487033814
+ 
+---------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name      | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+---------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |           |  2000 |   482K|  1082   (1)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR      |           |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000  |  2000 |   482K|  1082   (1)| 00:00:01 |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |           |  2000 |   482K|  1082   (1)| 00:00:01 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| CUSTOMERS |  2000 |   482K|  1082   (1)| 00:00:01 |  Q1,00 | PCWP |            |
+---------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - filter(LOWER("EMAIL")='josemarsilva@inmetrics.com.br')
+	:
+```
+
+
+### I.Lab-11-Step-2: Create a Function Based Index to match query predicate
+
+* Create Function Based Index with expression LOWER(email)
+
+```sql
+CREATE INDEX idx_fb_customers_email ON customers (LOWER(email));
+```
+
+* Collect Statistics 
+
+```sql
+-- GATHER_TABLE_STATS
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+  );
+END;
+/
+```
+
+* Query Uses Indexes - INDEX RANGE SCAN - IDX_FB_CUSTOMERS_EMAIL
+
+```sql
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE LOWER(email) = LOWER('JOSEMARSILVA@inmetrics.com.br');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+```plan-table-output
+    :
+Plan hash value: 1395743395
+ 
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                   | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+---------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                        |     1 |   280 |     4   (0)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                       |                        |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10001               |     1 |   280 |     4   (0)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|   3 |    TABLE ACCESS BY INDEX ROWID BATCHED| CUSTOMERS              |     1 |   280 |     4   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                       |                        |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                       |                        |     1 |       |     3   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)    | :TQ10000               |     1 |       |     3   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                    |                        |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN              | IDX_FB_CUSTOMERS_EMAIL |     1 |       |     3   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+---------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   8 - access(LOWER("EMAIL")='josemarsilva@inmetrics.com.br')
+    :
+```
+
+### I.Lab-11-Step-3: Analysis and Conclusions
+
+1. Index Effectiveness for Case-Sensitive Queries:
+   - When querying with an exact case-sensitive match (e.g., `email = 'JOSEMARSILVA@inmetrics.com.br'`), the regular index (IDX_CUSTOMERS_EMAIL) is effectively used, resulting in an efficient INDEX RANGE SCAN.
+2. Limitations of Regular Indexes with Functions:
+   - When using a function in the query predicate (e.g., `LOWER(email) = LOWER('JOSEMARSILVA@inmetrics.com.br')`), the regular index becomes ineffective. This results in a full table scan, which is much less efficient, especially for large tables.
+3. Function-Based Indexes as a Solution:
+   - Creating a function-based index on `LOWER(email)` addresses the limitation of regular indexes when using functions in queries.
+   - After creating the function-based index (IDX_FB_CUSTOMERS_EMAIL), queries using `LOWER(email)` in the predicate can utilize this index, reverting to an efficient INDEX RANGE SCAN.
+4. Performance Implications:
+   - Using the appropriate index (either regular or function-based) results in a significantly lower cost and faster execution time compared to a full table scan.
+   - The execution plan shows a cost of 4 for index-based access vs. 1082 for a full table scan, demonstrating the substantial performance benefit of using the correct index.
+5. Query Optimization Strategies:
+   - For case-insensitive searches or when using functions in query predicates, function-based indexes can be a powerful optimization tool.
+   - It's important to align the index creation with the actual query patterns to ensure optimal performance.
+6. Importance of Statistics:
+   - After creating new indexes, gathering statistics is crucial for the optimizer to make informed decisions about index usage.
 ---
 
 ## II. Performance Tuning CheatSheet

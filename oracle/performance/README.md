@@ -3,6 +3,9 @@
 ## Mind Map - Oracle - Performance
 ![Mind Map - Oracle - Performance](../../doc/mind-maps/MindMapDiagram-DatabaseStudy-Oracle-Performance.png) 
 
+### Mind Map - Oracle - Performance - Exadata
+![Mind Map - Oracle - Performance](../../doc/mind-maps/MindMapDiagram-DatabaseStudy-Oracle-Performance-Exadata.png) 
+
 
 ## Index
 
@@ -948,42 +951,6 @@ References:
 
 #### 8.2.a. Smart Scans
 
-* Offload filtering and projections to the storage layer
-* Requires full table scans or direct path reads to activate
-
-
-#### 8.2.b. Storage Indexes
-
-* Memory-resident metadata that avoids unnecessary I/O by skipping data blocks.
-
-
-#### 8.2.c. Hybrid Columnar Compression (HCC)
-
-* Compresses data aggressively for archival or read-mostly tables.
-* Excellent for data warehouses but not suitable for frequently updated data.
-
-
-#### 8.2.d I/O Resource Management (IORM)
-
-* Controls how I/O bandwidth is allocated between databases/users.
-* Coordinate with Database Resource Manager (DBRM).
-
-### 8.3. Exadata NOT an Expert advertisements and premises
-
-#### 8.3.a. How Much Faster Will My Apps Run
-
-* "... as a seasoned contractor knows, the answer to just about every question is **“IT DEPENDS”** ..."
-* "The two groupings of potential performance improvement: a) 2X to 4X improvement in speed; b) 10X to 40X improvement in speed"
-* "... (Generalization about) ... EXADATA expected performance improvements says that there are only 3 types of SQL Workloads: a) Queries looking for a modest to large amount of data (**WAREHOUSE QUERY**); b) Queries looking for a small amount of data (**PRECISION QUERY**); c) Tom Kyte’s ingeniously named **SLOW BY SLOW** (one row at a time) ..."
-* EXADATA offers 3 technologies (functionalities) that provide the basic speed improvements: a) **SMARTSCAN** mining, reporting, and other large data queries (10X to 40X); b) **SMART FLASHCACHE**  OLTP and other small data queries (2X to 4X); c) **UPGRADES** row at a time and everything else (2X to 4X (maybe))
-* "... migration to EXADATA would require additional  work from them, as in the replacing of PUBLIC SYNONYMS with PRIVATE SYNONYMS ..."
-
-PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
-
-### 8.4. How the magical 10x to 40x speed up can be achieved by EXADATA
-
-#### 8.4.a. SMARTSCAN
-
 * "... (suppose we want get 3 columns by primary key `SELECT emp_id, ename, salary FROM emp WHERE id = 123` in total 38 bytes) ... a non-EXADATA Oracle database  must fetch the full block on which the data resides. If we assume that the block is a standard 8K Oracle data block ... Why do we have to fetch 8K of data when we only want 35 bytes of that data, and Oracle knows we only want 35 bytes? The answer is because that is just how the nonEXADATA Oracle database works." (1)
 * "... the non-EXADATA Oracle  database data acquisition process (each query wate time with):
   * Unwanted Columns; 
@@ -994,8 +961,8 @@ PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about
 * This magic is possible because the database server sends additional information in its I/O requests to the  EXADATA disk system. This special packet of data that accompanies I/O requests tells the disk drives extra  stuff about the requests being made which the drives then exploit in reducing data load. The three **SMARTSCAN** features that remove normal waste in Oracle data retrieval:
   * **Column Projection** (removes unwanted columns)
   * **Row Filtering** (removes unwanted rows)
-  * **Join with Bloom Filter** (push filter predicates in joins to remove unwanted rows)
   * **iDB Messaging** (removes overhead space and free space) 
+  * **Join with Bloom Filter** (push filter predicates in joins to remove unwanted rows)
 * When the magic ends? Some things **SMARTSCAN** and **Row Filtering** will **not work with**:
   * USER DEFINED FUNCTIONS
   * USER DEFINED OPERATORS
@@ -1030,7 +997,7 @@ WHERE name LIKE '%cell%'; -- ['cell smart table scan', 'cell physical IO bytes s
      - See this in v$sql or v$sql_monitor with columns like: `cell_offloadable` or `bloom_filter_predicates`
 
 
-##### 8.4.a.1 Exadata - SMARTSCAN - Row filtering example
+##### 8.2.a.1 Exadata - SMARTSCAN - Row filtering example
 
 ```sql
 SELECT customer_id, order_total
@@ -1043,7 +1010,7 @@ WHERE order_total > 1000;
   * Filtering is done in the storage servers, not the compute nodes.
   * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
 
-##### 8.4.a.2 Exadata - SMARTSCAN - Column Projection example
+##### 8.2.a.2 Exadata - SMARTSCAN - Column Projection example
 
 ```sql
 SELECT first_name, last_name
@@ -1056,7 +1023,7 @@ FROM employees;
   * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
 
 
-##### 8.4.a.3 Exadata - SMARTSCAN - Join with Bloom Filter example
+##### 8.2.a.3 Exadata - SMARTSCAN - Join with Bloom Filter example
 
 ```sql
 SELECT /*+ use_hash(o c) leading(c o) */
@@ -1084,11 +1051,56 @@ WHERE  c.region = 'EUROPE';
 ```
 
 
-##### 8.4.a.2 References
+##### 8.2.a.2 References
 
 1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
 2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata Smart Scan](https://youtu.be/GWjdmTi7bwg?t=654&si=ScFhcnsKNl7n64uK)
 
+
+
+#### 8.2.b. Storage Indexes
+
+* Memory-resident metadata that avoids unnecessary I/O by skipping data blocks.
+* EXADATA also organizes blocks into 1MB groups. It calls these STORAGE UNITS. For an 8K  block size this means EXADATA organizes 128 data blocks into a storage unit
+* EXADATA remembers 3 things about storage units it reads: 
+  * low value
+  * high value
+  * existence of nulls 
+* Not so obvious details about **storage indexes** 
+  * **Storage indexes** only get created for storage units that are actually read. If a query  only reads half the storage units in a table then storage indexes created when this  query executes will only exist for that half of the table. This means storage index  coverage is not UNIFORM; it varies by storage unit and at any given moment  different storage units for the same table will have different storage indexes
+  * **Storage indexes** only provide speed up the second time around. Similar to the need  to prime a database cache with index pages, speed up from storage indexes is only  seen if the same storage units are read at least twice and only if similar questions are  asked. This means either your queries must reference overlapping ranges of data  using similar query predicates, or you must wait till tomorrow and hope the storage  indexes you need have not been purged, and hope that tomorrow’s queries read  mostly the same data
+  * **Storage indexes** go away when the cell servers are bounced. Storage indexes do  not exist in database server memory, they exist on the EXADATA disk system. So if  this system goes down for any reason your storage indexes are lost. However, this  means that storage indexes will survive a simple instance bounce
+  * **Storage indexes** are subject to LRU or more accurately purging. This makes sense  though. Cell server memory is precious and needs to be managed. So anything that  uses it needs to be managed. Besides, I want my EXADATA to recognize when  storage indexes are not doing their job and replace them with better storage indexes
+* It means the performance benefit from storage indexes can be awesome, but  sometimes erratic. You can see queries that go fast in the morning and slow in the afternoon
+
+PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+
+
+
+#### 8.2.c. Hybrid Columnar Compression (HCC)
+
+* Compresses data aggressively for archival or read-mostly tables.
+* Excellent for data warehouses but not suitable for frequently updated data.
+
+
+#### 8.2.d I/O Resource Management (IORM)
+
+* Controls how I/O bandwidth is allocated between databases/users.
+* Coordinate with Database Resource Manager (DBRM).
+
+### 8.3. Exadata NOT an Expert advertisements and premises
+
+#### 8.3.a. How Much Faster Will My Apps Run
+
+* "... as a seasoned contractor knows, the answer to just about every question is **“IT DEPENDS”** ..."
+* "The two groupings of potential performance improvement: a) 2X to 4X improvement in speed; b) 10X to 40X improvement in speed"
+* "... (Generalization about) ... EXADATA expected performance improvements says that there are only 3 types of SQL Workloads: a) Queries looking for a modest to large amount of data (**WAREHOUSE QUERY**); b) Queries looking for a small amount of data (**PRECISION QUERY**); c) Tom Kyte’s ingeniously named **SLOW BY SLOW** (one row at a time) ..."
+* EXADATA offers 3 technologies (functionalities) that provide the basic speed improvements: a) **SMARTSCAN** mining, reporting, and other large data queries (10X to 40X); b) **SMART FLASHCACHE**  OLTP and other small data queries (2X to 4X); c) **UPGRADES** row at a time and everything else (2X to 4X (maybe))
+* "... migration to EXADATA would require additional  work from them, as in the replacing of PUBLIC SYNONYMS with PRIVATE SYNONYMS ..."
+
+PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+
+### 8.4. How the magical 10x to 40x speed up can be achieved by EXADATA
 
 ---
 

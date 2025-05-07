@@ -1,6 +1,6 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1553633692767" ID="ID_913405909" MODIFIED="1743428747540">
+<node CREATED="1553633692767" ID="ID_913405909" MODIFIED="1746652387638">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -16,7 +16,7 @@
 </html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <icon BUILTIN="gohome"/>
-<node CREATED="1556296667278" ID="ID_683362039" MODIFIED="1743428965190" POSITION="right" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_683362039" MODIFIED="1746652388748" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -36,7 +36,7 @@
 <node CREATED="1743799137058" ID="ID_130440621" MODIFIED="1743812306166" TEXT="Tracing a business process"/>
 <node CREATED="1743804272779" ID="ID_855159711" MODIFIED="1743804289664" TEXT="Monitoring &amp; Observability"/>
 </node>
-<node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1743428921946" POSITION="left" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1746652388758" POSITION="left" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -99,6 +99,73 @@
   </body>
 </html></richcontent>
 </node>
+<node CREATED="1746650586824" FOLDED="true" ID="ID_805030609" MODIFIED="1746652387637" TEXT="Oracle Exadata">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<icon BUILTIN="folder"/>
+<node CREATED="1746651175265" FOLDED="true" ID="ID_121540992" MODIFIED="1746652386097" TEXT="Architecture &amp; Components">
+<node CREATED="1746652178766" ID="ID_247517510" MODIFIED="1746652260110">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Database Servers
+    </p>
+    <p>
+      (Compute Nodes)
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1746652189350" ID="ID_1255034643" MODIFIED="1746652251563">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Storage Servers
+    </p>
+    <p>
+      (Exadata Storage Cells)
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1746652198990" ID="ID_1880902738" MODIFIED="1746652274692">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      InfiniBand or RDMA over Converged
+    </p>
+    <p>
+      Ethernet (RoCE) Network
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1746652207158" ID="ID_1080200562" MODIFIED="1746652208059" TEXT="Exadata Software"/>
+</node>
+<node CREATED="1746651220638" FOLDED="true" ID="ID_1780330240" MODIFIED="1746652297177" TEXT="Performance Features">
+<node CREATED="1746651314199" FOLDED="true" ID="ID_1736789884" MODIFIED="1746652295576" TEXT="Smart Scan">
+<node CREATED="1746652086783" ID="ID_419385413" MODIFIED="1746652087603" TEXT="Column Projection"/>
+<node CREATED="1746652095454" ID="ID_572675171" MODIFIED="1746652095954" TEXT="Row Filtering"/>
+<node CREATED="1746652096190" ID="ID_819652666" MODIFIED="1746652104628" TEXT="iDB Messaging"/>
+<node CREATED="1746652114071" ID="ID_233276003" MODIFIED="1746652114954" TEXT="Join with Bloom Filter"/>
+</node>
+<node CREATED="1746651337950" ID="ID_459736583" MODIFIED="1746651342451" TEXT="Storage Indexes"/>
+<node CREATED="1746651343381" ID="ID_964728926" MODIFIED="1746651351107" TEXT="Hibrid Columnar Compression"/>
+<node CREATED="1746651352623" ID="ID_1548993830" MODIFIED="1746651362626" TEXT="I/O Resource Management"/>
+</node>
+<node CREATED="1746651250846" ID="ID_928339373" MODIFIED="1746651262216" TEXT="How the magical speed up occours"/>
+</node>
 </node>
 <node CREATED="1743809963180" ID="ID_976799848" MODIFIED="1744065398806" POSITION="left" TEXT="Laboratories">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
@@ -107,7 +174,7 @@
 <node CREATED="1743809996227" ID="ID_95828706" MODIFIED="1743810026828" POSITION="left" TEXT="CheatSheet">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1743793316811" POSITION="right" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1746652388766" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     

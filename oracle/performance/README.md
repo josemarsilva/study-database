@@ -1051,11 +1051,10 @@ WHERE  c.region = 'EUROPE';
 ```
 
 
-##### 8.2.a.2 References
+##### 8.2.a.99 References
 
 1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
 2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata Smart Scan](https://youtu.be/GWjdmTi7bwg?t=654&si=ScFhcnsKNl7n64uK)
-
 
 
 #### 8.2.b. Storage Indexes
@@ -1073,8 +1072,10 @@ WHERE  c.region = 'EUROPE';
   * **Storage indexes** are subject to LRU or more accurately purging. This makes sense  though. Cell server memory is precious and needs to be managed. So anything that  uses it needs to be managed. Besides, I want my EXADATA to recognize when  storage indexes are not doing their job and replace them with better storage indexes
 * It means the performance benefit from storage indexes can be awesome, but  sometimes erratic. You can see queries that go fast in the morning and slow in the afternoon
 
-PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+##### 8.2.b.99 References
 
+1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata Storage Indexes](https://www.youtube.com/watch?v=GWjdmTi7bwg&t=731s)
 
 
 #### 8.2.c. Hybrid Columnar Compression (HCC)
@@ -1082,11 +1083,23 @@ PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about
 * Compresses data aggressively for archival or read-mostly tables.
 * Excellent for data warehouses but not suitable for frequently updated data.
 
+##### 8.2.b.99 References
+
+1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata Hibrid Columnar Compression](https://www.youtube.com/watch?v=GWjdmTi7bwg&t=805s)
+
+
 
 #### 8.2.d I/O Resource Management (IORM)
 
 * Controls how I/O bandwidth is allocated between databases/users.
 * Coordinate with Database Resource Manager (DBRM).
+
+##### 8.2.b.99 References
+
+1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata IO Resource Management](https://www.youtube.com/watch?v=GWjdmTi7bwg&t=880s)
+
 
 ### 8.3. Exadata NOT an Expert advertisements and premises
 

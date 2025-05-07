@@ -1,6 +1,6 @@
 -- ----------------------------------------------------------------------------
 -- filename   : 01_tables_pk_ak_seq_check.sql
--- revision   : 2025-04-01 - josemarsilva
+-- revision   : 2025-04-11 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------
 
@@ -12,6 +12,7 @@ DROP TABLE cities;
 
 CREATE TABLE cities (
     id NUMBER PRIMARY KEY,
+    country VARCHAR(50) NOT NULL,
     state VARCHAR(2) NOT NULL,
     city VARCHAR(50) NOT NULL
 );
@@ -20,7 +21,7 @@ DROP SEQUENCE cities_seq;
 
 CREATE SEQUENCE cities_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
-ALTER TABLE cities ADD CONSTRAINT ak_cities_name UNIQUE (state,city);
+ALTER TABLE cities ADD CONSTRAINT ak_cities_name UNIQUE (country,state,city);
 
 
 --
@@ -70,6 +71,7 @@ CREATE TABLE customers (
     address_zip_code NUMBER(8) NOT NULL,
     address_city VARCHAR(50) NOT NULL,
     address_state VARCHAR(2) NOT NULL,
+    address_country VARCHAR(50) NOT NULL,
     since_at DATE,
     last_order_at DATE,
     obs VARCHAR(1000)

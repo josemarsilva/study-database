@@ -97,6 +97,7 @@ BEGIN
         address_zip_code,
         address_city,
         address_state,
+        address_country,
         since_at,
         last_order_at,
         obs
@@ -115,6 +116,7 @@ BEGIN
         TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(1e7, 1e8))), -- address_zip_code
         get_array_element(i, 'Rio Branco,Maceio,Macapa,Manaus,Salvador,Fortaleza,Brasilia,Vitoria,Goiania,Sao Luis,Cuiaba,Campo Grande,Belo Horizonte,Belem,Joao Pessoa,Curitiba,Recife,Teresina,Rio de Janeiro,Natal,Porto Alegre,Porto Velho,Boa Vista,Florianopolis,Sao Paulo,Aracaju,Palmas'), -- address_city
         get_array_element(i, 'AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO'), -- address_state
+        'Brasil', -- address_country
         NULL, -- since_at
         NULL, -- last_order_at
         NULL  -- obs

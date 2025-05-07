@@ -28,6 +28,11 @@
   * [3.3. Execution Plan (SQLDeveloper)](#33-execution-plan-sqldeveloper) ![star-icon.png](../../doc/images/star-icon.png)
   * [3.4. Execution Plan (SQL*Plus)](#34-execution-plan-sqlplus)
   * [3.5. Statistics - Correlations, Extended Statistics, Cardinality and Selectivity](#35-statistics---correlations-extended-statistics-cardinality-and-selectivity)
+  * [3.6. The four parts of a query](#36-the-four-parts-of-a-query)
+    * [3.6.a. Driving-table](#36a-driving-table)
+    * [3.6.b. Join Order](#36b-join-order)
+    * [3.6.c. Access Method](#36c-access-method)
+    * [3.6.d. Join Method](#36d-join-method)
   * [3.99. References](#399-references)
 * [4. Identifying Performance Bottlenecks](#4-identifying-and-diagnosticing-performance-bottlenecks)
   * [4.1 Using v$ views for Query Monitoring](#41-using-v-views-for-query-monitoring)
@@ -50,7 +55,7 @@
     * [5.2.c. EXISTS vs. IN](#52c-exists-vs-in)
     * [5.2.d. In-Memory Table and Columns](#52d-in-memory-table-and-columns)
       * [5.2.d.1. On Regular Oracle Infrastructure (non-Exadata)](#52d1-on-regular-oracle-infrastructure-non-exadata)
-      * [5.2.d.2. 5.2.d.2. On On Exadata](#52d2-on-on-exadata) ![star-icon.png](../../doc/images/star-icon.png)
+      * [5.2.d.2. 5.2.d.2. On Exadata](#52d2-on-on-exadata) ![star-icon.png](../../doc/images/star-icon.png)
     * [5.2.e. Cursor Optimization](#52e-cursor-optimization)
   * [5.3. Optimizing Joins and Aggregations](#53-optimizing-joins-and-aggregations)
       * [5.3.a. Choosing the Right Join Type](#531-choosing-the-right-join-type)
@@ -78,8 +83,21 @@
   * [6.4. Partition zone maps Exadata](#64-partition-zone-maps-exadata)
   * [6.5. Drop Partition](#65-drop-partition)
   * [6.6. Query Partition](#66-query-partition)
-* [7. Parallel Execution](#7-parallel-execution)
-  * [7.1. Using Parallel Queries](#71-using-parallel-queries)
+* [7. What is NEW in Oracle 12c vs 19c](#7-what-is-new-in-oracle-12c-vs-19c)
+  * [7.1. Automatic Indexing](#71-automatic-indexing)
+  * [7.2. Real Time Statistics](#72-real-time-statistics)
+  * [7.3. SQL PLAN Management (SPM)](#73-sql-plan-management-spm)
+  * [7.4. Adaptive Query Optimization](#74-adaptive-query-optimization)
+  * [7.5. SQL Quarantine (19c)](#75-sql-quarantine-19c)
+* [8. Exadata](#8-exadata)
+  * [8.1. Exadata Architecture and Components](#81-exadata-architecture-and-components)
+    * [8.1.a. Database Servers (Compute Nodes)](#81a-database-servers-compute-nodes)
+    * [8.1.b. Storage Servers Exadata Storage Cells](#81b-storage-servers-exadata-storage-cells)
+    * [8.1.c. InfiniBand or RDMA over Converged Ethernet (RoCE) Network](#81c-infiniband-or-rdma-over-converged-ethernet-roce-network)
+    * [8.1.d. Exadata Software](#81d-exadata-software)
+  * [8.2. Exadata Architecture and Performance Features](#82-exadata-architecture-and-performance-features)
+  * [8.3. Exadata Not (from) an expert advertisements and premises](#83-exadata-not-an-expert-advertisements-and-premises)
+  * [8.4. How the magical 10x to 40x speed up can be achieved by EXADATA](#84-how-the-magical-10x-to-40x-speed-up-can-be-achieved-by-exadata)
 * [I. Laboratories](#i-laboratories) ![star-icon.png](../../doc/images/star-icon.png)
   * [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
   * [I.2. Query metrics scenario INITIAL](#ilab-2-query-metrics-scenario-initial)
@@ -92,6 +110,7 @@
   * [I.9. Query by Indexed Columns vs Parallel vs Hint No Parallel](#ilab-9-query-by-indexed-columns-vs-parallel-vs-hint-no-parallel)
   * [I.10. Query by Indexed Columns vs High Clustering Factor](#ilab-10-query-by-indexed-columns-vs-high-clustering-factor)
   * [I.11. Query by Indexed Columns vs Function Based Index](#ilab-11-query-by-indexed-columns-vs-function-based-index)
+  * [I.12. Query by Indexed Multiples Columns vs BITMAP AND indexes vs Columns Orders](#ilab-12-query-by-indexed-multiples-columns-vs-bitmap-and-indexes-vs-columns-orders)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -325,58 +344,105 @@ set timing on
   - Selectivity: proportion. ` 1 / number_of_distinct * total_rows`; Ex: `select 1 / COUNT(DISTINCT customer_type_id) /* 2: 'F', 'J' */ from STUDY.customers`; Result: `0.5`
 
 
-### 3.6. Data Access Method
+
+### 3.6. The Four Parts of a Query 
+
+A poor choice with any of these four items can result in a poorly performing query, the first two  (DRIVING TABLE and JOIN ORDER) are by far the more important of the four. During execution of a query, keep the number of rows in transit as small as possible, at all times. 
+
+
+### 3.6.a. Driving Table
+
+Table from which we access all other tables in the query. You have to start by getting your first set of rows from some table in your query so where you start is the DRIVING TABLE
+* It determines which tables can be accessed next during query execution, effectively  deciding on a roadmap for the query.  
+* It determines the initial number of rows that the query will start with and thus drives  the amount of work the query will have to do in subsequent steps
+
+
+### 3.6.b. Join Order
+
+Order in which we access tables in the query.  JOIN ORDER determines ongoing workload for the query. Assuming we do not allow CARTESIAN JOINS in  our query plans, the possible join orders (also called a join sequence).
+
+### 3.6.c. Access Method
+
+How we get rows from a table.  
 
 * [Data Access Method](https://techiedba.wordpress.com/2011/08/12/data-access-methods-in-oracle/):
 
-#### 3.6.a. Full Table SCAN (FTS)
+#### 3.7.a. Full Table SCAN (FTS)
 
 * `under-construction`
 
-#### 3.6.b. Table Access by ROW-ID
+#### 3.7.b. Table Access by ROW-ID
 
 * `under-construction`
 
-#### 3.6.c. Index Unique Scan
+#### 3.7.c. Index Unique Scan
 
 * `under-construction`
 
-#### 3.6.d. Index Range Scan
+#### 3.7.d. Index Range Scan
 
 * `under-construction`
 
-#### 3.6.e. Index Skip Scan
+#### 3.7.e. Index Skip Scan
 
 * `under-construction`
 
-#### 3.6.f. Full Index Scan
+#### 3.7.f. Full Index Scan
 
 * `under-construction`
 
-#### 3.6.g. Fast Full Index Scans
+#### 3.7.g. Fast Full Index Scans
 
 * `under-construction`
 
-#### 3.6.h. Index Joins
+#### 3.7.h. Index Joins
 
 * `under-construction`
 
-#### 3.6.i. Hash Access
+#### 3.7.i. Hash Access
 
 * `under-construction`
 
-#### 3.6.j. Cluster Access
+#### 3.7.j. Cluster Access
 
 * `under-construction`
 
-#### 3.6.k. Bit Map Index
+#### 3.7.k. Bit Map Index
 
 * `under-construction`
 
 
-### 3.7. Join Method
+### 3.6.d. Join Method
+
+How we put rows together from two tables.  Although a poor choice with any of these four items can result in.
 
 * [Join Method - Explanation](https://gist.github.com/kzhangkzhang/2866c2530c5a0ec337c475879eecabc0#join-method): **Hash join**, **Nested Loop**, **(Sort) Merge join**, **Cartesian join**
+
+
+### 3.7. Filtered Rows Percentage Method (FRP)
+
+Filtered Rows Percentage Method (FRP) helps us understand several crucial aspects about a query:  
+* Determine Driving Table and Join Order
+* Determine basic query style (PRECISION QUERY or WAREHOUSE QUERY)
+* Determine if the query got off to a good start (Stats and Cardinality Accuracy)  
+
+The process of FILTERED ROWS PERCENTAGE is as follows:  
+1. Format the PROBLEM QUERY  
+2. Familiarize yourself with the problem query  
+3. Create a spreadsheet  
+4. List tables from the query in the spreadsheet  
+5. Build COUNT QUERIES and note the row count for each table  
+6. Build and run FILTER QUERIES for each table  
+7. Note the filtered row counts  
+8. Compute FILTERED ROWS PERCENTAGE for each table  
+9. Determine PREFERED JOIN ORDER  
+10. Construct a QUERY DIAGRAM  
+11. Determine INITIAL JOIN ORDER 
+12. Build and run RECONSTRUCTION QUERIES  
+13. Note reconstruction row counts  
+14. Use CARDINALITY FEEDBACK to adjust join order  
+15. Repeat (11) thru (12) once if join order changed  
+16. Determine if further action is necessary
 
 
 ### 3.99. References
@@ -610,7 +676,7 @@ WHERE customer_id IN (SELECT customer_id FROM orders);
 * Pinning a table in-memory (using INMEMORY PRIORITY CRITICAL) ensures that Oracle keeps that table resident in the In-Memory Column Store (IMCS)
 * This reduces disk or buffer cache access and speeds up analytic queries significantly
 
-### 5.2.d.2. On On Exadata
+### 5.2.d.2. On Exadata
 
 * Oracle Exadata introduces: `Smart Scan`, `Storage Indexes`, `Hybrid Columnar Compression`, and `Flash Cache`, all of which significantly optimize I/O and query execution even without IMCS
 * Advantages of In-Memory on Exadata:
@@ -814,6 +880,219 @@ CREATE TABLE orders (
 
 ---
 
+## 7. What is New in Oracle 12c vs 19c
+
+### 7.1. Automatic Indexing
+
+* Oracle automatically creates, monitors, and implements indexes.
+* Useful views: DBA_AUTO_INDEXES, DBA_AUTO_INDEX_CONFIG
+* Needs governance, especially in OLTP environments.
+
+
+### 7.2. Real-Time Statistics
+
+* Stats are gathered during DML, improving optimizer accuracy without manual collection.
+* No longer rely only on scheduled DBMS_STATS jobs.
+
+### 7.3. SQL Plan Management (SPM)
+
+* Prevents performance regression by maintaining SQL Plan Baselines.
+* Use for critical queries to preserve good plans across changes.
+
+### 7.4. Adaptive Query Optimization
+
+* Includes Adaptive Plans, Adaptive Join Methods, and Statistics Feedback.
+* Automatically adjusts execution strategies based on runtime feedback.
+
+### 7.5. SQL Quarantine (19c)
+
+* Isolates SQLs that consume excessive CPU or I/O.
+* Prevents runaway queries from impacting the system.
+
+
+---
+
+## 8. Exadata
+
+Oracle Exadata is a high-performance, integrated database system designed and optimized specifically to run Oracle Database workloads with maximum speed, scalability, and availability. It is a combined hardware + software solution developed by Oracle to deliver extreme performance for OLTP (Online Transaction Processing), data warehousing, and mixed workloads, both on-premises and in the cloud.
+
+References:
+* [Video: Introduction to Oracle Exadata: Exadata Overview](https://www.youtube.com/watch?v=GWjdmTi7bwg)
+
+### 8.1. Exadata Architecture and Components
+
+#### 8.1.a. Database Servers (Compute Nodes)
+
+* Run Oracle Database.
+* Handle SQL parsing, query optimization, and transaction logic.
+
+
+#### 8.1.b. Storage Servers (Exadata Storage Cells)
+
+* Specialized intelligent storage that offloads data processing (e.g., filtering, projection).
+* Enable Smart Scan and Storage Indexes.
+
+
+#### 8.1.c. InfiniBand or RDMA over Converged Ethernet (RoCE) Network
+
+* High-bandwidth, low-latency network connecting compute and storage nodes.
+
+
+#### 8.1.d. Exadata Software
+
+* Advanced features not available in regular Oracle Database on generic hardware.
+* Includes Smart Scan, Hybrid Columnar Compression, I/O Resource Manager, etc.
+
+
+### 8.2. Exadata Architecture and Performance Features
+
+#### 8.2.a. Smart Scans
+
+* Offload filtering and projections to the storage layer
+* Requires full table scans or direct path reads to activate
+
+
+#### 8.2.b. Storage Indexes
+
+* Memory-resident metadata that avoids unnecessary I/O by skipping data blocks.
+
+
+#### 8.2.c. Hybrid Columnar Compression (HCC)
+
+* Compresses data aggressively for archival or read-mostly tables.
+* Excellent for data warehouses but not suitable for frequently updated data.
+
+
+#### 8.2.d I/O Resource Management (IORM)
+
+* Controls how I/O bandwidth is allocated between databases/users.
+* Coordinate with Database Resource Manager (DBRM).
+
+### 8.3. Exadata NOT an Expert advertisements and premises
+
+#### 8.3.a. How Much Faster Will My Apps Run
+
+* "... as a seasoned contractor knows, the answer to just about every question is **“IT DEPENDS”** ..."
+* "The two groupings of potential performance improvement: a) 2X to 4X improvement in speed; b) 10X to 40X improvement in speed"
+* "... (Generalization about) ... EXADATA expected performance improvements says that there are only 3 types of SQL Workloads: a) Queries looking for a modest to large amount of data (**WAREHOUSE QUERY**); b) Queries looking for a small amount of data (**PRECISION QUERY**); c) Tom Kyte’s ingeniously named **SLOW BY SLOW** (one row at a time) ..."
+* EXADATA offers 3 technologies (functionalities) that provide the basic speed improvements: a) **SMARTSCAN** mining, reporting, and other large data queries (10X to 40X); b) **SMART FLASHCACHE**  OLTP and other small data queries (2X to 4X); c) **UPGRADES** row at a time and everything else (2X to 4X (maybe))
+* "... migration to EXADATA would require additional  work from them, as in the replacing of PUBLIC SYNONYMS with PRIVATE SYNONYMS ..."
+
+PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+
+### 8.4. How the magical 10x to 40x speed up can be achieved by EXADATA
+
+#### 8.4.a. SMARTSCAN
+
+* "... (suppose we want get 3 columns by primary key `SELECT emp_id, ename, salary FROM emp WHERE id = 123` in total 38 bytes) ... a non-EXADATA Oracle database  must fetch the full block on which the data resides. If we assume that the block is a standard 8K Oracle data block ... Why do we have to fetch 8K of data when we only want 35 bytes of that data, and Oracle knows we only want 35 bytes? The answer is because that is just how the nonEXADATA Oracle database works." (1)
+* "... the non-EXADATA Oracle  database data acquisition process (each query wate time with):
+  * Unwanted Columns; 
+  * Unwanted Rows; 
+  * Overhead Space; 
+  * Free Space..."  (1)
+* **SMARTSCAN** is a marketing term used by Oracle to group  together a large number of EXADATA features under one banner. Collectively these features have the goal  of eliminating I/O, and there are many of them
+* This magic is possible because the database server sends additional information in its I/O requests to the  EXADATA disk system. This special packet of data that accompanies I/O requests tells the disk drives extra  stuff about the requests being made which the drives then exploit in reducing data load. The three **SMARTSCAN** features that remove normal waste in Oracle data retrieval:
+  * **Column Projection** (removes unwanted columns)
+  * **Row Filtering** (removes unwanted rows)
+  * **iDB Messaging** (removes overhead space and free space) 
+* When the magic ends? Some things **SMARTSCAN** and **Row Filtering** will **not work with**:
+  * USER DEFINED FUNCTIONS
+  * USER DEFINED OPERATORS
+  * Aggregate Functions
+  * Analytic Functions
+  * Any operator or function explicitly designated as OFFLOADABLE='NO'
+  * Predicate combinations using OR that also include any of the above 
+* **SMARTSCAN** only occurs when:
+  * A Full Table Scan or Direct Path Read is used.
+  * Exadata Storage is being used (not NFS, ASM-only, or non-Exadata storage).
+  * The table is not cached in the buffer cache (i.e., it's not a small table that's being read via the buffer cache path).
+* **SMARTSCAN** does not work for:
+  * Index range scans
+  * Row-by-row access (OLTP-style)
+  * Nested loop joins (in most cases)
+* How to Confirm Smart Scan is Happening?
+  * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
+  * Session stats query:
+
+```sql
+SELECT name, value
+FROM v$mystat m
+JOIN v$statname n ON m.statistic# = n.statistic#
+WHERE name LIKE '%cell%'; -- ['cell smart table scan', 'cell physical IO bytes saved by storage index']
+```
+
+* How to Confirm Bloom Filter Offload Happened?
+  * Use DBMS_SQLTUNE.REPORT_SQL_MONITOR or look in SQL Monitor:
+     - Cell Offload Efficiency > 90%
+     - "Bloom Filter Predicates" in the storage statistics
+     - Lines showing Bloom filter used in storage (especially in real-time SQL monitoring)
+     - See this in v$sql or v$sql_monitor with columns like: `cell_offloadable` or `bloom_filter_predicates`
+
+
+##### 8.4.a.1 Exadata - SMARTSCAN - Examples
+
+1. Example of **Row filtering** on Simple WHERE Clause
+
+```sql
+SELECT customer_id, order_total
+FROM orders
+WHERE order_total > 1000;
+```
+
+* What Happens:
+  * Only blocks with order_total > 1000 are returned.
+  * Filtering is done in the storage servers, not the compute nodes.
+  * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
+
+2. Example of **Column Projection**
+
+```sql
+SELECT first_name, last_name
+FROM employees;
+```
+
+* What Happens:
+  * Only the first_name and last_name columns are returned from disk.
+  * Unused columns are never sent over the wire.
+  * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
+
+
+3. Example of **Join with Bloom Filter**
+
+```sql
+SELECT /*+ use_hash(o c) leading(c o) */
+       o.order_id, o.customer_id
+FROM   customers c
+JOIN   orders o ON o.customer_id = c.customer_id
+WHERE  c.region = 'EUROPE';
+```
+
+* What Happens:
+  * A Bloom filter is created on the customer_id values from customers filtered by region = 'EUROPE'.
+  * That filter is pushed down to orders in the storage layer, reducing I/O dramatically.
+  * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
+
+```qep-result
+---------------------------------------------------------------------------------
+| Id  | Operation                          | Name      | Rows  | Bytes | Cost  |
+---------------------------------------------------------------------------------
+|   1 |  HASH JOIN                         |           | ...   | ...   | ...   |
+|   2 |   TABLE ACCESS STORAGE FULL        | CUSTOMERS |       |       |       |
+|   3 |    BLOOM FILTER CREATE :BF0000     |           |       |       |       |
+|   4 |   TABLE ACCESS STORAGE FULL        | ORDERS    |       |       |       |
+|   5 |    BLOOM FILTER USE :BF0000        |           |       |       |       |
+---------------------------------------------------------------------------------
+```
+
+
+##### 8.4.a.2 References
+
+1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata Smart Scan](https://youtu.be/GWjdmTi7bwg?t=654&si=ScFhcnsKNl7n64uK)
+
+
+---
+
 ## I. Laboratories
 
 Laboratories is a practical use of performance concepts
@@ -870,6 +1149,7 @@ ADDRESS_DETAILS             VARCHAR2(30)
 ADDRESS_ZIP_CODE   NOT NULL NUMBER(8)      
 ADDRESS_CITY       NOT NULL VARCHAR2(50)   
 ADDRESS_STATE      NOT NULL VARCHAR2(2)    
+ADDRESS_COUNTRY    NOT NULL VARCHAR2(50)    
 SINCE_AT                    DATE           
 LAST_ORDER_AT               DATE           
 OBS                         VARCHAR2(1000) 
@@ -956,6 +1236,7 @@ CUSTOMERS  ADDRESS_DETAILS    100000       0,00001      100000    AAFFDAlKGahuDV
 CUSTOMERS  ADDRESS_ZIP_CODE   200000       0,000005     0         L     db$    HYBRID    04-APR-2025 17:24:4242
 CUSTOMERS  ADDRESS_CITY       27           0,0000025    0         Aracaju    Vitoria    FREQUENCY    04-APR-2025 17:24:4242
 CUSTOMERS  ADDRESS_STATE      27           0,0000025    0         AC    TO    FREQUENCY    04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_COUNTRY    1            0,0000001    0         Brasil    Brasil    FREQUENCY    04-APR-2025 17:24:4242
 CUSTOMERS  SINCE_AT                        0            0         200000            NONE    04-APR-2025 17:24:4242
 CUSTOMERS  LAST_ORDER_AT                   0            0         200000            NONE    04-APR-2025 17:24:4242
 CUSTOMERS  OBS                             0            0         200000            NONE    04-APR-2025 17:24:4242
@@ -2149,6 +2430,400 @@ Predicate Information (identified by operation id):
    - After creating new indexes, gathering statistics is crucial for the optimizer to make informed decisions about index usage.
 ---
 
+
+
+
+---
+
+## I.Lab-12: Query by Indexed Multiples Columns vs BITMAP AND indexes vs Columns Orders
+
+* Pre-requisites:
+  * [I.10. Step 4 - SCENARIO 06](#ilab-10-step-4-scenario-05---lets-update-customer_status_id-to-produce-low-clustering-factor)
+
+
+### I.Lab-12-Step-1: SCENARIO 07 - Let's analyze options to query a specific tuple (country, state, city)
+
+* Let's check (country, state, city) statistics
+
+```sql
+SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
+FROM all_tab_col_statistics
+WHERE owner = 'STUDY' AND table_name = 'CUSTOMERS'
+ORDER BY owner, table_name;
+```
+
+```Query-Result
+TABLE_NAME COLUMN_NAME       NUM_DISTINCT DENSITY   NUM_NULLS LOW_VALUE HIGH_VALUE HISTOGRAM LAST_ANALYZED
+---------- ----------------- ------------ --------- --------- --------------------------------------------------------
+CUSTOMERS  ADDRESS_STREET    199231       0,0000050 0         Rua AACiDEItLcIGlajzWnoT rsvOdMyPpXphoJOamgUuOiWfPLAdAW    Rua zzzeXDxvywUzJfUAndck ehOSwHfYGnoPpyDssxUZLuwSBNuCkB    NONE    11-APR-2025 13:36:2828
+CUSTOMERS  ADDRESS_UNIT      898          0,0011135 0         100    999    NONE    11-APR-2025 13:36:2828
+CUSTOMERS  ADDRESS_DETAILS   100000       0,00001   100000    AABfwauiVIRAWIANzadG    zzxmNCjcUixtmPRkWYfK    NONE    11-APR-2025 13:36:2828
+CUSTOMERS  ADDRESS_ZIP_CODE  200000       0,000005  0         dbc    NONE    11-APR-2025 13:36:2828
+CUSTOMERS  ADDRESS_CITY      27           0,0000025 0         Aracaju    Vitoria    FREQUENCY    11-APR-2025 13:36:2828
+CUSTOMERS  ADDRESS_STATE     27           0,0370370 0         AC    TO    NONE    11-APR-2025 13:36:2828
+CUSTOMERS  ADDRESS_COUNTRY   1            1         0         Brasil Brasil NONE 11-APR-2025 13:36:2828
+```
+
+* Let's check (country, state, city) indexes: ONLY address_city IS INDEXED
+
+```sql
+SELECT i.index_name, ic.column_name, ic.column_position, i.distinct_keys, i.num_rows, ic.column_length, i.uniqueness, i.index_type
+FROM all_indexes i
+JOIN all_ind_columns ic ON i.index_name = ic.index_name AND i.owner = ic.index_owner
+WHERE i.owner = 'STUDY'
+  AND i.table_name = 'CUSTOMERS'
+ORDER BY i.index_name, ic.column_position;
+```
+
+```Query-Result
+INDEX_NAME                       COLUMN_NAME         COLUMN_POSITION DISTINCT_KEYS NUM_ROWS COLUMN_LENGTH UNIQUENESS INDEX_TYPE
+-------------------------------- ------------------- --------------- ------------- -------- ------------- ---------- -----------
+AK_CUSTOMERS_CODE                CODE                1               200000        200000   14            UNIQUE     NORMAL
+IDX_CUSTOMERS_ADDRESS_CITY       ADDRESS_CITY        1               27            200000   50            NONUNIQUE  NORMAL
+IDX_CUSTOMERS_ADDRESS_DETAILS    ADDRESS_DETAILS     1               100000        100000   30            NONUNIQUE  NORMAL
+IDX_CUSTOMERS_CUSTOMER_STATUS_ID CUSTOMER_STATUS_ID  1               2             200000   22            NONUNIQUE  NORMAL
+IDX_CUSTOMERS_CUSTOMER_TYPE_ID   CUSTOMER_TYPE_ID    1               2             200000   1             NONUNIQUE  NORMAL
+IDX_CUSTOMERS_EMAIL              EMAIL               1               197828        200000   100           NONUNIQUE  NORMAL
+IDX_CUSTOMERS_NAME               NAME                1               200000        200000   100           NONUNIQUE  NORMAL
+IDX_FB_CUSTOMERS_EMAIL           SYS_NC00018$        1               197828        200000   100           NONUNIQUE  FUNCTION-BASED NORMAL
+SYS_C0057106                     ID                  1               200000        200000   22            UNIQUE     NORMAL
+```
+
+* Let's index Non Indexed Columns (country, state)
+
+```sql
+-- TUPLE COUNT IS 27
+SELECT COUNT(DISTINCT addresses_country || addresses_state || address_city ) FROM customers;
+
+
+-- DROP INDEX IF EXISTS
+DROP   INDEX idx_customers_address_country;
+DROP   INDEX idx_customers_address_state;
+
+-- CREATE INDEX
+CREATE INDEX idx_customers_address_country       on customers(address_country);
+CREATE INDEX idx_customers_address_state         on customers(address_state);
+
+-- GATHER_TABLE_STATS
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'customers');
+```
+
+* Let's compare queries scenarios using differents predicates WHERE 
+
+```sql
+-- WHERE address_country = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_country = 'Brasil';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_state = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_state = 'SP';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_city = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_city = 'Sao Paulo';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_country = ... AND address_state = ... AND address_city = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_country = 'Brasil' AND address_state = 'SP' AND address_city = 'Sao Paulo';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+* Table Predicate conditions vs Table Access: No Indexed used because selectivity of columns is low
+
+```txt
+                                                                   consistent
+Predicate                                             NUM_DISTINCT gets       Operation, Name, Rows, Cost
+----------------------------------------------------- ------------ ---------- ----------------------------------------------
+address_country = ...                                 1            8138       TABLE ACCESS FULL | CUSTOMERS | 199K | 1120 |
+address_state = ...                                   27           7988       TABLE ACCESS FULL | CUSTOMERS | 3704 | 1120 |
+address_city = ...                                    27           7966       TABLE ACCESS FULL | CUSTOMERS | 7407 | 1120 |
+address_country, address_state, address_city = ...    27           7462       BITMAP AND        | IDX_CUSTOMERS_ADDRESS_STATE + IDX_CUSTOMERS_ADDRESS_CITY | 137 | (25 + 16) + 109 |
+```
+
+
+### I.Lab-12-Step-2: SCENARIO 08 - Let's Index tuple (country, state, city)
+
+* Let's create index on (country, state, city)
+
+```sql
+-- DROP INDEX IF EXISTS
+DROP INDEX idx_customers_country_state_city;
+
+-- CREATE INDEX
+CREATE INDEX idx_customers_country_state_city on customers(address_country, address_state, address_city);
+
+
+-- GATHER_TABLE_STATS
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+  );
+END;
+/
+```
+
+* Let's compare queries scenarios using differents predicates WHERE 
+
+```sql
+-- WHERE address_country = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_country = 'Brasil';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_state = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_state = 'SP';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_city = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_city = 'Sao Paulo';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_country = ... AND address_state = ... AND address_city = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_country = 'Brasil' AND address_state = 'SP' AND address_city = 'Sao Paulo';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+* Table Predicate conditions vs Table Access: No Indexed used because selectivity of columns is low
+
+```txt
+                                                                   consistent
+Predicate                                             NUM_DISTINCT gets       Operation, Name, Rows, Cost
+----------------------------------------------------- ------------ ---------- ----------------------------------------------
+address_country = ...                                 1            8138       TABLE ACCESS FULL | CUSTOMERS | 199K | 1120 |
+address_state = ...                                   27           7988       TABLE ACCESS FULL | CUSTOMERS | 3704 | 1120 |
+address_city = ...                                    27           7966       TABLE ACCESS FULL | CUSTOMERS | 7407 | 1120 |
+(1) address_country, address_state, address_city =    27           7462       BITMAP AND        | IDX_CUSTOMERS_ADDRESS_STATE + IDX_CUSTOMERS_ADDRESS_CITY | 137 | (25 + 16) + 109 |
+(2) address_country, address_state, address_city =    27           7764       INDEX RANGE SCAN  | IDX_CUSTOMERS_COUNTRY_STATE_CITY |   274 | 4   (0)|
+
+Obs:
+  (1) BEFORE index creation IDX_CUSTOMERS_COUNTRY_STATE_CITY
+  (2) AFTER  index creation IDX_CUSTOMERS_COUNTRY_STATE_CITY
+```
+
+
+### I.Lab-12-Step-3: SCENARIO 09 - Let's Index tuple (country, state, city) from more selectivty to less selectivity
+
+* Let's drop index (country, state, city) and create index on (city, state, country)
+
+```sql
+-- DROP INDEX
+DROP INDEX idx_customers_country_state_city;
+
+-- CREATE INDEX
+CREATE INDEX idx_customers_city_state_country on customers(address_city, address_state, address_country);
+
+
+-- GATHER_TABLE_STATS
+DECLARE
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS(
+    ownname      => 'STUDY',
+    tabname      => 'CUSTOMERS',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, -- Automatically chooses sample size
+    method_opt   => 'FOR ALL COLUMNS SIZE AUTO' -- Collect histograms if beneficial
+  );
+END;
+/
+```
+
+* Let's compare queries scenarios using differents predicates WHERE 
+
+```sql
+-- WHERE address_country = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_country = 'Brasil';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_state = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_state = 'SP';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_city = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_city = 'Sao Paulo';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+
+-- WHERE address_country = ... AND address_state = ... AND address_city = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_country = 'Brasil' AND address_state = 'SP' AND address_city = 'Sao Paulo';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+* Table Predicate conditions vs Table Access: No Indexed used because selectivity of columns is low
+
+```txt
+                                                                   consistent
+Predicate                                             NUM_DISTINCT gets       Operation, Name, Rows, Cost
+----------------------------------------------------- ------------ ---------- ----------------------------------------------
+address_country = ...                                 1            8138       TABLE ACCESS FULL | CUSTOMERS | 199K | 1120 |
+address_state = ...                                   27           7988       TABLE ACCESS FULL | CUSTOMERS | 3704 | 1120 |
+address_city = ...                                    27           7966       TABLE ACCESS FULL | CUSTOMERS | 7407 | 1120 |
+(1) address_country, address_state, address_city =    27           7462       BITMAP AND        | IDX_CUSTOMERS_ADDRESS_STATE + IDX_CUSTOMERS_ADDRESS_CITY | 137 | (25 + 16) + 109 |
+(2) address_country, address_state, address_city =    27           7764       INDEX RANGE SCAN  | IDX_CUSTOMERS_COUNTRY_STATE_CITY |   274 | 4   (0)|
+(3) address_country, address_state, address_city =    27           7510       INDEX RANGE SCAN  | IDX_CUSTOMERS_COUNTRY_STATE_CITY |   274 | 4   (0)|
+
+Obs:
+  (1) BEFORE index creation IDX_CUSTOMERS_COUNTRY_STATE_CITY
+  (2) AFTER  index creation IDX_CUSTOMERS_COUNTRY_STATE_CITY
+  (3) AFTER  index creation IDX_CUSTOMERS_CITY_STATE_COUNTRY and drop IDX_CUSTOMERS_COUNTRY_STATE_CITY
+```
+
+
+### I.Lab-12-Step-4: SCENARIO 10 - Let's modify data distribution with 5.570 distinct address_city
+
+* Drop address index and update distribution
+
+```sql
+-- DROP INDEX
+DROP INDEX idx_customers_address_country;
+DROP INDEX idx_customers_address_state;
+DROP INDEX idx_customers_country_state_city;
+DROP INDEX idx_customers_city_state_country;
+
+-- UPDATE 5.750 cities
+
+SET SERVEROUTPUT ON SIZE 1000000
+DECLARE
+    v_count_cities NUMBER;
+    v_min_id NUMBER;
+    v_max_id NUMBER;
+    v_batch_size NUMBER := 1000; -- Tamanho do lote
+BEGIN
+    -- Desabilitar paralelismo na sessão
+    EXECUTE IMMEDIATE 'ALTER SESSION DISABLE PARALLEL DML';
+    EXECUTE IMMEDIATE 'ALTER SESSION DISABLE PARALLEL QUERY';
+    
+    -- COUNT(1), MIN(id), MAX(id) 
+    SELECT /*+ NO_PARALLEL */ COUNT(1), MIN(id), MAX(id) 
+    INTO v_count_cities, v_min_id, v_max_id
+    FROM cities;
+    
+    -- LOOP
+    FOR v_index IN v_min_id..v_max_id LOOP
+        -- Atualizar um lote de clientes para cada cidade
+        UPDATE /*+ NO_PARALLEL */ customers c
+        SET (c.address_country, c.address_state, c.address_city) = 
+            (SELECT /*+ NO_PARALLEL */ ct.country, ct.state, ct.city 
+             FROM cities ct 
+             WHERE ct.id = v_index)
+        WHERE c.id BETWEEN (v_index - v_min_id) * TRUNC(200000 / v_count_cities) + 1
+                    AND (v_index - v_min_id + 1) * TRUNC(200000 / v_count_cities);
+        
+        DBMS_OUTPUT.PUT_LINE('id BETWEEN ' || TO_CHAR( (v_index - v_min_id) * TRUNC(200000 / v_count_cities) + 1) || ' AND ' || TO_CHAR( (v_index - v_min_id + 1) * TRUNC(200000 / v_count_cities) ) );
+        -- Commit a cada lote
+        IF MOD(v_index - v_min_id + 1, v_batch_size) = 0 OR v_index = v_max_id THEN
+            COMMIT;
+        END IF;
+    END LOOP;
+    COMMIT;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Nenhum dado encontrado na tabela cities.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Ocorreu um erro: ' || SQLERRM);
+        ROLLBACK;
+END;
+/
+
+
+-- CREATE INDEX
+CREATE INDEX idx_customers_city_state_country on customers(address_city, address_state, address_country);
+```
+
+* Now there are a lot of different address_city
+
+```sql
+SELECT COUNT(DISTINCT address_city) FROM customers;
+```
+
+```Query-Result
+5288
+```
+
+-- WHERE address_country = ... AND address_state = ... AND address_city = ...
+SET AUTOT TRACE 
+EXPLAIN PLAN FOR
+    SELECT * FROM customers WHERE address_country = 'Brasil' AND address_state = 'SP' AND address_city = 'Sao Paulo';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+SET AUTOT OFF
+```
+
+* Table Predicate conditions vs Table Access: No Indexed used because selectivity of columns is low
+
+```txt
+                                                                   consistent
+Predicate                                             NUM_DISTINCT gets       Operation, Name, Rows, Cost
+----------------------------------------------------- ------------ ---------- ----------------------------------------------
+address_country = ...                                 1            8138       TABLE ACCESS FULL | CUSTOMERS | 199K | 1120 |
+address_state = ...                                   27           7988       TABLE ACCESS FULL | CUSTOMERS | 3704 | 1120 |
+address_city = ...                                    27           7966       TABLE ACCESS FULL | CUSTOMERS | 7407 | 1120 |
+(1) address_country, address_state, address_city =    27           7462       BITMAP AND        | IDX_CUSTOMERS_ADDRESS_STATE + IDX_CUSTOMERS_ADDRESS_CITY | 137 | (25 + 16) + 109 |
+(2) address_country, address_state, address_city =    27           7764       INDEX RANGE SCAN  | IDX_CUSTOMERS_COUNTRY_STATE_CITY |   274 | 4   (0)|
+(3) address_country, address_state, address_city =    27           7510       INDEX RANGE SCAN  | IDX_CUSTOMERS_COUNTRY_STATE_CITY |   274 | 4   (0)|
+(4) address_country, address_state, address_city =    5288         426        INDEX RANGE SCAN  | IDX_CUSTOMERS_COUNTRY_STATE_CITY |   38  | 3   (0)|
+
+Obs:
+  (1) BEFORE index creation IDX_CUSTOMERS_COUNTRY_STATE_CITY
+  (2) AFTER  index creation IDX_CUSTOMERS_COUNTRY_STATE_CITY
+  (3) AFTER  index creation IDX_CUSTOMERS_CITY_STATE_COUNTRY and drop IDX_CUSTOMERS_COUNTRY_STATE_CITY
+  (4) AFTER  update customers set > 5000 DISTINCT address_city
+```
+
+
+
+
+### I.Lab-12-Step-5: Analysis and Conclusions
+
+
+1. Selectivity Matters: For individual columns with low selectivity (country has only 1 distinct value, state and city have 27 each), the optimizer often chooses full table scans over index scans, as it's more efficient for large portions of the table.
+2. Composite Indexes are Beneficial: The composite index (country, state, city) significantly improved the query performance for the combined predicate, reducing the cost from 109 to 4.
+3. Index Order is Important: In a composite index, the order of columns matters. The (country, state, city) order allows efficient use of the index for queries specifying country, or country and state, or all three.
+4. Bitmap Operations: Before the composite index, Oracle used bitmap operations to combine results from individual indexes. This can be efficient for low-cardinality columns but not as efficient as a well-designed composite index.
+5. Cost-Based Optimization: Oracle's optimizer makes decisions based on statistics and estimated costs. It may choose different execution plans based on data distribution and other factors.
+6. Trade-offs: While the composite index improves query performance, it also increases storage requirements and may impact insert/update performance. These trade-offs should be considered in index design.
+7. Analyze Workload: It's crucial to understand the most common query patterns in your application to design optimal indexes.
+In summary, the composite index provided the best performance for the specific query pattern (country, state, city), but individual queries might still use full table scans due to low selectivity. Always consider the overall workload and query patterns when designing indexes, and regularly review and adjust based on changing data and query
+
+
+---
+
 ## II. Performance Tuning CheatSheet
 
 ## II CheatSheet.1: Turn Trace On/Of, Explain Plan, Execution Plan Golden step
@@ -2169,6 +2844,9 @@ set autot trace exp stat
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 -- Turn AUTOTRACE OFF
 set autot trace OFF
+-- Turn timing on/off execution
+set timing on
+set timing off
 ```
 
 * VLog [Query Tuning Autotrace](https://www.youtube.com/watch?v=SH6os4zxvgM&list=PL78V83xV2fYnwnyghWzTcD9KN75QC2z1e)
@@ -2471,6 +3149,53 @@ SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers
 * You do not need to SET AUTOTRACE a second output tab `Query Result 1` shows de cursor display with execution plan
 * **BUT** you still don't have metrics, how to get execution metrics?
 
+* **Option-1**: Execute 2x  `Run Statement (Ctrl + Enter)`
+
+```sql
+SET AUTOT ON
+SELECT 1 / COUNT(DISTINCT customer_type_id) FROM STUDY.customers;
+SET AUTOT OFF
+```
+
+* consistent gets
+
+```Script-Output
+    :
+Statistics
+-----------------------------------------------------------
+               4  CPU used by this session
+               1  CPU used when call started
+              10  DB time
+           32862  RM usage
+               2  Requests to/from client
+             653  consistent gets
+             653  consistent gets from cache
+             653  consistent gets pin
+             653  consistent gets pin (fastpath)
+               8  enqueue conversions
+              10  enqueue releases
+              14  enqueue requests
+               2  enqueue waits
+              28  global enqueue gets sync
+              16  global enqueue releases
+               6  in call idle wait time
+               2  messages sent
+              52  non-idle wait count
+               1  non-idle wait time
+               6  opened cursors cumulative
+              -1  opened cursors current
+              -1  pinned cursors current
+               1  process last non-idle time
+              12  recursive calls
+               2  recursive cpu usage
+             653  session logical reads
+              20  user calls
+Elapsed: 00:00:00.417
+Autotrace Disabled
+    :
+```
+
+
 ```sql
 -- Step#1: Set statistics level
 SHOW PARAMETER STATISTICS_LEVEL;
@@ -2544,7 +3269,7 @@ Query Block Registry:
 ```
 
 
-* Option-1: Script to get metrics **BEFORE** and **AFTER** execution and calculate difference
+* **Option-2**: Script to get metrics **BEFORE** and **AFTER** execution and calculate difference
 
 ```sql
 -- Step#1: Run this immediately **BEFORE** run your query
@@ -2590,7 +3315,7 @@ SID   CON_ID NAME            CLASS VALUE
 29579 116    consistent gets 8     3771
 ```
 
-* Option-2: To discard or reinitialize a specific SQL statement from the shared pool
+* **Option-3**: To discard or reinitialize a specific SQL statement from the shared pool
 
 ```sql
 -- Step-1-Option-1: Discard/reinitialize cursor metrics
@@ -2623,6 +3348,8 @@ EXCEPTION
 END;
 /
 ```
+
+* **Option-4**: Get metrics from v$SQL
 
 ```sql
 -- Step#1: Run your query here

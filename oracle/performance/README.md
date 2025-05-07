@@ -994,6 +994,7 @@ PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about
 * This magic is possible because the database server sends additional information in its I/O requests to the  EXADATA disk system. This special packet of data that accompanies I/O requests tells the disk drives extra  stuff about the requests being made which the drives then exploit in reducing data load. The three **SMARTSCAN** features that remove normal waste in Oracle data retrieval:
   * **Column Projection** (removes unwanted columns)
   * **Row Filtering** (removes unwanted rows)
+  * **Join with Bloom Filter** (push filter predicates in joins to remove unwanted rows)
   * **iDB Messaging** (removes overhead space and free space) 
 * When the magic ends? Some things **SMARTSCAN** and **Row Filtering** will **not work with**:
   * USER DEFINED FUNCTIONS
@@ -1029,9 +1030,7 @@ WHERE name LIKE '%cell%'; -- ['cell smart table scan', 'cell physical IO bytes s
      - See this in v$sql or v$sql_monitor with columns like: `cell_offloadable` or `bloom_filter_predicates`
 
 
-##### 8.4.a.1 Exadata - SMARTSCAN - Examples
-
-1. Example of **Row filtering** on Simple WHERE Clause
+##### 8.4.a.1 Exadata - SMARTSCAN - Row filtering example
 
 ```sql
 SELECT customer_id, order_total
@@ -1044,7 +1043,7 @@ WHERE order_total > 1000;
   * Filtering is done in the storage servers, not the compute nodes.
   * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
 
-2. Example of **Column Projection**
+##### 8.4.a.2 Exadata - SMARTSCAN - Column Projection example
 
 ```sql
 SELECT first_name, last_name
@@ -1057,7 +1056,7 @@ FROM employees;
   * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
 
 
-3. Example of **Join with Bloom Filter**
+##### 8.4.a.3 Exadata - SMARTSCAN - Join with Bloom Filter example
 
 ```sql
 SELECT /*+ use_hash(o c) leading(c o) */

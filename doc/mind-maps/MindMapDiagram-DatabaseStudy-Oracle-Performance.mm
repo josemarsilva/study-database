@@ -99,10 +99,10 @@
   </body>
 </html></richcontent>
 </node>
-<node CREATED="1746650586824" FOLDED="true" ID="ID_805030609" MODIFIED="1746652387637" TEXT="Oracle Exadata">
+<node CREATED="1746650586824" ID="ID_805030609" MODIFIED="1746712652772" TEXT="Oracle Exadata">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <icon BUILTIN="folder"/>
-<node CREATED="1746651175265" FOLDED="true" ID="ID_121540992" MODIFIED="1746652386097" TEXT="Architecture &amp; Components">
+<node CREATED="1746651175265" ID="ID_121540992" MODIFIED="1746712654458" TEXT="Architecture &amp; Components">
 <node CREATED="1746652178766" ID="ID_247517510" MODIFIED="1746652260110">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -116,8 +116,7 @@
       (Compute Nodes)
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1746652189350" ID="ID_1255034643" MODIFIED="1746652251563">
 <richcontent TYPE="NODE"><html>
@@ -132,8 +131,7 @@
       (Exadata Storage Cells)
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1746652198990" ID="ID_1880902738" MODIFIED="1746652274692">
 <richcontent TYPE="NODE"><html>
@@ -148,13 +146,29 @@
       Ethernet (RoCE) Network
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1746652207158" ID="ID_1080200562" MODIFIED="1746652208059" TEXT="Exadata Software"/>
 </node>
-<node CREATED="1746651220638" FOLDED="true" ID="ID_1780330240" MODIFIED="1746652297177" TEXT="Performance Features">
-<node CREATED="1746651314199" FOLDED="true" ID="ID_1736789884" MODIFIED="1746652295576" TEXT="Smart Scan">
+<node CREATED="1746651220638" ID="ID_1780330240" MODIFIED="1746712685552">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Performance Features
+    </p>
+    <p>
+      (How the magical
+    </p>
+    <p>
+      speed up occours?)
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1746651314199" ID="ID_1736789884" MODIFIED="1746712655481" TEXT="Smart Scan">
 <node CREATED="1746652086783" ID="ID_419385413" MODIFIED="1746652087603" TEXT="Column Projection"/>
 <node CREATED="1746652095454" ID="ID_572675171" MODIFIED="1746652095954" TEXT="Row Filtering"/>
 <node CREATED="1746652096190" ID="ID_819652666" MODIFIED="1746652104628" TEXT="iDB Messaging"/>
@@ -164,7 +178,6 @@
 <node CREATED="1746651343381" ID="ID_964728926" MODIFIED="1746651351107" TEXT="Hibrid Columnar Compression"/>
 <node CREATED="1746651352623" ID="ID_1548993830" MODIFIED="1746651362626" TEXT="I/O Resource Management"/>
 </node>
-<node CREATED="1746651250846" ID="ID_928339373" MODIFIED="1746651262216" TEXT="How the magical speed up occours"/>
 </node>
 </node>
 <node CREATED="1743809963180" ID="ID_976799848" MODIFIED="1744065398806" POSITION="left" TEXT="Laboratories">

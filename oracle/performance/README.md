@@ -3,7 +3,8 @@
 ## Mind Map - Oracle - Performance
 ![Mind Map - Oracle - Performance](../../doc/mind-maps/MindMapDiagram-DatabaseStudy-Oracle-Performance.png) 
 
-### Mind Map - Oracle - Performance - Exadata
+
+## Mind Map - Oracle - Performance - Exadata
 ![Mind Map - Oracle - Performance](../../doc/mind-maps/MindMapDiagram-DatabaseStudy-Oracle-Performance-Exadata.png) 
 
 
@@ -58,7 +59,7 @@
     * [5.2.c. EXISTS vs. IN](#52c-exists-vs-in)
     * [5.2.d. In-Memory Table and Columns](#52d-in-memory-table-and-columns)
       * [5.2.d.1. On Regular Oracle Infrastructure (non-Exadata)](#52d1-on-regular-oracle-infrastructure-non-exadata)
-      * [5.2.d.2. 5.2.d.2. On Exadata](#52d2-on-on-exadata) ![star-icon.png](../../doc/images/star-icon.png)
+      * [5.2.d.2. On Exadata](#52d2-on-exadata) ![star-icon.png](../../doc/images/star-icon.png)
     * [5.2.e. Cursor Optimization](#52e-cursor-optimization)
   * [5.3. Optimizing Joins and Aggregations](#53-optimizing-joins-and-aggregations)
       * [5.3.a. Choosing the Right Join Type](#531-choosing-the-right-join-type)
@@ -481,7 +482,8 @@ The process of FILTERED ROWS PERCENTAGE is as follows:
 -- Identify long-running SQL queries
 SELECT sql_id, elapsed_time, sql_text
 FROM v$sql
-ORDER BY elapsed_time DESC FETCH FIRST 10 ROWS ONLY;
+ORDER BY elapsed_time DESC FETCH 
+FIRST 10 ROWS ONLY;
 ```
 
 * Identify active sessions and wait events 
@@ -520,6 +522,16 @@ Use AWR (Automatic Workload Repository) and ASH (Active Session History) reports
 ```sql
 SELECT * FROM dba_hist_sqlstat ORDER BY elapsed_time_total DESC FETCH FIRST 10 ROWS ONLY;
 ```
+
+* [`../scripts/query_v_session_activesessionhistory.sql`](../scripts/query_v_session_activesessionhistory.sql)
+
+
+
+#### 4.2.99. References
+
+1. [Video - What is ASH report and how is it different from AWR Report](https://www.youtube.com/watch?v=VdcHH2V1imo)
+2. [Video - Oracle Database performance analysis using AWR Reports](https://www.youtube.com/watch?v=llSmAxmaxMk)
+
 
 ### 4.3. Look for Locks and Deadlocks
 
@@ -694,7 +706,7 @@ WHERE customer_id IN (SELECT customer_id FROM orders);
   * Use In-Memory selectively: Don't pin all data — pin only the hot, frequently queried analytical tables
   * Test query performance with and without pinning, because Exadata Smart Scan may outperform in-memory in certain large-scale scenarios
   * Consider letting Oracle manage it dynamically (INMEMORY PRIORITY AUTO) unless you have solid reasons to pin
-
+* **More about [Exadata](#8-exadata)**
 
 ### 5.2.e. Cursor Optimization
 
@@ -951,12 +963,12 @@ References:
 
 #### 8.2.a. Smart Scans
 
-* "... (suppose we want get 3 columns by primary key `SELECT emp_id, ename, salary FROM emp WHERE id = 123` in total 38 bytes) ... a non-EXADATA Oracle database  must fetch the full block on which the data resides. If we assume that the block is a standard 8K Oracle data block ... Why do we have to fetch 8K of data when we only want 35 bytes of that data, and Oracle knows we only want 35 bytes? The answer is because that is just how the nonEXADATA Oracle database works." (1)
+* "... (suppose we want get 3 columns by primary key `SELECT emp_id, ename, salary FROM emp WHERE id = 123` in total 38 bytes) ... a non-EXADATA Oracle database  must fetch the full block on which the data resides. If we assume that the block is a standard 8K Oracle data block ... Why do we have to fetch 8K of data when we only want 35 bytes of that data, and Oracle knows we only want 35 bytes? The answer is because that is just how the nonEXADATA Oracle database works." (Ref. no. 1)
 * "... the non-EXADATA Oracle  database data acquisition process (each query wate time with):
   * Unwanted Columns; 
   * Unwanted Rows; 
   * Overhead Space; 
-  * Free Space..."  (1)
+  * Free Space..."  (Ref. no. 1)
 * **SMARTSCAN** is a marketing term used by Oracle to group  together a large number of EXADATA features under one banner. Collectively these features have the goal  of eliminating I/O, and there are many of them
 * This magic is possible because the database server sends additional information in its I/O requests to the  EXADATA disk system. This special packet of data that accompanies I/O requests tells the disk drives extra  stuff about the requests being made which the drives then exploit in reducing data load. The three **SMARTSCAN** features that remove normal waste in Oracle data retrieval:
   * **Column Projection** (removes unwanted columns)
@@ -978,9 +990,11 @@ References:
   * Index range scans
   * Row-by-row access (OLTP-style)
   * Nested loop joins (in most cases)
+* Three common problems for EXADATA: a) Reconstructing a Consistent Block (rows are being updated); b) Chained Rows; c) Modified Columns in the WHERE clause;
 * How to Confirm Smart Scan is Happening?
   * Look for `TABLE ACCESS STORAGE FULL` in Query Execution Plan
   * Session stats query:
+
 
 ```sql
 SELECT name, value
@@ -3490,3 +3504,29 @@ GRANT SELECT_CATALOG_ROLE   TO STUDY;
 GRANT SELECT ANY DICTIONARY TO STUDY;
 -- reconnect required after grants
 ```
+
+
+### II Cheatsheet.99.d.9. Generating AWR Report using SQLDeveloper
+
+1. Open and Connect SQLDeveloper to desired database
+2. On SQLDeveloper, navigate to Reports on "Reports" tab and expand report tree clicking each node "All Reports" >> "ASH and AWR" >> "Last AWR Report" and click
+3. On SQLDeveloper :: Reports (tab) >> "All Reports" >> "ASH and AWR" >> "Last AWR Report" >> "Select Connection" (dialog-box) select system privileged connection and click "OK". Wait for report background processing and 
+
+```txt
+WORKLOAD REPOSITORY PDB report (root snapshots)
+
+DB Name         DB Id    Unique Name DB Role          Edition Release    RAC CDB
+------------ ----------- ----------- ---------------- ------- ---------- --- ---
+FCE9I1PL      4185246294 fce9i1pl    PRIMARY          EE      19.27.0.1. YES YES
+ 
+Instance     Inst Num Startup Time    User Name    System Data Visible 
+------------ -------- --------------- ------------ --------------------
+fce9i1pl2           2 26-Apr-25 05:20 ADMIN        NO                  
+
+Container DB Id  Container Name       Open Time
+--------------- --------------- ---------------
+     2185663972 GD1A1273809AFC5 05-May-25 18:51
+
+:
+```
+

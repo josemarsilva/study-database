@@ -132,6 +132,7 @@
       * [II.99.d.6. Execute a command, get execution plan and statistics like using SET AUTOT TRACE EXPL STAT on SQL*Plus](#ii-cheatsheet99d6-execute-a-command-get-execution-plan-and-statistics-like-using-set-autot-trace-expl-stat-on-sqlplus)
       * [II.99.d.7. Execute a command, get execution plan and statistics using icon-button SQLDeveloper Autotrace ... (F6)](#ii-cheatsheet99d7-execute-a-command-get-execution-plan-and-statistics-using-icon-button-sqldeveloper-autotrace--f6)
       * [II.99.d.7. User's GRANTS required to execute `Autotrace (F6) ...` On SQLDeveloper ](#ii-cheatsheet99d8-users-grants-required-to-execute-autotrace-f6--on-sqldeveloper)
+    * [II.99.e. Generating AWR Report Using SqlDeveloper](#ii-cheatsheet99e-generating-awr-report-using-sqldeveloper) ![star-icon.png](../../doc/images/star-icon.png)
 
 
 ---
@@ -1097,11 +1098,10 @@ WHERE  c.region = 'EUROPE';
 * Compresses data aggressively for archival or read-mostly tables.
 * Excellent for data warehouses but not suitable for frequently updated data.
 
-##### 8.2.b.99 References
+##### 8.2.c.99 References
 
 1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
 2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata Hibrid Columnar Compression](https://www.youtube.com/watch?v=GWjdmTi7bwg&t=805s)
-
 
 
 #### 8.2.d I/O Resource Management (IORM)
@@ -1109,10 +1109,49 @@ WHERE  c.region = 'EUROPE';
 * Controls how I/O bandwidth is allocated between databases/users.
 * Coordinate with Database Resource Manager (DBRM).
 
-##### 8.2.b.99 References
+##### 8.2.d.99 References
 
 1. [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
 2. [Video: Introduction to Oracle Exadata: Exadata Overview, Chapter: Oracle Exadata IO Resource Management](https://www.youtube.com/watch?v=GWjdmTi7bwg&t=880s)
+
+
+#### 8.2.e SMART FLASH CACHE
+
+Smart Flash Cache is a high-performance cache layer built into the Exadata Storage Server (cell) that automatically caches frequently accessed data blocks in flash memory instead of traditional spinning disks. It works transparently to the database, accelerating both reads and writes by using flash as an intermediate layer between DRAM and disk.
+
+##### 8.2.e.1. How it works
+
+1. **Tiered Storage**: The system maintains the most accessed data in a speed hierarchy - RAM, Flash Cache, and disk.
+2. **Write-through Caching**: Write operations are recorded in both the cache and disk, ensuring durability.
+3. **Intelligent Algorithms**: Unlike traditional caching solutions, Smart Flash Cache uses sophisticated algorithms to:
+  * Identify and prioritize "hot" (frequently accessed) blocks
+  * Avoid caching full table scan operations
+  * Recognize Oracle Database-specific access patterns
+4. **Workload-specific Caching**: Automatically prioritizes OLTP (transactional) and OLAP (analytical) operations differently.
+
+
+##### 8.2.e.2. Key Concepts and Features
+
+1. **Multi-Tiered Caching**: Smart Flash Cache isn't just a simple in-memory cache. It's more sophisticated and can employ different caching strategies and algorithms for different types of data and access patterns. This allows for more efficient utilization of the flash capacity.   
+2. **Read Cache**: This is the primary function. When the database server requests data, the storage server first checks if that data is present in the Smart Flash Cache. If it's a "hit," the data is served directly from the fast flash, bypassing the slower disk I/O. This dramatically reduces read latency.   
+3. **Write-Back Cache (Optional and Intelligent)**: Exadata can also utilize the Smart Flash Cache as a write-back cache for certain types of writes. This means that write requests are acknowledged to the database server as soon as they land in the fast flash, and the storage server then asynchronously writes the data to the persistent disk. This can significantly improve write performance, especially for random write-intensive workloads. However, Exadata's write-back is intelligent and carefully managed to ensure data integrity and avoid potential data loss scenarios (e.g., through write-through for critical data or during periods of high write activity).   
+4. **Intelligent Caching Algorithms**: Smart Flash Cache uses sophisticated algorithms to determine which data blocks to cache and when to evict less frequently accessed blocks to make room for hotter data. These algorithms take into account factors like access frequency, recency, and the type of workload.   
+5. **Database-Awareness**: A crucial aspect of Smart Flash Cache is its awareness of Oracle Database operations. The storage servers understand database concepts and can make more intelligent caching decisions based on this knowledge. For example, they can prioritize caching of data blocks involved in frequently executed queries or critical database operations.   
+6. **Integration with Smart Scan**: Smart Flash Cache works synergistically with Smart Scan. Data filtered by Smart Scan on the storage servers can be cached in the Flash Cache, making subsequent accesses to the same (or overlapping) data even faster.
+7. **Automatic Management**: For the most part, Smart Flash Cache is automatically managed by Exadata. The system dynamically adjusts the cache contents based on workload patterns. However, administrators have some level of control through I/O Resource Management (IORM) to prioritize caching for specific databases or workloads.   
+8. **Performance Benefits**: The use of Smart Flash Cache leads to significant performance improvements, including:
+  * Reduced I/O Latency: Serving reads from flash is much faster than from disk.   
+  * Increased Throughput: More read and write operations can be handled per unit of time.   
+  * Improved Query Performance: Faster data retrieval directly translates to quicker query execution.
+  * Lower Database Server CPU Utilization: By serving data from the storage layer more efficiently, the database servers spend less time waiting for I/O.   
+  * Better Application Responsiveness: Applications relying on the database experience lower latency and faster response times
+
+
+##### 8.2.e.99 References
+
+1. [Official Documentation: - Oracle Exadata Database Machine - Smart Flash Cache](https://www.oracle.com/database/technologies/exadata/software/smartflashcache/)
+2. [Video - Oracle Exadata Smart Flash Cache](https://www.youtube.com/watch?v=6Sv70I9UMYo)
+3. [Video - Exadata Smart Flash Cache (ESFC) & Persistent Memory in X8-M ||Oracle Exadata Architecture Explained](https://www.youtube.com/watch?v=5CkB58JHwhM)
 
 
 ### 8.3. Exadata NOT an Expert advertisements and premises
@@ -3506,7 +3545,7 @@ GRANT SELECT ANY DICTIONARY TO STUDY;
 ```
 
 
-### II Cheatsheet.99.d.9. Generating AWR Report using SQLDeveloper
+### II Cheatsheet.99.e. Generating AWR Report using SQLDeveloper
 
 1. Open and Connect SQLDeveloper to desired database
 2. On SQLDeveloper, navigate to Reports on "Reports" tab and expand report tree clicking each node "All Reports" >> "ASH and AWR" >> "Last AWR Report" and click
@@ -3530,39 +3569,23 @@ Container DB Id  Container Name       Open Time
 :
 ```
 
-4. You can specify some Reports Options: refresh time select combo box
-5. You can configure Report Script clicking `SQL` icon button
-  * Worksheet with source code of SQL Script will be prompted for adjust output from `TEXT` to `HTML` changing de procedure called to `dbms_workload_repository.awr_report_html( ...`
+4. You can specify some Reports Options: refresh time select combo box to 20 seconds
 
-```sql
-DECLARE
-  dbid         NUMBER;
-  instance_id  NUMBER;
-  start_id     NUMBER;
-  end_id       NUMBER;
-BEGIN
-  dbms_output.enable(NULL);
 
-  SELECT MAX(snap_id) - 1, MAX(snap_id) INTO start_id, end_id FROM dba_hist_snapshot;
-  SELECT dbid INTO dbid FROM v$database;
-  SELECT instance_number INTO instance_id FROM v$instance;
+### II Cheatsheet.99.f. Generating AWR Report using SQLDeveloper Script (awrrpt.sql)
 
-  -- Output HTML header
-  dbms_output.put_line('<html><body>');
+1. Open and Connect SQLDeveloper to desired database
+2. On SQLDeveloper, Click on "Tools" > "SQL Worksheet", or just open a worksheet with your SYSDBA session. 
+  * Run the script manually:
 
-  FOR rc IN (
-    SELECT output
-    FROM TABLE(
-      dbms_workload_repository.awr_report_html(
-        dbid, instance_id, start_id, end_id
-      )
-    )
-  ) LOOP
-    dbms_output.put_line(rc.output);
-  END LOOP;
-
-  -- Output HTML footer
-  dbms_output.put_line('</body></html>');
-END;
-/
+```sql-worksheet
+@C:/Apps/client/josemarsilva/product/19.0.0/client_1/rdbms/admin/awrrpt.sql
 ```
+
+3. Answer scripts parameters:
+  * Enter value for report_type: `html` or `text` or `active-html`
+  * Enter value for awr_location: `C:\\Users\\josemarsilva\\Downloads`
+  * Enter value for num_days: `1`
+  * Enter value for begin_snap: `15119`
+  * Enter value for end_snap: `15120`
+  * Enter value for report_name: `2025-05-08-17-a-18.html`

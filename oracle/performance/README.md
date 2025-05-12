@@ -82,11 +82,15 @@
     * [5.5.g. Additional Hints](#55g-additional-hints)
 * [6. Table Partitioning](#6-table-partitioning)
   * [6.1. Range Partitioning](#61-range-partitioning)
-  * [6.2. Hash Partitioning](#62-hash-partitioning)
-  * [6.3. Partition Pruning](#63-partition-pruning)
-  * [6.4. Partition zone maps Exadata](#64-partition-zone-maps-exadata)
-  * [6.5. Drop Partition](#65-drop-partition)
-  * [6.6. Query Partition](#66-query-partition)
+  * [6.2. List Partitioning](#62-list-partitioning)
+  * [6.3. Hash Partitioning](#63-hash-partitioning)
+  * [6.4. Composite Partitioning - (multi-level)](#64-composite-partitioning-multi-level)
+  * [6.5. Interval Partitioning](#65-interval-partitioning)
+  * [6.6. Partition Pruning](#66-partition-pruning)
+  * [6.7. Partition zone maps Exadata](#67-partition-zone-maps-exadata)
+  * [6.8. Drop Partition](#68-drop-partition)
+  * [6.9. Query Partition](#69-query-partition)
+  * [6.99. References](#699-references)
 * [7. What is NEW in Oracle 12c vs 19c](#7-what-is-new-in-oracle-12c-vs-19c)
   * [7.1. Automatic Indexing](#71-automatic-indexing)
   * [7.2. Real Time Statistics](#72-real-time-statistics)
@@ -102,7 +106,7 @@
   * [8.2. Exadata Architecture and Performance Features](#82-exadata-architecture-and-performance-features)
   * [8.3. Exadata Not (from) an expert advertisements and premises](#83-exadata-not-an-expert-advertisements-and-premises)
   * [8.4. Do we still need Indexes?](#84-do-we-still-need-indexes)
-  * [8.5. Do we still need Indexes?](#85-do-we-still-need-)
+  * [8.5. Do we still need Indexes?](#85-do-we-still-need-traditional-tuning)
 * [I. Laboratories](#i-laboratories) ![star-icon.png](../../doc/images/star-icon.png)
   * [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
   * [I.2. Query metrics scenario INITIAL](#ilab-2-query-metrics-scenario-initial)
@@ -859,41 +863,179 @@ Partitioning breaks large tables into smaller segments for better performance.
 
 ### 6.1. Range Partitioning
 
+* Divides data based on a range of values in a single column (often dates or numbers).
+* Use Case: Time-based data, sliding window operations.
+
+```sql
+CREATE TABLE sales (
+  sale_id NUMBER,
+  sale_date DATE,
+  amount NUMBER
+) PARTITION BY RANGE (sale_date) (
+  PARTITION sales_2021 VALUES LESS THAN (TO_DATE('01-JAN-2022','DD-MON-YYYY')),
+  PARTITION sales_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')),
+  PARTITION sales_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY')),
+  PARTITION sales_future VALUES LESS THAN (MAXVALUE)
+);
+```
+
+### 6.2. List Partitioning
+
+* Partitions data based on discrete values (lists)
+* Use Case: Region/category-based data
+
+```sql
+CREATE TABLE customers (
+  customer_id NUMBER,
+  name VARCHAR2(50),
+  region VARCHAR2(2)
+) PARTITION BY LIST (region) (
+  PARTITION region_east VALUES ('NY', 'NJ', 'CT', 'MA'),
+  PARTITION region_west VALUES ('CA', 'OR', 'WA'),
+  PARTITION region_south VALUES ('TX', 'FL', 'GA'),
+  PARTITION region_central VALUES ('IL', 'OH', 'MI')
+);
+```
+
+
+### 6.3. Hash Partitioning
+
+* Automatically distributes rows across a fixed number of partitions using a hash function.
+* Use Case: Even data distribution when no natural range or list exists.
+
 ```sql
 CREATE TABLE orders (
   order_id NUMBER,
   order_date DATE,
   customer_id NUMBER
-) PARTITION BY RANGE (order_date) (
-  PARTITION p2023 VALUES LESS THAN (TO_DATE('2024-01-01', 'YYYY-MM-DD')),
-  PARTITION p2024 VALUES LESS THAN (TO_DATE('2025-01-01', 'YYYY-MM-DD'))
+) PARTITION BY HASH (order_id) PARTITIONS 8;
+```
+
+### 6.4. Composite Partitioning (Multi-Level)
+
+* Combines two partitioning methods, creating a hierarchy of partitions and subpartitions.   
+
+#### 6.4.a. Range-Hash Partitioning
+
+* Partitions data by range and then subpartitions each range partition by hash.
+* Use Case: Time-based data that needs even distribution within each time period
+
+```sql
+CREATE TABLE sales (
+  sale_id NUMBER,
+  sale_date DATE,
+  customer_id NUMBER
+) PARTITION BY RANGE (sale_date)
+  SUBPARTITION BY HASH (customer_id) SUBPARTITIONS 8 (
+  PARTITION sales_q1_2023 VALUES LESS THAN (TO_DATE('01-APR-2023','DD-MON-YYYY')),
+  PARTITION sales_q2_2023 VALUES LESS THAN (TO_DATE('01-JUL-2023','DD-MON-YYYY')),
+  PARTITION sales_q3_2023 VALUES LESS THAN (TO_DATE('01-OCT-2023','DD-MON-YYYY')),
+  PARTITION sales_q4_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY'))
 );
 ```
 
-### 6.2. Hash Partitioning
+#### 6.4.b. Range-List Partitioning
 
-* `under-construction` - Useful when data is evenly distributed but queries use different keys.
+* Partitions data by range and then subpartitions each range partition by list.   
+* Time-based data that also needs to be segregated by a categorical attribute
+
+```sql
+CREATE TABLE sales (
+  sale_id NUMBER,
+  sale_date DATE,
+  region VARCHAR2(2)
+) PARTITION BY RANGE (sale_date)
+  SUBPARTITION BY LIST (region) (
+  PARTITION sales_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')) (
+    SUBPARTITION sales_2022_east VALUES ('NY', 'NJ', 'CT', 'MA'),
+    SUBPARTITION sales_2022_west VALUES ('CA', 'OR', 'WA'),
+    SUBPARTITION sales_2022_other VALUES (DEFAULT)
+  ),
+  PARTITION sales_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY')) (
+    SUBPARTITION sales_2023_east VALUES ('NY', 'NJ', 'CT', 'MA'),
+    SUBPARTITION sales_2023_west VALUES ('CA', 'OR', 'WA'),
+    SUBPARTITION sales_2023_other VALUES (DEFAULT)
+  )
+);
+```
+
+#### 6.4.c. List-Hash Partitioning
+
+* Partitions data by list and then subpartitions each list partition by hash.
+* even distribution within data that also needs date-based segmentation
 
 
-### 6.3. Partition Pruning
+#### 6.4.d. List-Range Partitioning
+
+* Partitions data by list and then subpartitions each list partition by range.
+* Use Case: Category-based data that also needs date-based segmentation
+
+```sql
+CREATE TABLE sales (
+  sale_id NUMBER,
+  sale_date DATE,
+  region VARCHAR2(2)
+) PARTITION BY LIST (region)
+  SUBPARTITION BY RANGE (sale_date) (
+  PARTITION sales_east VALUES ('NY', 'NJ', 'CT', 'MA') (
+    SUBPARTITION sales_east_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')),
+    SUBPARTITION sales_east_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY'))
+  ),
+  PARTITION sales_west VALUES ('CA', 'OR', 'WA') (
+    SUBPARTITION sales_west_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')),
+    SUBPARTITION sales_west_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY'))
+  )
+);
+```
+
+### 6.5 Interval Partitioning
+
+#### 6.5.a. Interval-Range
+
+* Extends range partitioning by automatically creating new range partitions based on a specified interval and then subpartitioning them.
+
+```sql
+CREATE TABLE sales (
+  sale_id NUMBER,
+  sale_date DATE,
+  amount NUMBER
+) PARTITION BY RANGE (sale_date)
+  INTERVAL (NUMTOYMINTERVAL(1, 'MONTH')) (
+  PARTITION sales_before_2023 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY'))
+);
+```
+
+#### 6.5.b. Interval-Hash
 
 * `under-construction`
 
-### 6.4. Partition zone maps Exadata
+#### 6.5.c. Interval-List
 
 * `under-construction`
 
-### 6.5. Drop Partition
+### 6.6. Partition Pruning
+
+* `under-construction`
+
+### 6.7. Partition zone maps Exadata
+
+* `under-construction`
+
+### 6.8. Drop Partition
 
 * `under-construction`
   - Drop de partições onde a PK da tabela não faz parte da chave de particionamento, o índice da PK fica em status unusable
 
-### 6.6. Query Partition 
+### 6.9. Query Partition 
 
 * `under-construction`
 
 *  com queries em tabelas particionadas, ficar atento aos itens PSTART e PSTOP
 
+
+### 6.99. References
+
+* [Official Documentation - Oracle - Partitioning Concepts](https://docs.oracle.com/en/database/oracle/oracle-database/19/vldbg/partition-concepts.html?utm_source=chatgpt.com)
 
 ---
 

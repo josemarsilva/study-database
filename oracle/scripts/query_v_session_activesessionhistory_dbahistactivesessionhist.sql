@@ -21,6 +21,7 @@ WHERE
         1=1
         AND    s.sid = 42951
         AND    s.serial# = 9343
+        AND    s.user# = 197
         AND    s.username = 'STUDY'
         AND    s.status = 'INACTIVE'
         AND    s.machine = 'LP2317'
@@ -41,8 +42,8 @@ FROM
     v$active_session_history sh
 WHERE
         1=1
-        AND    sh.sid = 42951
-        AND    sh.serial# = 9343
+        AND    sh.session_id = 44365
+        AND    sh.session_serial# = 99
 ;
 
 

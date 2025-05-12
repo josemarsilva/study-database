@@ -1,6 +1,6 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1553633692767" ID="ID_913405909" MODIFIED="1746652387638">
+<node CREATED="1553633692767" ID="ID_913405909" MODIFIED="1747067427313">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -16,7 +16,7 @@
 </html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <icon BUILTIN="gohome"/>
-<node CREATED="1556296667278" ID="ID_683362039" MODIFIED="1746652388748" POSITION="right" STYLE="fork">
+<node CREATED="1556296667278" FOLDED="true" ID="ID_683362039" MODIFIED="1747067427310" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -36,7 +36,7 @@
 <node CREATED="1743799137058" ID="ID_130440621" MODIFIED="1743812306166" TEXT="Tracing a business process"/>
 <node CREATED="1743804272779" ID="ID_855159711" MODIFIED="1743804289664" TEXT="Monitoring &amp; Observability"/>
 </node>
-<node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1746652388758" POSITION="left" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1747067429744" POSITION="left" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -99,10 +99,25 @@
   </body>
 </html></richcontent>
 </node>
-<node CREATED="1746650586824" ID="ID_805030609" MODIFIED="1746712652772" TEXT="Oracle Exadata">
+<node CREATED="1746650586824" ID="ID_805030609" MODIFIED="1747067439124" TEXT="Oracle Exadata">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <icon BUILTIN="folder"/>
-<node CREATED="1746651175265" ID="ID_121540992" MODIFIED="1746712654458" TEXT="Architecture &amp; Components">
+<node CREATED="1746651175265" ID="ID_121540992" MODIFIED="1747071609080">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Architecture &amp;
+    </p>
+    <p>
+      &#160;&#160;Components
+    </p>
+  </body>
+</html>
+</richcontent>
+<font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1746652178766" ID="ID_247517510" MODIFIED="1746652260110">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -150,7 +165,7 @@
 </node>
 <node CREATED="1746652207158" ID="ID_1080200562" MODIFIED="1746652208059" TEXT="Exadata Software"/>
 </node>
-<node CREATED="1746651220638" ID="ID_1780330240" MODIFIED="1746712685552">
+<node CREATED="1746651220638" ID="ID_1780330240" MODIFIED="1747071586795">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -166,9 +181,9 @@
       speed up occours?)
     </p>
   </body>
-</html>
-</richcontent>
-<node CREATED="1746651314199" ID="ID_1736789884" MODIFIED="1746712655481" TEXT="Smart Scan">
+</html></richcontent>
+<font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1746651314199" ID="ID_1736789884" MODIFIED="1747067439138" TEXT="Smart Scan">
 <node CREATED="1746652086783" ID="ID_419385413" MODIFIED="1746652087603" TEXT="Column Projection"/>
 <node CREATED="1746652095454" ID="ID_572675171" MODIFIED="1746652095954" TEXT="Row Filtering"/>
 <node CREATED="1746652096190" ID="ID_819652666" MODIFIED="1746652104628" TEXT="iDB Messaging"/>
@@ -177,6 +192,102 @@
 <node CREATED="1746651337950" ID="ID_459736583" MODIFIED="1746651342451" TEXT="Storage Indexes"/>
 <node CREATED="1746651343381" ID="ID_964728926" MODIFIED="1746651351107" TEXT="Hibrid Columnar Compression"/>
 <node CREATED="1746651352623" ID="ID_1548993830" MODIFIED="1746651362626" TEXT="I/O Resource Management"/>
+</node>
+<node CREATED="1747064139135" ID="ID_1244158490" MODIFIED="1747071590324">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Do we still need
+    </p>
+    <p>
+      &#160;&#160;Indexes?
+    </p>
+  </body>
+</html>
+</richcontent>
+<font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1747064167989" ID="ID_778248221" MODIFIED="1747064168804" TEXT="Highly Selective Queries"/>
+<node CREATED="1747064175909" ID="ID_103111331" MODIFIED="1747064176565" TEXT="OLTP Workloads"/>
+<node CREATED="1747064183655" ID="ID_1459443692" MODIFIED="1747064202678">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Unique and Primary Key Constraints
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1747064258732" ID="ID_1274108966" MODIFIED="1747064259327" TEXT="Foreign Key Constraints"/>
+<node CREATED="1747064266405" ID="ID_1964225005" MODIFIED="1747064267013" TEXT="Joining Tables"/>
+<node CREATED="1747064276413" ID="ID_1310202331" MODIFIED="1747064289233" TEXT="ORDER BY and GROUP BY Operations"/>
+<node CREATED="1747064302333" ID="ID_370979746" MODIFIED="1747064303003" TEXT="Min/Max Operations"/>
+<node CREATED="1747064312517" ID="ID_1821960260" MODIFIED="1747064396798">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Partial String Matching at the
+    </p>
+    <p>
+      &#160;&#160;Beginning of a String
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1747064378597" ID="ID_483194920" MODIFIED="1747064390788">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Situations Where Storage Indexes
+    </p>
+    <p>
+      &#160;&#160;are Not Effective
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
+<node CREATED="1747064460828" ID="ID_1111037609" MODIFIED="1747071594900">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Do we still need
+    </p>
+    <p>
+      &#160;&#160;Traditional Tuning?
+    </p>
+  </body>
+</html>
+</richcontent>
+<font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1747067323336" ID="ID_1607262535" MODIFIED="1747067324124" TEXT="SQL Tuning"/>
+<node CREATED="1747067331062" ID="ID_1259896957" MODIFIED="1747067331691" TEXT="Optimizer Statistics Maintenance"/>
+<node CREATED="1747067339247" ID="ID_1595925282" MODIFIED="1747067339795" TEXT="Execution Plan Analysis"/>
+<node CREATED="1747067346791" ID="ID_1424131180" MODIFIED="1747067347627" TEXT="Join Order / Join Method Tuning"/>
+<node CREATED="1747067354694" ID="ID_133514154" MODIFIED="1747067355387" TEXT="Bind Variable Peeking / Stability"/>
+<node CREATED="1747067362302" ID="ID_957197561" MODIFIED="1747067362878" TEXT="Parallel Execution Tuning"/>
+<node CREATED="1747067368551" ID="ID_1274587341" MODIFIED="1747067369107" TEXT="Index Strategy"/>
+<node CREATED="1747067376382" ID="ID_1359929718" MODIFIED="1747067376955" TEXT="Temp / Undo / PGA / SGA Tuning"/>
+<node CREATED="1747067384502" ID="ID_799995" MODIFIED="1747067385043" TEXT="I/O Reduction Techniques"/>
+<node CREATED="1747067390550" ID="ID_1205940232" MODIFIED="1747067391187" TEXT="Partitioning"/>
+<node CREATED="1747067398055" ID="ID_833097294" MODIFIED="1747067398683" TEXT="Application Design / Logical Model"/>
 </node>
 </node>
 </node>
@@ -187,7 +298,7 @@
 <node CREATED="1743809996227" ID="ID_95828706" MODIFIED="1743810026828" POSITION="left" TEXT="CheatSheet">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1746652388766" POSITION="right" STYLE="fork">
+<node CREATED="1556296667278" FOLDED="true" ID="ID_481353072" MODIFIED="1747067427313" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     

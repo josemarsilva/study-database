@@ -101,7 +101,8 @@
     * [8.1.d. Exadata Software](#81d-exadata-software)
   * [8.2. Exadata Architecture and Performance Features](#82-exadata-architecture-and-performance-features)
   * [8.3. Exadata Not (from) an expert advertisements and premises](#83-exadata-not-an-expert-advertisements-and-premises)
-  * [8.4. How the magical 10x to 40x speed up can be achieved by EXADATA](#84-how-the-magical-10x-to-40x-speed-up-can-be-achieved-by-exadata)
+  * [8.4. Do we still need Indexes?](#84-do-we-still-need-indexes)
+  * [8.5. Do we still need Indexes?](#85-do-we-still-need-)
 * [I. Laboratories](#i-laboratories) ![star-icon.png](../../doc/images/star-icon.png)
   * [I.1. Create Sample Tables using scripts](#ilab-1-create-sample-tables-using-scripts)
   * [I.2. Query metrics scenario INITIAL](#ilab-2-query-metrics-scenario-initial)
@@ -1119,18 +1120,7 @@ WHERE  c.region = 'EUROPE';
 
 Smart Flash Cache is a high-performance cache layer built into the Exadata Storage Server (cell) that automatically caches frequently accessed data blocks in flash memory instead of traditional spinning disks. It works transparently to the database, accelerating both reads and writes by using flash as an intermediate layer between DRAM and disk.
 
-##### 8.2.e.1. How it works
-
-1. **Tiered Storage**: The system maintains the most accessed data in a speed hierarchy - RAM, Flash Cache, and disk.
-2. **Write-through Caching**: Write operations are recorded in both the cache and disk, ensuring durability.
-3. **Intelligent Algorithms**: Unlike traditional caching solutions, Smart Flash Cache uses sophisticated algorithms to:
-  * Identify and prioritize "hot" (frequently accessed) blocks
-  * Avoid caching full table scan operations
-  * Recognize Oracle Database-specific access patterns
-4. **Workload-specific Caching**: Automatically prioritizes OLTP (transactional) and OLAP (analytical) operations differently.
-
-
-##### 8.2.e.2. Key Concepts and Features
+##### 8.2.e.1. Key Concepts and Features
 
 1. **Multi-Tiered Caching**: Smart Flash Cache isn't just a simple in-memory cache. It's more sophisticated and can employ different caching strategies and algorithms for different types of data and access patterns. This allows for more efficient utilization of the flash capacity.   
 2. **Read Cache**: This is the primary function. When the database server requests data, the storage server first checks if that data is present in the Smart Flash Cache. If it's a "hit," the data is served directly from the fast flash, bypassing the slower disk I/O. This dramatically reduces read latency.   
@@ -1145,6 +1135,28 @@ Smart Flash Cache is a high-performance cache layer built into the Exadata Stora
   * Improved Query Performance: Faster data retrieval directly translates to quicker query execution.
   * Lower Database Server CPU Utilization: By serving data from the storage layer more efficiently, the database servers spend less time waiting for I/O.   
   * Better Application Responsiveness: Applications relying on the database experience lower latency and faster response times
+
+
+##### 8.2.e.2. How to Monitor or Control It
+
+* view usage via:
+
+```sql
+SELECT * FROM v$cell_flash_cache;
+```
+
+* statistics in AWR or v$sysstat:
+
+```sql
+SELECT name, value
+FROM v$sysstat
+WHERE name LIKE '%flash%' -- 'cell flash cache read hits', 'cell flash cache write hits', 'cell flash cache read misses'
+```
+
+* Tuning and Behavior
+  * DBAs don't manually manage Smart Flash Cache content — it's automatic and adaptive.
+  * Cell-level parameters (set by Exadata Storage Server software) influence flash cache behavior.
+  * Flash cache can also be configured in Write-Through or Write-Back mode (most systems use Write-Back).
 
 
 ##### 8.2.e.99 References
@@ -1166,7 +1178,59 @@ Smart Flash Cache is a high-performance cache layer built into the Exadata Stora
 
 PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
 
-### 8.4. How the magical 10x to 40x speed up can be achieved by EXADATA
+
+
+### 8.4. Do we still need Indexes?
+
+The idea that you don't need indexes on Exadata arises from the fact that:
+
+1. **Smart Scan is Very Efficient**: Exadata's ability to offload filtering to the storage layer makes full table scans much faster than on traditional storage. For queries that access a large percentage of the data, a full table scan with Smart Scan might outperform an index scan.   
+2. **Storage Indexes Help**: These in-memory indexes on the storage cells can further optimize full table scans by eliminating unnecessary I/O.   
+3. **Hybrid Columnar Compression (HCC)**: Reduces the amount of data that needs to be read from disk.
+4. **Flash Cache**: Caching frequently accessed data in flash memory reduces I/O latency for both indexed and non-indexed access.
+
+Oracle Exadata's architecture and features like Smart Scan and Smart Flash Cache significantly enhance full table scan performance, you still absolutely need indexes in many scenarios when using Oracle Exadata.
+
+1. **Highly Selective Queries**: When a query needs to retrieve a very small percentage of rows based on specific criteria, an index-based lookup will almost always be faster than even an optimized full table scan with Smart Scan. Imagine querying a customer by their unique ID; an index on the customer ID will provide near-instantaneous access.   
+2. **OLTP Workloads**: Online Transaction Processing (OLTP) systems rely heavily on fast point lookups and indexed access for individual record retrieval and manipulation. While Exadata's low latency helps, indexes are fundamental for achieving the required response times for these workloads.   
+3. **Unique and Primary Key Constraints**: These constraints are typically enforced using indexes. Dropping these indexes would violate data integrity.
+4. **Foreign Key Constraints**: While not strictly for performance, indexes on foreign key columns are often necessary to prevent full table locks on the child table during updates or deletes on the parent table.
+5. **Joining Tables**: Indexes on join columns are essential for efficient execution of JOIN operations, especially for large tables. While Exadata's architecture optimizes data transfer, indexed joins can still significantly reduce the amount of data processed.
+6. **`ORDER BY` and `GROUP BY` Operations**: Indexes on the columns used in ORDER BY and GROUP BY clauses can help avoid expensive sorting operations, especially when the index order matches the required order.
+7. **Min/Max Operations**: Finding the minimum or maximum value of a column is much faster with an index (especially a B-tree index) than scanning the entire table.
+8. **Partial String Matching at the Beginning of a String**: Queries using LIKE 'value%' can efficiently use indexes.
+9. **Situations Where Storage Indexes are Not Effective**: Exadata's Storage Indexes are a powerful feature, but they are not a replacement for traditional database indexes in all cases. Storage Indexes are most effective with:
+  * Full table scans or fast full index scans using Direct Path reads.
+  * Queries with WHERE clause predicates.
+  * Simple comparison operators (=, >, <, >=, <=).
+  * A limited number of columns in the WHERE clause.
+  * Not always effective with complex predicates, LIKE '%value%', functions in the WHERE clause, etc.
+
+
+The optimal indexing strategy on Exadata involves a careful evaluation of your workload and query patterns. You should:
+
+1. Understand Your Workload: Identify the types of queries that are most frequent and performance-critical.
+2. Analyze Execution Plans: Examine the execution plans of your key queries to see if indexes are being used effectively or if full table scans with Smart Scan are more efficient.
+3. Test with and Without Indexes: In some cases, it might be beneficial to test the performance of queries with and without specific indexes (using ALTER INDEX ... INVISIBLE).
+4. Consider the Trade-offs: Remember that indexes improve query performance but can add overhead to DML operations (inserts, updates, deletes) and consume storage space.   
+5. Don't Blindly Drop Indexes: Avoid the temptation to drop all indexes. A well-designed indexing strategy is still crucial for optimal performance in most Exadata environments.
+
+
+### 8.5. Do we still need Traditional Tuning?
+
+Absolutely — Yes. Exadata brings powerful performance features like Smart Scan, Hybrid Columnar Compression, Storage Indexes, and Smart Flash Cache, but it does not eliminate the need for traditional tuning. In fact, traditional tuning remains critical, especially to ensure Exadata's optimizations can be leveraged effectively. Why?
+
+1. **SQL Tuning**: Poorly written SQL still leads to bad plans. Exadata can’t fix logic flaws, suboptimal joins, or incorrect filters.
+2. **Optimizer Statistics Maintenance**: Smart Scan decisions, index use, join method choices all depend on accurate stats.
+3. **Execution Plan Analysis**: You must validate if Exadata features (e.g., TABLE ACCESS STORAGE FULL) are being used.
+4. **Join Order / Join Method Tuning**: Bad join order or wrong join types (e.g., NESTED LOOP vs HASH JOIN) still cause slowness.
+5. **Bind Variable Peeking / Stability**: Unpredictable plans from bind peeking still cause issues — use SQL Plan Management or Bind-Aware cursors.
+6. **Parallel Execution Tuning**: Parallelism can saturate resources if not tuned; avoid over-parallelism in OLTP.
+7. **Index Strategy**: As in 8.4, indexes are often still needed — the decision must be workload-aware.
+8. **Temp / Undo / PGA / SGA Tuning**: Memory and temp usage tuning remain critical, especially for joins/sorts.
+9. **I/O Reduction Techniques**: Even with Smart Scan, minimizing unnecessary reads improves CPU and throughput.
+10. **Partitioning**: Exadata works best when large tables are partitioned, enabling partition pruning and parallelism.
+11. **Application Design / Logical Model**: Poor schema design, normalization errors, or misuse of surrogate keys still harm performance.
 
 ---
 
@@ -1936,7 +2000,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table-output
-		:
+  :
 Plan hash value: 1137980775
  
 -------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1957,13 +2021,13 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    8 - access("CUSTOMER_STATUS_ID"=3)
-		:
+  :
 ```
 
 ```v$statsname
-	:
-consistent gets	1144
-	:
+ :
+consistent gets 1144
+ :
 ```
 
 * Threshold Analysis with Hint: Repeat the experiment forcing index usage for different selectivity levels (20%, 25%, 30%, etc.) and determine at what point forced index usage ceases to be beneficial.
@@ -1986,7 +2050,7 @@ Selectivity Predicate              consistent  gets  consistent  gets
 30%         "CUSTOMER_STATUS_ID"=5         (*) 2277              7709
 50%         "... _ID" IN(0,1,2,3)          (*) 7651              7709
 
-consistent gets	
+consistent gets 
 (*) USE HINT to force index
 ```
 
@@ -2019,7 +2083,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table-output
-	:
+ :
 Plan hash value: 2487033814
  
 ---------------------------------------------------------------------------------------------------------------
@@ -2036,7 +2100,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    4 - filter("CUSTOMER_STATUS_ID"=4)
-	:
+ :
 ```
 
 ### I.Lab-9-Step-2: SCENARIO 03 - Let's query Hint NO_PARALLEL customer_status_id = 4 /* 20% */
@@ -2052,7 +2116,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table-output
-	:
+ :
 Plan hash value: 238036326
  
 ------------------------------------------------------------------------------------------------------------------------
@@ -2067,7 +2131,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    2 - access("CUSTOMER_STATUS_ID"=4)
-	:
+ :
 ```
 
 ### I.Lab-9-Step-3: Analysis and Conclusions
@@ -2191,7 +2255,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table-output
-	:
+ :
 Plan hash value: 2487033814
  
 ---------------------------------------------------------------------------------------------------------------
@@ -2208,7 +2272,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    4 - filter("CUSTOMER_STATUS_ID"=0)
-	:
+ :
 ```
 
 ### I.Lab-10-Step-4: SCENARIO 05 - Let's update customer_status_id to produce Low Clustering Factor
@@ -2312,7 +2376,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table-output
-	:
+ :
 Plan hash value: 1137980775
  
 -------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2333,7 +2397,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    8 - access("CUSTOMER_STATUS_ID"=0)
-	:
+ :
 ```
 
 
@@ -2373,7 +2437,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table-output
-	:
+ :
 Plan hash value: 3924700570
  
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -2394,7 +2458,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    8 - access("EMAIL"='JOSEMARSILVA@inmetrics.com.br')
-	:
+ :
 ```
 
 * Query CONVERTING CASE will find record BUT DO NOT USE INDEX
@@ -2408,7 +2472,7 @@ SET AUTOT OFF
 ```
 
 ```plan-table-output
-	:
+ :
 Plan hash value: 2487033814
  
 ---------------------------------------------------------------------------------------------------------------
@@ -2425,7 +2489,7 @@ Predicate Information (identified by operation id):
 ---------------------------------------------------
  
    4 - filter(LOWER("EMAIL")='josemarsilva@inmetrics.com.br')
-	:
+ :
 ```
 
 

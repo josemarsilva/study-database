@@ -1,9 +1,10 @@
 -- ----------------------------------------------------------------------------
--- filename   : 24_execute_load_orderitems.sql
--- revision   : 2025-05-12 - josemarsilva
+-- filename   : 25_execute_load_orderitems.sql
+-- revision   : 2025-05-13 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------
 
+-- SET SERVEROUT ON SIZE 1000000
 
 DECLARE
     -- Variables for random value generation
@@ -13,8 +14,8 @@ DECLARE
     v_quantity NUMBER(8);
     
     -- Constants - use known values
-    v_products_count CONSTANT NUMBER := 30000;  -- Known product count
-    v_orders_count CONSTANT NUMBER := 1000000;  -- Known order count
+    v_products_count CONSTANT NUMBER := 30000;  -- 30K - Known product count
+    v_orders_count CONSTANT NUMBER := 1000000;  -- 1M - Known order count
     v_min_products_per_order CONSTANT NUMBER := 1;
     v_max_products_per_order CONSTANT NUMBER := 8;
     v_min_quantity CONSTANT NUMBER := 1;
@@ -81,7 +82,7 @@ BEGIN
             END IF;
             
             -- Insert the order item
-            INSERT INTO order_items (
+            INSERT /*+ APPEND */ INTO order_items (
                 id,
                 order_id,
                 line_item_id,

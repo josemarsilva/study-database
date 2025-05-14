@@ -1,6 +1,6 @@
 -- ----------------------------------------------------------------------------
 -- filename   : 23_execute_load_orders.sql
--- revision   : 2025-05-12 - josemarsilva
+-- revision   : 2025-05-13 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------
 
@@ -9,7 +9,7 @@ DECLARE
     -- Variables for random value generation
     v_order_branch NUMBER(3);
     v_order_num NUMBER(6);
-    v_order_at TIMESTAMP;
+    v_order_dt DATE;
     v_order_mode VARCHAR2(8);
     v_customer_id NUMBER;
     v_order_status NUMBER(2);
@@ -99,11 +99,7 @@ BEGIN
         v_order_num := branch_last_order_num(v_order_branch);
         
         -- Generate random order date within range
-        v_order_at := TO_TIMESTAMP(
-            v_start_date + DBMS_RANDOM.VALUE(0, v_days_range) +
-            DBMS_RANDOM.VALUE(0, 1), -- Random time portion
-            'YYYY-MM-DD HH24:MI:SS.FF'
-        );
+        v_order_dt := v_start_date + DBMS_RANDOM.VALUE(0, v_days_range);
         
         -- Random order mode
         v_order_mode := order_modes(TRUNC(DBMS_RANDOM.VALUE(1, order_modes.COUNT)) + 1);
@@ -151,7 +147,7 @@ BEGIN
             id,
             order_branch,
             order_num,
-            order_at,
+            order_dt,
             order_mode,
             customer_id,
             order_status,
@@ -163,7 +159,7 @@ BEGIN
             orders_seq.NEXTVAL, -- Use sequence instead of counter
             v_order_branch,
             v_order_num,
-            v_order_at,
+            v_order_dt,
             v_order_mode,
             v_customer_id,
             v_order_status,

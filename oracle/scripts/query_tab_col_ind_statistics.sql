@@ -2,7 +2,7 @@
 -- filename   : query_tab_col_ind_statistics.sql
 -- description: Table Statistics, Columns Statistics, Indexes Statistics, Indexed Columns Statistics
 -- revision   : 
---              * 2025-04-10 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
+--              * 2025-05-13 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------
 
 
@@ -21,9 +21,11 @@ ORDER  BY owner, table_name;
 -- Option n. 2: Columns Statistics
 --
 
-SELECT table_name, column_name, num_distinct, density, num_nulls,  UTL_RAW.CAST_TO_VARCHAR2(low_value) AS low_value, UTL_RAW.CAST_TO_VARCHAR2(high_value) AS high_value, histogram, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
+       
+SELECT table_name, column_name, num_distinct, TRUNC(density, 6) AS DENSITY, num_nulls, RPAD(UTL_RAW.CAST_TO_VARCHAR2(low_value),10,' ') AS low_value, RPAD(UTL_RAW.CAST_TO_VARCHAR2(high_value),10,' ') AS high_value, RPAD(histogram,10,' ') AS HISTOGRAM, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
 FROM   all_tab_col_statistics
-WHERE  owner = 'STUDY' AND table_name = 'CUSTOMERS'
+WHERE  owner = 'STUDY' 
+AND    table_name IN ('CUSTOMERS')
 ORDER  BY owner, table_name;
 
 
@@ -31,9 +33,9 @@ ORDER  BY owner, table_name;
 -- Option n. 3: Index Statistics
 --
 
-SELECT i.index_name, 
+SELECT i.table_name,
+       i.index_name, 
        i.index_type, -- NORMAL, BITMAP, FUNCTION-BASED NORMAL
-       i.table_name,
        i.uniqueness, -- UNIQUE or NONUNIQUE
        i.clustering_factor,
        i.num_rows,
@@ -45,7 +47,7 @@ SELECT i.index_name,
 FROM   all_indexes i
 WHERE  i.owner = 'STUDY' 
   AND  i.table_name = 'CUSTOMERS'
-ORDER  BY i.index_name;
+ORDER  BY i.table_name, i.index_name;
 
 
 --

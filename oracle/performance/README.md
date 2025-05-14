@@ -85,11 +85,21 @@
   * [6.2. List Partitioning](#62-list-partitioning)
   * [6.3. Hash Partitioning](#63-hash-partitioning)
   * [6.4. Composite Partitioning - (multi-level)](#64-composite-partitioning-multi-level)
+    * [6.4.a. Range Hash Partitioning](#64a-range-hash-partitioning)
+    * [6.4.a. Range List Partitioning](#64b-range-list-partitioning)
+    * [6.4.a. Range List-Hash Partitioning](#64c-list-hash-partitioning)
+    * [6.4.a. Range List-Range Partitioning](#64d-list-range-partitioning)
   * [6.5. Interval Partitioning](#65-interval-partitioning)
-  * [6.6. Partition Pruning](#66-partition-pruning)
-  * [6.7. Partition zone maps Exadata](#67-partition-zone-maps-exadata)
-  * [6.8. Drop Partition](#68-drop-partition)
-  * [6.9. Query Partition](#69-query-partition)
+    * [6.5.a. Interval Range](#65a-interval-range)
+    * [6.5.b. Interval Hash](#65b-interval-hash)
+    * [6.5.c. Interval List](#65c-interval-list)
+  * [6.6. Reference Partitioning](#66-reference-partitioning)
+  * [6.7. System Partitioning](#67-system-partitioning)
+  * [6.8. Virtual column Partitioning](#68-virtual-column-partitioning)
+  * [6.9. Partition Pruning](#69-partition-pruning)
+  * [6.10. Partition zone maps Exadata](#610-partition-zone-maps-exadata)
+  * [6.11. Drop Partition](#611-drop-partition)
+  * [6.12. Query Partition](#612-query-partition)
   * [6.99. References](#699-references)
 * [7. What is NEW in Oracle 12c vs 19c](#7-what-is-new-in-oracle-12c-vs-19c)
   * [7.1. Automatic Indexing](#71-automatic-indexing)
@@ -120,6 +130,14 @@
   * [I.10. Query by Indexed Columns vs High Clustering Factor](#ilab-10-query-by-indexed-columns-vs-high-clustering-factor)
   * [I.11. Query by Indexed Columns vs Function Based Index](#ilab-11-query-by-indexed-columns-vs-function-based-index)
   * [I.12. Query by Indexed Multiples Columns vs BITMAP AND indexes vs Columns Orders](#ilab-12-query-by-indexed-multiples-columns-vs-bitmap-and-indexes-vs-columns-orders)
+  * [I.13. Create Sample Tables for Partitioning](#ilab-13-sample-tables-for-partitioning)
+    * [I.13.1. Create and Populate Sample Table](#ilab-13-step-1-scenario-11---lets-create-and-populateload-orders-orderitens-and-products-tables)
+    * [I.13.2. Query and Analyze Data](#ilab-13-step-2-query-data-and-analyze-data)
+    * [I.13.3. Partition type RANGE](#ilab-13-step-3-create-partitioned-table-range-by-order_dt)
+    * [I.13.4. Partition type LIST](#ilab-13-step-4-create-partitioned-table-list-by-order_mode)
+    * [I.13.5. Partition type HASH](#ilab-13-step-5-create-partitioned-table-hash-by-order_branch)
+    * [I.13.6. Partition Composite Multi-Level type RANGE-HASH](#ilab-13-step-6-create-compositemulti-level-partitioned-table-range-hash-by-order_dt-and-customer_id)
+    * [I.13.7. Analysis and Conclusions](#ilab-13-step-7-analysis-and-conclusions)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -309,8 +327,8 @@ To analyze how Oracle executes a query, use:
 
 ```sql
 EXPLAIN PLAN FOR
-SELECT * FROM orders WHERE order_date = '2024-01-01';
--- or ...
+  SELECT * FROM orders WHERE order_date = '2024-01-01';
+-- DON'T FORGET ;
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 ```
 Look for costly operations like TABLE ACCESS FULL, which usually indicates a full table scan.
@@ -875,7 +893,7 @@ CREATE TABLE sales (
   PARTITION sales_2021 VALUES LESS THAN (TO_DATE('01-JAN-2022','DD-MON-YYYY')),
   PARTITION sales_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')),
   PARTITION sales_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY')),
-  PARTITION sales_future VALUES LESS THAN (MAXVALUE)
+  PARTITION sales_default VALUES LESS THAN (MAXVALUE)
 );
 ```
 
@@ -1013,20 +1031,90 @@ CREATE TABLE sales (
 
 * `under-construction`
 
-### 6.6. Partition Pruning
+### 6.6 Reference Partitioning
+
+* Partitions a child table based on the partitioning of its parent (foreign key-based).
+
+```sql
+CREATE TABLE orders (
+  order_id NUMBER,
+  customer_id NUMBER,
+  ...
+) PARTITION BY RANGE (order_date);
+
+CREATE TABLE order_items (
+  item_id NUMBER,
+  order_id NUMBER,
+  ...
+) PARTITION BY REFERENCE (order_id);
+```
+
+### 6.7 System Partitioning
+
+* Oracle lets the application control which partition each row goes to — Oracle does not apply any automatic rule.
+
+```sql
+CREATE TABLE sales (
+  ...
+) PARTITION BY SYSTEM (
+  PARTITION p1,
+  PARTITION p2
+);
+```
+
+### 6.8 Virtual Column Partitioning
+
+* Partitioning based on a virtual (derived) column.
+
+```sql
+ALTER TABLE sales ADD quarter GENERATED ALWAYS AS (
+  TO_CHAR(order_date, 'Q')
+) VIRTUAL;
+
+PARTITION BY LIST (quarter) (
+  PARTITION q1 VALUES ('1'),
+  PARTITION q2 VALUES ('2'),
+  ...
+);
+
+```
+
+### 6.9. Partition Pruning
+
+Partition Pruning is an optimization technique used by Oracle to limit the number of partitions accessed during query execution, so that only the relevant partitions are scanned instead of the entire table. 
+
+* **How does it impact queries performance?**
+  * Reduces I/O
+  * Speeds up queries
+  * Enables better use of indexes, memory, and CPU
+  * Works transparently without changing query syntax
+* **How It Works?**
+  * If a table is partitioned (e.g., by date or category), Oracle's optimizer can eliminate ("prune") partitions that are not needed based on the query predicates (e.g., a WHERE clause).
+* **Types of Partition Pruning**:
+  * **Static Pruning**: Oracle can determine the partition(s) to scan at parse time (e.g., WHERE order_mode = 'MAIL')
+  * **Dynamic Pruning	Partition** is determined at runtime, typically when using bind variables or joins
+  * **Manual Pruning**: Developer uses PARTITION clause directly (less common)
+* **How to Observe It?**
+   * Look at: `Pstart` and `Pstop` values — if they match and refer to specific partitions, pruning occurred.
+* **When It Doesn't Work?**
+  * If predicates are wrapped in functions: WHERE TRUNC(order_date) = ...
+  * If bind variables are used improperly (WHERE order_date = :bind without correct peek behavior)
+  * If partition key is not used in WHERE or JOIN conditions
+
+
+#### 6.9.a References
+* See Laboratory [I.13. Create Sample Tables for Partitioning](#ilab-13-sample-tables-for-partitioning)
+
+### 6.10. Partition zone maps Exadata
 
 * `under-construction`
 
-### 6.7. Partition zone maps Exadata
-
-* `under-construction`
-
-### 6.8. Drop Partition
+### 6.11. Drop Partition
 
 * `under-construction`
   - Drop de partições onde a PK da tabela não faz parte da chave de particionamento, o índice da PK fica em status unusable
 
-### 6.9. Query Partition 
+### 6.12. Query Partition 
 
 * `under-construction`
 
@@ -1108,7 +1196,7 @@ References:
 #### 8.2.a. Smart Scans
 
 * "... (suppose we want get 3 columns by primary key `SELECT emp_id, ename, salary FROM emp WHERE id = 123` in total 38 bytes) ... a non-EXADATA Oracle database  must fetch the full block on which the data resides. If we assume that the block is a standard 8K Oracle data block ... Why do we have to fetch 8K of data when we only want 35 bytes of that data, and Oracle knows we only want 35 bytes? The answer is because that is just how the nonEXADATA Oracle database works." (Ref. no. 1)
-* "... the non-EXADATA Oracle  database data acquisition process (each query wate time with):
+* "... the non-EXADATA Oracle  database data acquisition process (each query waste time with):
   * Unwanted Columns; 
   * Unwanted Rows; 
   * Overhead Space; 
@@ -1203,7 +1291,7 @@ WHERE  c.region = 'EUROPE';
 |   1 |  HASH JOIN                         |           | ...   | ...   | ...   |
 |   2 |   TABLE ACCESS STORAGE FULL        | CUSTOMERS |       |       |       |
 |   3 |    BLOOM FILTER CREATE :BF0000     |           |       |       |       |
-|   4 |   TABLE ACCESS STORAGE FULL        | ORDERS    |       |       |       |
+|   4 |   TABLE ACCESS STORAGE FULL        | ORDERS              |       |       |       |
 |   5 |    BLOOM FILTER USE :BF0000        |           |       |       |       |
 ---------------------------------------------------------------------------------
 ```
@@ -1303,7 +1391,7 @@ WHERE name LIKE '%flash%' -- 'cell flash cache read hits', 'cell flash cache wri
 
 ##### 8.2.e.99 References
 
-1. [Official Documentation: - Oracle Exadata Database Machine - Smart Flash Cache](https://www.oracle.com/database/technologies/exadata/software/smartflashcache/)
+1. [Official Documentation - Oracle Exadata Database Machine - Smart Flash Cache](https://www.oracle.com/database/technologies/exadata/software/smartflashcache/)
 2. [Video - Oracle Exadata Smart Flash Cache](https://www.youtube.com/watch?v=6Sv70I9UMYo)
 3. [Video - Exadata Smart Flash Cache (ESFC) & Persistent Memory in X8-M ||Oracle Exadata Architecture Explained](https://www.youtube.com/watch?v=5CkB58JHwhM)
 
@@ -1318,7 +1406,9 @@ WHERE name LIKE '%flash%' -- 'cell flash cache read hits', 'cell flash cache wri
 * EXADATA offers 3 technologies (functionalities) that provide the basic speed improvements: a) **SMARTSCAN** mining, reporting, and other large data queries (10X to 40X); b) **SMART FLASHCACHE**  OLTP and other small data queries (2X to 4X); c) **UPGRADES** row at a time and everything else (2X to 4X (maybe))
 * "... migration to EXADATA would require additional  work from them, as in the replacing of PUBLIC SYNONYMS with PRIVATE SYNONYMS ..."
 
-PS: [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
+#### 8.3.a.99. References
+
+* [Meade, Kevin. Oracle SQL Performance Tuning and Optimization: Its all about the Cardinalities. Kindle Edition.](https://www.amazon.com/-/pt/dp/1501022695/ref=sr_1_10?__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3U9QBWR7CJB68&dib=eyJ2IjoiMSJ9.jWm08QE6yqSAFwkzOyMmePWfwONE4BtokZUnjEjLTE96wP-ojGg_37tNb3PgR6AC9_9cPE01Oy9qV-MmRhb9t3CTkOOrcwle7YJ0gTebjVB1si_3bbmWPl6SvvDY_pfCIwhzYI84tl1SBEN8IWEceguW7wNKI-0Dzz5SUWXNT4NUTw2SCHsq1-nLpCM-EML1BZ5cFfldC-0Ij3Cjo7OfWf8GwFlLKtfidsrKTdvjiFQ.BBw1wcWhXlhaUc7UXqTXuTBgRmrRlxlPHIyeTkJWymc&dib_tag=se&keywords=Oracle+Performance&qid=1746629887&sprefix=oracle+performance%2Caps%2C209&sr=8-10)
 
 
 
@@ -1419,7 +1509,7 @@ DESCRIBE STUDY.customers
 
 Name               Null?    Type           
 ------------------ -------- -------------- 
-ID                 NOT NULL NUMBER         
+ID                              NOT NULL NUMBER         
 NAME               NOT NULL VARCHAR2(100)  
 CUSTOMER_TYPE_ID   NOT NULL VARCHAR2(1)    
 CODE               NOT NULL VARCHAR2(14)   
@@ -1506,17 +1596,17 @@ ORDER BY owner, table_name;
 ```result
 TABLE_NAME COLUMN_NAME        NUM_DISTINCT DENSITY      NUM_NULLS LOW_VALUE HIGH_VALUE HISTOGRAM LAST_ANALYZED
 ---------  ------------------ ------------ --------     --------- -----------------------------------------------
-CUSTOMERS  ID                 200000       0,000005               HYBRID    04-APR-2025 17:24:4242
-CUSTOMERS  NAME               199760       0,000005     0         AAAATXDEDBQEZILCIGBI XPTADDHPLQHKQHOKUVORUJBDWELQYF GYFKREDIPEOK    ZZZVUXTGRDHLYGFXWZMQ MAMQEXFHELDWGKSLJTQFWCEGFJRVKG PEXLVEWFDZIW    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  ID                              200000       0,000005               HYBRID                 04-APR-2025 17:24:4242
+CUSTOMERS  NAME               199760       0,000005     0         AAAATXDEDBQEZILCIGBI XPTADDHPLQHKQHOKUVORUJBDWELQYF GYFKREDIPEOK    ZZZVUXTGRDHLYGFXWZMQ MAMQEXFHELDWGKSLJTQFWCEGFJRVKG PEXLVEWFDZIW    HYBRID                 04-APR-2025 17:24:4242
 CUSTOMERS  CUSTOMER_TYPE_ID   2            0,0000025    0         F    J    FREQUENCY    04-APR-2025 17:24:4242
-CUSTOMERS  CODE               200000       0,000005     0         10000018473    99999447843158    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  CODE               200000       0,000005     0         10000018473    99999447843158    HYBRID                 04-APR-2025 17:24:4242
 CUSTOMERS  CUSTOMER_STATUS_ID 1            0,0000024977 0         FREQUENCY    04-APR-2025 17:24:4242
-CUSTOMERS  EMAIL              200000       0,000005     0         aaaamhljwwjzxnythjmp@example.com    zzzyfsyhfwatwfsldgdy@example.com    HYBRID    04-APR-2025 17:24:4242
-CUSTOMERS  PHONE              200000       0,000005     0         +55 11100000696    +55 11999998358    HYBRID    04-APR-2025 17:24:4242
-CUSTOMERS  ADDRESS_STREET     200000       0,000005     0         Rua AABQMQdFysDnxLFpzanu aBmGVyhpTEIFuNHSljoyXwJvGWQHrr    Rua zzzVePqQJJjLbPtdqveg MQucctYONvmRHAiGDmvxmXciNZNBBe    HYBRID    04-APR-2025 17:24:4242
-CUSTOMERS  ADDRESS_UNIT       898          0,001112     0         100    999    HYBRID    04-APR-2025 17:24:4242
-CUSTOMERS  ADDRESS_DETAILS    100000       0,00001      100000    AAFFDAlKGahuDVVCBlJR    zzzjKSTdJZAhYVxQQEsD    HYBRID    04-APR-2025 17:24:4242
-CUSTOMERS  ADDRESS_ZIP_CODE   200000       0,000005     0         L     db$    HYBRID    04-APR-2025 17:24:4242
+CUSTOMERS  EMAIL              200000       0,000005     0         aaaamhljwwjzxnythjmp@example.com    zzzyfsyhfwatwfsldgdy@example.com    HYBRID                 04-APR-2025 17:24:4242
+CUSTOMERS  PHONE              200000       0,000005     0         +55 11100000696    +55 11999998358    HYBRID                 04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_STREET     200000       0,000005     0         Rua AABQMQdFysDnxLFpzanu aBmGVyhpTEIFuNHSljoyXwJvGWQHrr    Rua zzzVePqQJJjLbPtdqveg MQucctYONvmRHAiGDmvxmXciNZNBBe    HYBRID                 04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_UNIT       898          0,001112     0         100    999    HYBRID                 04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_DETAILS    100000       0,00001      100000    AAFFDAlKGahuDVVCBlJR    zzzjKSTdJZAhYVxQQEsD    HYBRID                 04-APR-2025 17:24:4242
+CUSTOMERS  ADDRESS_ZIP_CODE   200000       0,000005     0         L     db$    HYBRID                 04-APR-2025 17:24:4242
 CUSTOMERS  ADDRESS_CITY       27           0,0000025    0         Aracaju    Vitoria    FREQUENCY    04-APR-2025 17:24:4242
 CUSTOMERS  ADDRESS_STATE      27           0,0000025    0         AC    TO    FREQUENCY    04-APR-2025 17:24:4242
 CUSTOMERS  ADDRESS_COUNTRY    1            0,0000001    0         Brasil    Brasil    FREQUENCY    04-APR-2025 17:24:4242
@@ -1600,7 +1690,7 @@ Plan hash value: 1323999688
 |   0 | SELECT STATEMENT                  |              |     1 |   247 |     2   (0)| 00:00:01 |        |      |            |
 |   1 |  PX COORDINATOR                   |              |       |       |            |          |        |      |            |
 |   2 |   PX SEND QC (RANDOM)             | :TQ10001     |     1 |   247 |     2   (0)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
-|   3 |    TABLE ACCESS BY INDEX ROWID    | CUSTOMERS    |     1 |   247 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   3 |    TABLE ACCESS BY INDEX ROWID                 | CUSTOMERS    |     1 |   247 |     2   (0)| 00:00:01 |  Q1,01 | PCWP |            |
 |   4 |     BUFFER SORT                   |              |       |       |            |          |  Q1,01 | PCWC |            |
 |   5 |      PX RECEIVE                   |              |     1 |       |     1   (0)| 00:00:01 |  Q1,01 | PCWP |            |
 |   6 |       PX SEND HASH (BLOCK ADDRESS)| :TQ10000     |     1 |       |     1   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
@@ -2711,9 +2801,6 @@ Predicate Information (identified by operation id):
    - It's important to align the index creation with the actual query patterns to ensure optimal performance.
 6. Importance of Statistics:
    - After creating new indexes, gathering statistics is crucial for the optimizer to make informed decisions about index usage.
----
-
-
 
 
 ---
@@ -2765,11 +2852,11 @@ AK_CUSTOMERS_CODE                CODE                1               200000     
 IDX_CUSTOMERS_ADDRESS_CITY       ADDRESS_CITY        1               27            200000   50            NONUNIQUE  NORMAL
 IDX_CUSTOMERS_ADDRESS_DETAILS    ADDRESS_DETAILS     1               100000        100000   30            NONUNIQUE  NORMAL
 IDX_CUSTOMERS_CUSTOMER_STATUS_ID CUSTOMER_STATUS_ID  1               2             200000   22            NONUNIQUE  NORMAL
-IDX_CUSTOMERS_CUSTOMER_TYPE_ID   CUSTOMER_TYPE_ID    1               2             200000   1             NONUNIQUE  NORMAL
+IDX_CUSTOMERS_CUSTOMER_TYPE_ID   CUSTOMER_TYPE_ID                 1               2             200000   1             NONUNIQUE  NORMAL
 IDX_CUSTOMERS_EMAIL              EMAIL               1               197828        200000   100           NONUNIQUE  NORMAL
 IDX_CUSTOMERS_NAME               NAME                1               200000        200000   100           NONUNIQUE  NORMAL
 IDX_FB_CUSTOMERS_EMAIL           SYS_NC00018$        1               197828        200000   100           NONUNIQUE  FUNCTION-BASED NORMAL
-SYS_C0057106                     ID                  1               200000        200000   22            UNIQUE     NORMAL
+SYS_C0057106                     ID                               1               200000        200000   22            UNIQUE     NORMAL
 ```
 
 * Let's index Non Indexed Columns (country, state)
@@ -3107,6 +3194,570 @@ In summary, the composite index provided the best performance for the specific q
 
 ---
 
+### I.Lab-13: Sample Tables for Partitioning
+
+### I.Lab-13-Step-1: SCENARIO 11 - Let's create and populate(load): Orders, OrderItens and Products tables
+
+* Let's create and populate(load) Orders, OrderItens and Products
+
+* Run Script [`21_tables_pk_ak_seq_check.sql`](./sql/21_tables_pk_ak_seq_check.sql)
+* Run Script [`22_indexes_scenario_11_initial.sql`](./sql/22_indexes_scenario_11_initial.sql)
+* Run Script [`23_execute_load_products.sql`](./sql/23_execute_load_products.sql)
+* Run Script [`24_execute_load_orders.sql`](./sql/24_execute_load_orders.sql)
+* Run Script [`25_execute_load_orderitems.sql`](./sql/25_execute_load_orderitems.sql)
+
+
+* Let's check (orders, orderitems, products) statistics
+
+```sql
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS');
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDER_ITEMS');
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'PRODUCTS');
+```
+
+
+```sql
+SELECT table_name, column_name, num_distinct, TRUNC(density, 6) AS DENSITY, num_nulls, RPAD(UTL_RAW.CAST_TO_VARCHAR2(low_value),10,' ') AS low_value, RPAD(UTL_RAW.CAST_TO_VARCHAR2(high_value),10,' ') AS high_value, RPAD(histogram,10,' ') AS HISTOGRAM, TO_CHAR(last_analyzed, 'DD-MON-YYYY HH24:MI:SSSS') AS last_analyzed
+FROM all_tab_col_statistics
+WHERE owner = 'STUDY' AND table_name IN ( 'ORDERS', 'ORDER_ITEMS', 'PRODUCTS' )
+ORDER BY owner, table_name;
+```
+
+```Query-Result
+TABLE_NAME    COLUMN_NAME          NUM_DISTINCT DENSITY   NUM_NULLS LOW_VALUE  HIGH_VALUE HISTOGRAM     LAST_ANALYZED
+------------- -------------------- ------------ --------- --------- ---------- ---------- ------------- ----------------------
+ORDERS        ORDER_BRANCH         50           0         0         .          .          FREQUENCY     13-MAY-2025 20:17:1818
+ORDERS        ID                   1000000      0,000001  0         .          .          HYBRID        13-MAY-2025 20:17:1818
+ORDERS        ORDER_NUM            20177        0,00005   0         .          ..*        HYBRID        13-MAY-2025 20:17:1818
+ORDERS        ORDER_DT             989667       0,000001  0         xx.....    x..54      HYBRID        13-MAY-2025 20:17:1818
+ORDERS        ORDER_MODE           4            0         0         DIRECT     PHONE      FREQUENCY     13-MAY-2025 20:17:1818
+ORDERS        OBS                  185629       0,000002  400173    Corporate  Special in HYBRID        13-MAY-2025 20:17:1818
+ORDERS        ORDER_STATUS         8            0         0         .          .          FREQUENCY     13-MAY-2025 20:17:1818
+ORDERS        ORDER_TOTAL          882819       0,000001  0         .#         .          HYBRID        13-MAY-2025 20:17:1818
+ORDERS        SALES_REP_ID         405          0,002463  199574    .          .          HYBRID        13-MAY-2025 20:17:1818
+ORDERS        PROMOTION_ID         20           0,000001  699704    .          .          FREQUENCY     13-MAY-2025 20:17:1818
+ORDERS        CUSTOMER_ID          197611       0,000005  0         .          .          HYBRID        13-MAY-2025 20:17:1818
+ORDER_ITEMS   ORDER_ID             971092       0,000001  0         .          .          HYBRID        13-MAY-2025 20:02:1616
+ORDER_ITEMS   ID                   4677809      0         0         .          .          HYBRID        13-MAY-2025 20:02:1616
+ORDER_ITEMS   LINE_ITEM_ID         8            0         0         .          .          FREQUENCY     13-MAY-2025 20:02:1616
+ORDER_ITEMS   QUANTITY             50           0         0         .          .          FREQUENCY     13-MAY-2025 20:02:1616
+ORDER_ITEMS   UNIT_PRICE           172867       0,000006  0         ..         .ca        HYBRID        13-MAY-2025 20:02:1616
+ORDER_ITEMS   PRODUCT_ID           29063        0,000034  0         .          .          HYBRID        13-MAY-2025 20:02:1616
+PRODUCTS      ID                   30000        0,000033  0         .          .          HYBRID        12-MAY-2025 16:58:2727
+PRODUCTS      PRODUCT_NAME         9472         0,000106  0         Desktop M  Tablet Mod HYBRID        12-MAY-2025 16:58:2727
+PRODUCTS      PRODUCT_DESCRIPTION  30000        0,000033  0         Advanced   Ultimate e HYBRID        12-MAY-2025 16:58:2727
+PRODUCTS      CATEGORY_ID          10           0,000016  0         .          .          FREQUENCY     12-MAY-2025 16:58:2727
+PRODUCTS      WEIGHT_CLASS         5            0,000016  0         .            .        FREQUENCY     12-MAY-2025 16:58:2727
+PRODUCTS      CATALOG_URL          30000        0,000033  0         http://exa http://exa HYBRID        12-MAY-2025 16:58:2727
+PRODUCTS      SUPPLIER_ID          903          0,001106  0          .c        .          HYBRID        12-MAY-2025 16:58:2727
+PRODUCTS      MIN_PRICE            29143        0,000034  0         ".         .aZ        HYBRID        12-MAY-2025 16:58:2727
+PRODUCTS      LIST_PRICE           29660        0,000034  0         ..!        .cX        HYBRID        12-MAY-2025 16:58:2727
+PRODUCTS      PRODUCT_STATUS       3            0,000016  0         obsolete   under deve FREQUENCY     12-MAY-2025 16:58:2727
+PRODUCTS      WARRANTY_PERIOD      59           0,000016  0         .                     FREQUENCY     12-MAY-2025 16:58:2727
+```
+
+* Let's check indexes (orders, orderitems, products) indexes
+
+```sql
+SELECT i.table_name, i.index_name, ic.column_name, ic.column_position, i.distinct_keys, i.num_rows, ic.column_length, i.uniqueness, i.index_type
+FROM all_indexes i
+JOIN all_ind_columns ic ON i.index_name = ic.index_name AND i.owner = ic.index_owner
+WHERE i.owner = 'STUDY'
+  AND i.table_name IN ( 'ORDERS', 'ORDER_ITEMS', 'PRODUCTS' )
+ORDER BY i.table_name, i.index_name, ic.column_position;
+```
+
+```Query-Result
+TABLE_NAME          INDEX_NAME                       COLUMN_NAME         COLUMN_POSITION DISTINCT_KEYS NUM_ROWS COLUMN_LENGTH UNIQUENESS INDEX_TYPE
+------------------- -------------------------------- ------------------- --------------- ------------- -------- ------------- ---------- -----------
+ORDERS              AK_ORDERS                        ORDER_BRANCH        1               1000000       1000000  22            UNIQUE     NORMAL
+ORDERS              AK_ORDERS                        ORDER_NUM           2               1000000       1000000  22            UNIQUE     NORMAL
+ORDERS              IDX_ORDERS_CUSTOMERID            CUSTOMER_ID         1               197611        1000000  22            NONUNIQUE  NORMAL
+ORDERS              SYS_C0057371                     ID                  1               1000000       1000000  22            UNIQUE     NORMAL
+ORDER_ITEMS         IDX_ORDERITEMS_ORDERID           ORDER_ID            1               971092        4503923  22            NONUNIQUE  NORMAL
+ORDER_ITEMS         SYS_C0057377                     ID                  1               4432994       4432994  22            UNIQUE     NORMAL
+PRODUCTS            SYS_C0057335                     ID                  1               30000         30000    22            UNIQUE     NORMAL
+```
+
+
+### I.Lab-13-Step-2: Query data and analyze data
+
+* Query data profile
+
+```sql
+SELECT TO_CHAR(order_dt,'YYYY') AS ORDER_YEAR, count(*) AS COUNTER FROM ORDERS GROUP BY TO_CHAR(order_dt,'YYYY') ORDER BY 1;
+```
+
+```query-result
+ORDER_YEAR COUNTER
+---------- -------
+2020       186427
+2021       186624
+2022       186101
+2023       186731
+2024       186656
+2025       67461
+```
+
+```sql
+SELECT order_mode, count(*) AS COUNTER FROM ORDERS GROUP BY order_mode ORDER BY 1;
+```
+
+```query-result
+ORDER_MODE COUNTER
+---------- -------
+DIRECT     249968
+FAX        250458
+MAIL       249796
+PHONE      249778
+```
+
+* Query NonIndexed/Indexed ORDERS.order_dt
+
+```sql
+CREATE INDEX idx_orders_orderdt ON orders(order_dt);
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS');
+
+EXPLAIN PLAN FOR
+  SELECT * FROM ORDERS WHERE order_dt BETWEEN TO_DATE('2025-01-01','YYYY-MM-DD') AND TO_DATE('2025-12-31','YYYY-MM-DD');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+DROP INDEX idx_orders_orderdt;
+```
+
+```plan-table
+  :
+--------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name     | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+--------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |          | 15651 |   947K|  1524   (1)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR      |          |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000 | 15651 |   947K|  1524   (1)| 00:00:01 |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |          | 15651 |   947K|  1524   (1)| 00:00:01 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| ORDERS   | 15651 |   947K|  1524   (1)| 00:00:01 |  Q1,00 | PCWP |            |
+--------------------------------------------------------------------------------------------------------------
+  :
+```
+
+
+* Query NonIndexed/Indexed BitMap ORDERS.order_mode
+
+```sql
+CREATE BITMAP INDEX idx_orders_ordermode  ON study.orders(order_mode);
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS');
+
+EXPLAIN PLAN FOR
+  SELECT SUM(order_TOTAL) FROM ORDERS WHERE order_mode = 'DIRECT';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+DROP INDEX idx_orders_ordermode;
+```
+
+```plan-table
+  :
+----------------------------------------------------------------------------------------------------------------
+| Id  | Operation              | Name     | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+----------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT       |          |     1 |    12 |  1525   (1)| 00:00:01 |        |      |            |
+|   1 |  SORT AGGREGATE        |          |     1 |    12 |            |          |        |      |            |
+|   2 |   PX COORDINATOR       |          |       |       |            |          |        |      |            |
+|   3 |    PX SEND QC (RANDOM) | :TQ10000 |     1 |    12 |            |          |  Q1,00 | P->S | QC (RAND)  |
+|   4 |     SORT AGGREGATE     |          |     1 |    12 |            |          |  Q1,00 | PCWP |            |
+|   5 |      PX BLOCK ITERATOR |          |   249K|  2929K|  1525   (1)| 00:00:01 |  Q1,00 | PCWC |            |
+|*  6 |       TABLE ACCESS FULL| ORDERS   |   249K|  2929K|  1525   (1)| 00:00:01 |  Q1,00 | PCWP |            |
+----------------------------------------------------------------------------------------------------------------
+  :
+```
+
+
+* Query Indexed ORDER_ITEMS.order_id in ORDER_ITEMS table
+
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM ORDER_ITEMS WHERE order_id = 123456;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+  :
+--------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                  | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+--------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                       |     6 |   162 |     4   (0)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                       |                       |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10001              |     6 |   162 |     4   (0)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|   3 |    TABLE ACCESS BY INDEX ROWID BATCHED| ORDER_ITEMS           |     6 |   162 |     4   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                       |                       |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                       |                       |     6 |       |     3   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)    | :TQ10000              |     6 |       |     3   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                    |                       |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN              | FK_ORDERITEMS_ORDERID |     6 |       |     3   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+--------------------------------------------------------------------------------------------------------------------------------------------
+  :
+```
+
+### I.Lab-13-Step-3: Create Partitioned table RANGE by order_dt
+
+* Create Partitioned table RANGE by order_dt
+
+```sql
+CREATE TABLE STUDY.P_RANGE_ORDERS
+(
+  ID             NUMBER, 
+  ORDER_BRANCH   NUMBER(3,0) NOT NULL ENABLE, 
+  ORDER_NUM      NUMBER(6,0) NOT NULL ENABLE, 
+  ORDER_DT       DATE NOT NULL ENABLE, 
+  ORDER_MODE     VARCHAR2(8), 
+  CUSTOMER_ID    NUMBER NOT NULL ENABLE, 
+  ORDER_STATUS   NUMBER(2,0), 
+  ORDER_TOTAL    NUMBER(15,2), 
+  SALES_REP_ID   NUMBER(6,0), 
+  PROMOTION_ID   NUMBER(6,0), 
+  OBS            VARCHAR2(100) COLLATE "USING_NLS_COMP",
+
+  -- Primary and Unique Constraints
+  CONSTRAINT P_RANGE_ORDERS_PK PRIMARY KEY (ID),
+  CONSTRAINT AK_P_RANGE_ORDERS UNIQUE (ORDER_BRANCH, ORDER_NUM),
+
+  -- Foreign Key Constraint
+  CONSTRAINT FK_P_ORDERS_CUSTOMERS FOREIGN KEY (CUSTOMER_ID)
+    REFERENCES STUDY.CUSTOMERS(ID)
+)
+PARTITION BY RANGE (ORDER_DT)
+(
+  PARTITION P_RANGE_ORDERS_2020 VALUES LESS THAN (TO_DATE('01-JAN-2021','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2021 VALUES LESS THAN (TO_DATE('01-JAN-2022','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2024 VALUES LESS THAN (TO_DATE('01-JAN-2025','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2025 VALUES LESS THAN (TO_DATE('01-JAN-2026','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_DEFAULT VALUES LESS THAN (MAXVALUE)
+);
+```
+
+* Load(populate) Partitioned table with same data and Update statistics
+
+```sql
+INSERT /*+ APPEND */ INTO STUDY.P_RANGE_ORDERS
+SELECT * FROM STUDY.ORDERS;
+COMMIT;
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'P_RANGE_ORDERS');
+```
+
+* Query NonIndexed but Partition-Key column ORDERS.order_dt
+  * Note that Pstart = 6 and Pstop = 6. So Oracle with dynamic partition pruning and restricting query to a Partition !!!
+
+
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_RANGE_ORDERS WHERE order_dt BETWEEN TO_DATE('2025-01-01','YYYY-MM-DD') AND TO_DATE('2025-12-31','YYYY-MM-DD');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name           | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |    TQ  |IN-OUT| PQ Distrib |
+------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |                | 69894 |  4231K|   209   (1)| 00:00:01 |       |       |        |      |            |
+|   1 |  PX COORDINATOR      |                |       |       |            |          |       |       |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000       | 69894 |  4231K|   209   (1)| 00:00:01 |       |       |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |                | 69894 |  4231K|   209   (1)| 00:00:01 |     6 |     6 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| P_RANGE_ORDERS | 69894 |  4231K|   209   (1)| 00:00:01 |     6 |     6 |  Q1,00 | PCWP |            |
+------------------------------------------------------------------------------------------------------------------------------------
+```
+
+```sql
+SELECT partition_name, partition_position 
+FROM all_tab_partitions 
+WHERE table_name = 'P_RANGE_ORDERS' AND table_owner = 'STUDY'
+ORDER BY partition_position;
+```
+
+```query-result
+PARTITION_NAME            PARTITION_POSITION
+------------------------- ------------------
+P_RANGE_ORDERS_2020       1
+P_RANGE_ORDERS_2021       2
+P_RANGE_ORDERS_2022       3
+P_RANGE_ORDERS_2023       4
+P_RANGE_ORDERS_2024       5
+P_RANGE_ORDERS_2025       6  <- Partition of order_dt used
+P_RANGE_ORDERS_DEFAULT    7
+```
+
+### I.Lab-13-Step-4: Create Partitioned table LIST by order_mode
+
+* Create Partitioned table LIST by order_mode
+
+```sql
+CREATE TABLE STUDY.P_LIST_ORDERS
+(
+  ID             NUMBER, 
+  ORDER_BRANCH   NUMBER(3,0) NOT NULL ENABLE, 
+  ORDER_NUM      NUMBER(6,0) NOT NULL ENABLE, 
+  ORDER_DT       DATE NOT NULL ENABLE, 
+  ORDER_MODE     VARCHAR2(8), 
+  CUSTOMER_ID    NUMBER NOT NULL ENABLE, 
+  ORDER_STATUS   NUMBER(2,0), 
+  ORDER_TOTAL    NUMBER(15,2), 
+  SALES_REP_ID   NUMBER(6,0), 
+  PROMOTION_ID   NUMBER(6,0), 
+  OBS            VARCHAR2(100) COLLATE "USING_NLS_COMP",
+
+  -- Constraints (renamed for uniqueness)
+  CONSTRAINT P_LIST_ORDERS_PK PRIMARY KEY (ID),
+  CONSTRAINT AK_P_LIST_ORDERS UNIQUE (ORDER_BRANCH, ORDER_NUM),
+  CONSTRAINT FK_P_LIST_ORDERS_CUSTOMERS FOREIGN KEY (CUSTOMER_ID)
+    REFERENCES STUDY.CUSTOMERS(ID)
+)
+PARTITION BY LIST (ORDER_MODE)
+(
+  PARTITION P_LIST_ORDERS_DIRECT  VALUES ('DIRECT'),
+  PARTITION P_LIST_ORDERS_FAX     VALUES ('FAX'),
+  PARTITION P_LIST_ORDERS_MAIL    VALUES ('MAIL'),
+  PARTITION P_LIST_ORDERS_PHONE   VALUES ('PHONE'),
+  PARTITION P_LIST_ORDERS_DEFAULT VALUES (DEFAULT)
+);
+```
+
+* Load(populate) Partitioned table with same data and Update statistics
+
+```sql
+INSERT /*+ APPEND */ INTO STUDY.P_LIST_ORDERS
+SELECT * FROM STUDY.ORDERS;
+COMMIT;
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'P_LIST_ORDERS');
+```
+
+* Query NonIndexed but Partition-Key column ORDERS.order_dt
+  * Note that Pstart = 1 and Pstop = 1. So Oracle with dynamic partition pruning and restricting query to a Partition !!!
+
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_LIST_ORDERS WHERE order_mode = 'DIRECT';
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+-----------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name          | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |    TQ  |IN-OUT| PQ Distrib |
+-----------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |               |   249K|    14M|   292   (1)| 00:00:01 |       |       |        |      |            |
+|   1 |  PX COORDINATOR      |               |       |       |            |          |       |       |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000      |   249K|    14M|   292   (1)| 00:00:01 |       |       |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |               |   249K|    14M|   292   (1)| 00:00:01 |   KEY |   KEY |  Q1,00 | PCWC |            |
+|   4 |     TABLE ACCESS FULL| P_LIST_ORDERS |   249K|    14M|   292   (1)| 00:00:01 |     1 |     1 |  Q1,00 | PCWP |            |
+-----------------------------------------------------------------------------------------------------------------------------------
+```
+
+```sql
+SELECT partition_name, partition_position 
+FROM all_tab_partitions 
+WHERE table_name = 'P_LIST_ORDERS' AND table_owner = 'STUDY'
+ORDER BY partition_position;
+```
+
+```query-result
+PARTITION_NAME            PARTITION_POSITION
+------------------------- ------------------
+P_LIST_ORDERS_DIRECT      1 <-- Partition of order_mode
+P_LIST_ORDERS_FAX         2
+P_LIST_ORDERS_MAIL        3
+P_LIST_ORDERS_PHONE       4
+P_LIST_ORDERS_DEFAULT     5
+```
+
+
+### I.Lab-13-Step-5: Create Partitioned table HASH by customer_id
+
+* Create Partitioned table HASH by customer_id
+
+```sql
+CREATE TABLE STUDY.P_HASH_ORDERS
+(
+  ID            NUMBER,
+  ORDER_BRANCH  NUMBER(3,0) NOT NULL ENABLE,
+  ORDER_NUM     NUMBER(6,0) NOT NULL ENABLE,
+  ORDER_DT      DATE NOT NULL ENABLE,
+  ORDER_MODE    VARCHAR2(8),
+  CUSTOMER_ID   NUMBER NOT NULL ENABLE,
+  ORDER_STATUS  NUMBER(2,0),
+  ORDER_TOTAL   NUMBER(15,2),
+  SALES_REP_ID  NUMBER(6,0),
+  PROMOTION_ID  NUMBER(6,0),
+  OBS           VARCHAR2(100) COLLATE "USING_NLS_COMP",
+  CONSTRAINT PK_P_HASH_ORDERS PRIMARY KEY (ID),
+  CONSTRAINT AK_P_HASH_ORDERS UNIQUE (ORDER_BRANCH, ORDER_NUM),
+  CONSTRAINT FK_P_HASH_ORDERS_CUSTOMERS FOREIGN KEY (CUSTOMER_ID)
+    REFERENCES STUDY.CUSTOMERS(ID)
+)
+PARTITION BY HASH (CUSTOMER_ID)
+PARTITIONS 30;
+```
+
+* Load(populate) Partitioned table with same data and Update statistics
+
+```sql
+INSERT /*+ APPEND */ INTO STUDY.P_HASH_ORDERS
+SELECT * FROM STUDY.ORDERS;
+COMMIT;
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'P_HASH_ORDERS');
+```
+
+* Query NonIndexed but Partition-Key column ORDERS.order_dt
+  * Note that Pstart = 1 and Pstop = 1. So Oracle with dynamic partition pruning and restricting query to a Partition !!!
+
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_HASH_ORDERS WHERE customer_id = 123456;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+-----------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name          | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |    TQ  |IN-OUT| PQ Distrib |
+-----------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |               |     5 |   310 |   152   (0)| 00:00:01 |       |       |        |      |            |
+|   1 |  PX COORDINATOR      |               |       |       |            |          |       |       |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000      |     5 |   310 |   152   (0)| 00:00:01 |       |       |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |               |     5 |   310 |   152   (0)| 00:00:01 |     4 |     4 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| P_HASH_ORDERS |     5 |   310 |   152   (0)| 00:00:01 |     4 |     4 |  Q1,00 | PCWP |            |
+-----------------------------------------------------------------------------------------------------------------------------------
+```
+
+```sql
+SELECT partition_name, partition_position 
+FROM all_tab_partitions 
+WHERE table_name = 'P_HASH_ORDERS' AND table_owner = 'STUDY'
+ORDER BY partition_position;
+```
+
+```query-result
+PARTITION_NAME            PARTITION_POSITION
+------------------------- ------------------
+SYS_P3614                 1
+SYS_P3615                 2
+SYS_P3616                 3
+SYS_P3617                 4 <- Partition of customer_id used
+SYS_P3618                 5
+   :                      :
+SYS_P3643                 30
+```
+
+
+### I.Lab-13-Step-6: Create Composite(Multi-Level) Partitioned table RANGE-HASH by order_dt and customer_id
+
+* Create Partitioned table RANGE order_dt and Sub-Partitioned HASH by customer_id
+
+```sql
+CREATE TABLE STUDY.P_RANGEHASH_ORDERS 
+(
+  ID NUMBER, 
+  ORDER_BRANCH NUMBER(3,0) NOT NULL ENABLE, 
+  ORDER_NUM NUMBER(6,0) NOT NULL ENABLE, 
+  ORDER_DT DATE NOT NULL ENABLE, 
+  ORDER_MODE VARCHAR2(8), 
+  CUSTOMER_ID NUMBER NOT NULL ENABLE, 
+  ORDER_STATUS NUMBER(2,0), 
+  ORDER_TOTAL NUMBER(15,2), 
+  SALES_REP_ID NUMBER(6,0), 
+  PROMOTION_ID NUMBER(6,0), 
+  OBS VARCHAR2(100) COLLATE "USING_NLS_COMP",
+  
+  CONSTRAINT P_RH_ORDERS_PK PRIMARY KEY (ID),
+  CONSTRAINT P_RH_AK_ORDERS UNIQUE (ORDER_BRANCH, ORDER_NUM),
+  CONSTRAINT P_RH_FK_ORDERS_CUSTOMERS FOREIGN KEY (CUSTOMER_ID)
+    REFERENCES STUDY.CUSTOMERS(ID)
+)
+PARTITION BY RANGE (ORDER_DT)
+SUBPARTITION BY HASH (CUSTOMER_ID)
+SUBPARTITIONS 10
+(
+  PARTITION P_RANGEHASH_ORDERS_2020 VALUES LESS THAN (TO_DATE('01-JAN-2021','DD-MON-YYYY')),
+  PARTITION P_RANGEHASH_ORDERS_2021 VALUES LESS THAN (TO_DATE('01-JAN-2022','DD-MON-YYYY')),
+  PARTITION P_RANGEHASH_ORDERS_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')),
+  PARTITION P_RANGEHASH_ORDERS_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY')),
+  PARTITION P_RANGEHASH_ORDERS_2024 VALUES LESS THAN (TO_DATE('01-JAN-2025','DD-MON-YYYY')),
+  PARTITION P_RANGEHASH_ORDERS_2025 VALUES LESS THAN (TO_DATE('01-JAN-2026','DD-MON-YYYY')),
+  PARTITION P_RANGEHASH_ORDERS_DEFAULT VALUES LESS THAN (MAXVALUE)
+);
+```
+
+* Load(populate) Partitioned table with same data and Update statistics
+
+```sql
+INSERT /*+ APPEND */ INTO STUDY.P_RANGEHASH_ORDERS
+SELECT * FROM STUDY.ORDERS;
+COMMIT;
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'P_RANGEHASH_ORDERS');
+```
+
+* Query NonIndexed but Partition-Key column ORDERS.order_dt
+  * In a composite partitioned table (RANGE-HASH): Pstart and Pstop represent the range of subpartition IDs (internal subpartition numbers Oracle assigns).
+  * These numbers point to the physical subpartitions that the execution plan will scan.
+  * When Pstart = Pstop, Oracle will only scan one subpartition, which is efficient (good sign).
+
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_RANGEHASH_ORDERS WHERE order_dt BETWEEN TO_DATE('01-JAN-2025','DD-MON-YYYY') AND TO_DATE('31-DEC-2025','DD-MON-YYYY') AND customer_id = 123456;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+----------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name               | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |    TQ  |IN-OUT| PQ Distrib |
+----------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |                    |     1 |    62 |  1299   (1)| 00:00:01 |       |       |        |      |            |
+|   1 |  PX COORDINATOR      |                    |       |       |            |          |       |       |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000           |     1 |    62 |  1299   (1)| 00:00:01 |       |       |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |                    |     1 |    62 |  1299   (1)| 00:00:01 |     4 |     4 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| P_RANGEHASH_ORDERS |     1 |    62 |  1299   (1)| 00:00:01 |    54 |    54 |  Q1,00 | PCWP |            |
+----------------------------------------------------------------------------------------------------------------------------------------
+```
+
+```sql
+SELECT 
+  subpartition_name, 
+  partition_name, 
+  ROWNUM AS internal_subpart_id
+FROM all_tab_subpartitions
+WHERE table_name = 'P_RANGEHASH_ORDERS'
+  AND table_owner = 'STUDY'
+  AND partition_name = 'P_RANGEHASH_ORDERS_2025';
+```
+
+```query-result
+SUBPARTITION_NAME PARTITION_NAME          INTERNAL_SUBPART_ID
+----------------- ----------------------- -------------------
+SYS_SUBP3890      P_RANGEHASH_ORDERS_2023 1
+SYS_SUBP3912      P_RANGEHASH_ORDERS_2025 2
+SYS_SUBP3870      P_RANGEHASH_ORDERS_2021 3
+:                 :                       :
+SYS_SUBP3864      P_RANGEHASH_ORDERS_2021 53
+SYS_SUBP3894      P_RANGEHASH_ORDERS_2024 54
+SYS_SUBP3901      P_RANGEHASH_ORDERS_2024 55
+:                 :                       :
+```
+
+
+### I.Lab-13-Step-7: Analysis and Conclusions
+
+
+1. ORDERS: cardinality 1M rows; ORDER_ITEMS: cardinality 5399742 rows; PRODUCTS: cardinality 30K;
+2. Low selectivity columns: ORDERS.ORDER_BRANCH(50), ORDERS.ORDER_MODE(4), ORDERS.ORDER_STATUS(8), ORDERS.PROMOTION_ID(20), PRODUCTS.WEIGHT_CLASS(5), PRODUCTS.PRODUCT_STATUS(3)
+3. High selectivity columns AND Not Primary Key: ORDERS.CUSTOMER_ID(196K), ORDERS.ORDER_TOTAL(887K)
+4. ORDERS.order_mode has 4 distinct values: ('DIRECT', 'FAX', 'MAIL', 'PHONE')
+5. All queries execute FULL TABLE SCAN, even when a index was created. Selectivity is low, index was not used!
+6. When table was Partitioned RANGE by order_dt, when query a WHERE Predicate used `order_dt BETWEEN TO_DATE('01-JAN-2025','DD-MON-YYYY') AND TO_DATE('31-DEC-2025','DD-MON-YYYY')` then Oracle execute Partition Pruning and accessed only necessary partition
+7. When table was Partitioned LIST by order_mode, when query a WHERE Predicate used `order_mode = 'DIRECT'` then Oracle execute Partition Pruning and accessed only necessary partition
+8. When table was Partitioned HASH by customer_id, when query a WHERE Predicate used `customer_id = 123456` then Oracle execute Partition Pruning and accessed only necessary partition
+9. When table was Partitioned Composite(multi-level) RANGE-HASH by `order_dt BETWEEN TO_DATE('01-JAN-2025','DD-MON-YYYY') AND TO_DATE('31-DEC-2025','DD-MON-YYYY') AND by customer_id = 123456`, when query a WHERE Predicate used customer_id = 123456 then Oracle execute Partition Pruning and accessed only necessary partition
+  * It is a suck find out pstart and pstop pointer to sub-partition
+
+
+---
+
+
 ## II. Performance Tuning CheatSheet
 
 ## II CheatSheet.1: Turn Trace On/Of, Explain Plan, Execution Plan Golden step
@@ -3150,7 +3801,7 @@ variable app_id number;
 
 BEGIN
     :app_session := 999;
-    :app_id      := 666;
+    :app_ID                   := 666;
 END;
 /
 -- end of special instruction for bind variables
@@ -3220,7 +3871,7 @@ ORDER BY index_name, column_position;
 INDEX_NAME        COLUMN_NAME COLUMN_POSITION DESCEND
 ----------------- ----------- --------------- -------
 AK_CUSTOMERS_CODE CODE        1               ASC
-SYS_C0056973      ID          1               ASC
+SYS_C0056973      ID                       1               ASC
 ```
 
 
@@ -3645,7 +4296,7 @@ WHERE sql_id = '0xt1gmwhjjw3t' AND plan_hash_value = 3095916820;
 ```
 
 ```Query-Result
-SQL_ID        PLAN_HASH_VALUE EXECUTIONS BUFFER_GETS DISK_READS ROWS_PROCESSED PARSE_CALLS LAST_ACTIVE_TIME CHILD_NUMBER
+SQL_ID                     PLAN_HASH_VALUE EXECUTIONS BUFFER_GETS DISK_READS ROWS_PROCESSED PARSE_CALLS LAST_ACTIVE_TIME CHILD_NUMBER
 ------------- --------------- ---------- ----------- ---------- -------------- ----------- ---------------- ------------
 0xt1gmwhjjw3t 3095916820       1           653          0           1               5      09/04/25         1
 ```
@@ -3760,7 +4411,7 @@ GRANT SELECT ANY DICTIONARY TO STUDY;
 ```txt
 WORKLOAD REPOSITORY PDB report (root snapshots)
 
-DB Name         DB Id    Unique Name DB Role          Edition Release    RAC CDB
+DB Name         DB ID                 Unique Name DB Role          Edition Release    RAC CDB
 ------------ ----------- ----------- ---------------- ------- ---------- --- ---
 FCE9I1PL      4185246294 fce9i1pl    PRIMARY          EE      19.27.0.1. YES YES
  

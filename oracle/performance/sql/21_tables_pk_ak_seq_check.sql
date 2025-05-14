@@ -14,7 +14,7 @@ CREATE TABLE orders (
     id NUMBER PRIMARY KEY,
     order_branch NUMBER(3) NOT NULL,
     order_num NUMBER(6) NOT NULL,
-    order_at TIMESTAMP NOT NULL,
+    order_dt DATE NOT NULL,
     order_mode VARCHAR2(8),
     customer_id NUMBER NOT NULL,
     order_status NUMBER(2),

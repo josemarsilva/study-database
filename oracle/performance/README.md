@@ -1244,7 +1244,7 @@ GLOBAL PARTITION BY LIST (region_id) (
 
 
 | Feature                                      |  Standard Global Index | Partition-Aligned Global Index | Local Index        |
-|----------------------------------------------|------------------------|--------------------------|--------------------------|
+| -------------------------------------------- | ---------------------- | ------------------------ | ------------------------ |
 | Structure                                    | Single segment         | Multiple partitions      | Multiple partitions      |
 | Partitioning relation to table               | N/A                    | Independent              | Aligned with table       |
 | Maintenance after table partition operations | Full rebuild           | Partial rebuild possible | Automatic maintenance    |

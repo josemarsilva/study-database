@@ -100,7 +100,7 @@
   * [6.10. Partition zone maps Exadata](#610-partition-zone-maps-exadata)
   * [6.11. Drop Partition](#611-drop-partition)
   * [6.12. Query Partition](#612-query-partition)
-  * [6.13. ](#613-partition-aligned-global-indexes-in-oracle)
+  * [6.13. Partition aligned global indexes in Oracle](#613-partition-aligned-global-indexes-in-oracle)
   * [6.13.a. Characteristics](#613a-characteristics)
   * [6.13.b. Advantages vs Disadvantages](#613b-advantages-vs-disadvantages)
   * [6.13.c. When to use?](#613c-when-to-use)

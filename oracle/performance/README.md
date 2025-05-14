@@ -852,7 +852,27 @@ export NLS_LANG=AMERICAN_AMERICA.WE8EBCDIC1047
 
 #### 5.5.a. Hints for Optimization Approaches and Goals
 
+* `ALL_ROWS`: The ALL_ROWS hint explicitly chooses the query optimization approach to optimize a statement block with a goal of best throughput (that is, minimum total resource consumption).
+* `FIRST_ROWS(n)`: The FIRST_ROWS(n) hint instructs Oracle to optimize an individual SQL statement for fast response, choosing the plan that returns the first n rows most efficiently.
+* `RULE`: The RULE hint disables the use of the query optimizer. This hint is unsupported and should not be used.
+
 #### 5.5.b. Hints for Access Paths
+
+* `FULL`: The FULL hint explicitly chooses a full table scan for the specified table.
+* `CLUSTER`: The CLUSTER hint explicitly chooses a cluster scan to access the specified table. It applies only to clustered objects.
+* `HASH`: The HASH hint explicitly chooses a hash scan to access the specified table. It applies only to tables stored in a cluster.
+* `INDEX`: The INDEX hint explicitly chooses an index scan for the specified table. You can use the INDEX hint for domain, B-tree, bitmap, and bitmap join indexes. However, Oracle recommends using INDEX_COMBINE rather than INDEX for the combination of multiple indexes, because it is a more versatile hint.
+* `NO_INDEX`: The NO_INDEX hint explicitly disallows a set of indexes for the specified table.
+* `INDEX_ASC`: The INDEX_ASC hint explicitly chooses an index scan for the specified table. If the statement uses an index range scan, then Oracle scans the index entries in ascending order of their indexed values.
+* `INDEX_COMBINE`: The INDEX_COMBINE hint explicitly chooses a bitmap access path for the table. If no indexes are given as arguments for the INDEX_COMBINE hint, then the optimizer uses whatever boolean combination of indexes has the best cost estimate for the table. If certain indexes are given as arguments, then the optimizer tries to use some boolean combination of those particular indexes.
+* `INDEX_JOIN`: The INDEX_JOIN hint explicitly instructs the optimizer to use an index join as an access path. For the hint to have a positive effect, a sufficiently small number of indexes must exist that contain all the columns required to resolve the query.
+* `INDEX_DESC`: 
+* `INDEX_FFS`: 
+* `NO_INDEX_FFS`: 
+* `INDEX_SS`: 
+* `INDEX_SS_ASC`: 
+* `INDEX_SS_DESC`: 
+* `NO_INDEX_SS`: 
 
 #### 5.5.c. Hints for Query Transformations
 
@@ -1424,7 +1444,7 @@ WHERE  c.region = 'EUROPE';
 |   1 |  HASH JOIN                         |           | ...   | ...   | ...   |
 |   2 |   TABLE ACCESS STORAGE FULL        | CUSTOMERS |       |       |       |
 |   3 |    BLOOM FILTER CREATE :BF0000     |           |       |       |       |
-|   4 |   TABLE ACCESS STORAGE FULL        | ORDERS              |       |       |       |
+|   4 |   TABLE ACCESS STORAGE FULL        | ORDERS    |       |       |       |
 |   5 |    BLOOM FILTER USE :BF0000        |           |       |       |       |
 ---------------------------------------------------------------------------------
 ```

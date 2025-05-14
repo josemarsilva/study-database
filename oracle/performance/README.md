@@ -100,6 +100,10 @@
   * [6.10. Partition zone maps Exadata](#610-partition-zone-maps-exadata)
   * [6.11. Drop Partition](#611-drop-partition)
   * [6.12. Query Partition](#612-query-partition)
+  * [6.13. ](#613-partition-aligned-global-indexes-in-oracle)
+  * [6.13.a. Characteristics](#613a-characteristics)
+  * [6.13.b. Advantages vs Disadvantages](#613b-advantages-vs-disadvantages)
+  * [6.13.c. ](#613c)
   * [6.99. References](#699-references)
 * [7. What is NEW in Oracle 12c vs 19c](#7-what-is-new-in-oracle-12c-vs-19c)
   * [7.1. Automatic Indexing](#71-automatic-indexing)
@@ -1098,7 +1102,7 @@ Partition Pruning is an optimization technique used by Oracle to limit the numbe
   * If a table is partitioned (e.g., by date or category), Oracle's optimizer can eliminate ("prune") partitions that are not needed based on the query predicates (e.g., a WHERE clause).
 * **Types of Partition Pruning**:
   * **Static Pruning**: Oracle can determine the partition(s) to scan at parse time (e.g., WHERE order_mode = 'MAIL')
-  * **Dynamic Pruning	Partition** is determined at runtime, typically when using bind variables or joins
+  * **Dynamic Pruning    Partition** is determined at runtime, typically when using bind variables or joins
   * **Manual Pruning**: Developer uses PARTITION clause directly (less common)
 * **How to Observe It?**
    * Look at: `Pstart` and `Pstop` values — if they match and refer to specific partitions, pruning occurred.
@@ -1125,6 +1129,125 @@ Partition Pruning is an optimization technique used by Oracle to limit the numbe
 * `under-construction`
 
 *  com queries em tabelas particionadas, ficar atento aos itens PSTART e PSTOP
+
+
+### 6.13. Partition-Aligned Global Indexes in Oracle
+
+Partition-aligned global indexes (also called global partitioned indexes) are a special type of global index in Oracle that combines features of both global and local indexes. Unlike standard global indexes which are created as a single segment, partition-aligned global indexes are partitioned themselves, but the partitioning scheme is independent of the base table's partitioning strategy.
+
+### 6.13.a. Characteristics
+
+1. **Independent Partitioning Scheme**: The index is partitioned using its own partitioning strategy, which can be different from the table's partitioning.
+2. **Global Scope**: Despite being partitioned, each index partition can reference rows from any table partition.
+3. **Custom Partitioning Key**: The index partitioning key can be different from the table's partitioning key.
+4. **Complete Coverage**: The entire index covers all table partitions collectively.
+
+In this example, while the table might be partitioned by date, the index is partitioned by sales_rep_id ranges
+
+```sql
+CREATE INDEX sales.idx_orders_sales_rep_aligned 
+ON sales.orders(sales_rep_id)
+GLOBAL PARTITION BY RANGE (sales_rep_id) (
+    PARTITION idx_sales_low VALUES LESS THAN (100),
+    PARTITION idx_sales_med VALUES LESS THAN (500),
+    PARTITION idx_sales_high VALUES LESS THAN (MAXVALUE)
+);
+```
+
+### 6.13.b. Advantages vs Disadvantages
+
+* **Advantages**
+  1. Improved Maintenance:
+    * When a portion of the index becomes unusable (e.g., after bulk loads), you can rebuild just that partition rather than the entire index.
+    * Gradual index rebuilds are possible, reducing system impact.
+  2. Better Scalability:
+    * Each index partition can be placed on different storage devices or tablespaces.
+    * Operations on index partitions can be parallelized independently.
+  3. Query Performance:
+    * When queries include predicates on the index's partitioning key, Oracle can use index partition pruning.
+    * Combines global index benefits with some partitioning advantages.
+  4. Storage Management:
+    * Easier management of very large indexes by breaking them into smaller, more manageable pieces.
+    * Storage parameters can be set at the partition level.
+
+* **Disadvantages**
+  1. Increased Complexity:
+    * Requires more planning and understanding of both table and query access patterns.
+    * Adds another dimension to database design considerations.
+  2. Maintenance Overhead:
+    * While better than regular global indexes, they still require more maintenance than local indexes during table partition operations.
+  3. Optimal Key Selection:
+    * Choosing the right partitioning key for the index requires careful analysis of query patterns.
+    * Suboptimal choices can lead to uneven distribution and poor performance.
+
+
+### 6.13.c. When to Use
+
+Partition-aligned global indexes are particularly useful in these scenarios:
+
+1. Mixed Workload Patterns:
+  * When queries frequently access data using different filtering criteria.
+  * Some queries filter by the table's partition key, while others filter by different columns.
+2. Very Large Tables with Unique Constraints:
+  * When implementing unique constraints across a large partitioned table.
+  * Avoids the performance penalties of non-partitioned global indexes.
+3. Complex Query Requirements:
+  * When queries need to efficiently filter on columns that don't align with the table's partitioning strategy.
+  * Especially useful for reporting and analytics on different dimensions.
+4. Incremental Index Maintenance:
+  * In environments with frequent bulk data operations but where index rebuilds must be minimized or staggered.
+
+
+### 6.13.d. Example
+
+* Imagine an e-commerce system with orders partitioned by date:
+
+```sql
+-- Table partitioned by order date
+CREATE TABLE sales.orders (
+    order_id NUMBER,
+    customer_id NUMBER,
+    region_id NUMBER,
+    order_date DATE,
+    total_amount NUMBER
+)
+PARTITION BY RANGE (order_date) (
+    PARTITION orders_q1_2023 VALUES LESS THAN (TO_DATE('01-APR-2023','DD-MON-YYYY')),
+    PARTITION orders_q2_2023 VALUES LESS THAN (TO_DATE('01-JUL-2023','DD-MON-YYYY')),
+    PARTITION orders_q3_2023 VALUES LESS THAN (TO_DATE('01-OCT-2023','DD-MON-YYYY')),
+    PARTITION orders_q4_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY'))
+);
+
+-- Partition-aligned global index on region_id
+CREATE INDEX idx_orders_region 
+ON sales.orders(region_id)
+GLOBAL PARTITION BY LIST (region_id) (
+    PARTITION idx_region_north VALUES (1, 2, 3),
+    PARTITION idx_region_south VALUES (4, 5, 6),
+    PARTITION idx_region_east VALUES (7, 8, 9),
+    PARTITION idx_region_west VALUES (10, 11, 12)
+);
+```
+
+* This setup allows:
+  * Efficient queries by date range using table partitioning
+  * Efficient queries by region using the partition-aligned global index
+  * Ability to rebuild only specific region index partitions if needed
+  * Better parallelism for region-specific index operations
+
+
+### 6.13.e. Comparison 
+
+
+| Feature                                      |  Standard Global Index | Partition-Aligned Global Index | Local Index        |
+|----------------------------------------------|------------------------|--------------------------|--------------------------|
+| Structure                                    | Single segment         | Multiple partitions      | Multiple partitions      |
+| Partitioning relation to table               | N/A                    | Independent              | Aligned with table       |
+| Maintenance after table partition operations | Full rebuild           | Partial rebuild possible | Automatic maintenance    |
+| Unique constraints across partitions         | Supported              | Supported                | Not directly supported   |
+| Partition pruning                            | No                     | Yes (on index key)       | Yes (on table key)       |
+| Query flexibility                            | High                   | High                     | Limited                  |
+| Maintenance complexity                       | Low                    | Medium                   | Low                      |
 
 
 ### 6.99. References

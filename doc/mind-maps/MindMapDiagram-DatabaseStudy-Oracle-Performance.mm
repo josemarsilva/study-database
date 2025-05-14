@@ -1,6 +1,6 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1553633692767" ID="ID_913405909" MODIFIED="1747067427313">
+<node CREATED="1553633692767" ID="ID_913405909" MODIFIED="1747223825312">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -16,7 +16,7 @@
 </html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <icon BUILTIN="gohome"/>
-<node CREATED="1556296667278" FOLDED="true" ID="ID_683362039" MODIFIED="1747067427310" POSITION="right" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_683362039" MODIFIED="1747223826362" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -32,11 +32,11 @@
 </html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1743429073711" ID="ID_153622293" MODIFIED="1743429078919" TEXT="Online Real Time"/>
-<node CREATED="1743429080215" ID="ID_1339918110" MODIFIED="1743430871619" TEXT="AWR History time frames"/>
+<node CREATED="1743429080215" ID="ID_1339918110" MODIFIED="1747223870314" TEXT="ASH and AWR"/>
 <node CREATED="1743799137058" ID="ID_130440621" MODIFIED="1743812306166" TEXT="Tracing a business process"/>
 <node CREATED="1743804272779" ID="ID_855159711" MODIFIED="1743804289664" TEXT="Monitoring &amp; Observability"/>
 </node>
-<node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1747067429744" POSITION="left" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_1124225585" MODIFIED="1747223826377" POSITION="left" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -99,10 +99,10 @@
   </body>
 </html></richcontent>
 </node>
-<node CREATED="1746650586824" ID="ID_805030609" MODIFIED="1747067439124" TEXT="Oracle Exadata">
+<node CREATED="1746650586824" FOLDED="true" ID="ID_805030609" MODIFIED="1747223824155" TEXT="Oracle Exadata">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <icon BUILTIN="folder"/>
-<node CREATED="1746651175265" ID="ID_121540992" MODIFIED="1747071609080">
+<node CREATED="1746651175265" FOLDED="true" ID="ID_121540992" MODIFIED="1747223823941">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -115,8 +115,7 @@
       &#160;&#160;Components
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1746652178766" ID="ID_247517510" MODIFIED="1746652260110">
 <richcontent TYPE="NODE"><html>
@@ -165,7 +164,7 @@
 </node>
 <node CREATED="1746652207158" ID="ID_1080200562" MODIFIED="1746652208059" TEXT="Exadata Software"/>
 </node>
-<node CREATED="1746651220638" ID="ID_1780330240" MODIFIED="1747071586795">
+<node CREATED="1746651220638" FOLDED="true" ID="ID_1780330240" MODIFIED="1747223823941">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -183,7 +182,7 @@
   </body>
 </html></richcontent>
 <font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1746651314199" ID="ID_1736789884" MODIFIED="1747067439138" TEXT="Smart Scan">
+<node CREATED="1746651314199" FOLDED="true" ID="ID_1736789884" MODIFIED="1747223823720" TEXT="Smart Scan">
 <node CREATED="1746652086783" ID="ID_419385413" MODIFIED="1746652087603" TEXT="Column Projection"/>
 <node CREATED="1746652095454" ID="ID_572675171" MODIFIED="1746652095954" TEXT="Row Filtering"/>
 <node CREATED="1746652096190" ID="ID_819652666" MODIFIED="1746652104628" TEXT="iDB Messaging"/>
@@ -193,7 +192,7 @@
 <node CREATED="1746651343381" ID="ID_964728926" MODIFIED="1746651351107" TEXT="Hibrid Columnar Compression"/>
 <node CREATED="1746651352623" ID="ID_1548993830" MODIFIED="1746651362626" TEXT="I/O Resource Management"/>
 </node>
-<node CREATED="1747064139135" ID="ID_1244158490" MODIFIED="1747071590324">
+<node CREATED="1747064139135" FOLDED="true" ID="ID_1244158490" MODIFIED="1747223823941">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -206,8 +205,7 @@
       &#160;&#160;Indexes?
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1747064167989" ID="ID_778248221" MODIFIED="1747064168804" TEXT="Highly Selective Queries"/>
 <node CREATED="1747064175909" ID="ID_103111331" MODIFIED="1747064176565" TEXT="OLTP Workloads"/>
@@ -221,8 +219,7 @@
       Unique and Primary Key Constraints
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1747064258732" ID="ID_1274108966" MODIFIED="1747064259327" TEXT="Foreign Key Constraints"/>
 <node CREATED="1747064266405" ID="ID_1964225005" MODIFIED="1747064267013" TEXT="Joining Tables"/>
@@ -241,8 +238,7 @@
       &#160;&#160;Beginning of a String
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1747064378597" ID="ID_483194920" MODIFIED="1747064390788">
 <richcontent TYPE="NODE"><html>
@@ -257,11 +253,10 @@
       &#160;&#160;are Not Effective
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1747064460828" ID="ID_1111037609" MODIFIED="1747071594900">
+<node CREATED="1747064460828" FOLDED="true" ID="ID_1111037609" MODIFIED="1747223823943">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -274,8 +269,7 @@
       &#160;&#160;Traditional Tuning?
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" ITALIC="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1747067323336" ID="ID_1607262535" MODIFIED="1747067324124" TEXT="SQL Tuning"/>
 <node CREATED="1747067331062" ID="ID_1259896957" MODIFIED="1747067331691" TEXT="Optimizer Statistics Maintenance"/>
@@ -290,15 +284,19 @@
 <node CREATED="1747067398055" ID="ID_833097294" MODIFIED="1747067398683" TEXT="Application Design / Logical Model"/>
 </node>
 </node>
+<node CREATED="1747223809280" ID="ID_1672204419" MODIFIED="1747223833074" TEXT="Partitioning">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<icon BUILTIN="folder"/>
 </node>
-<node CREATED="1743809963180" ID="ID_976799848" MODIFIED="1744065398806" POSITION="left" TEXT="Laboratories">
+</node>
+<node CREATED="1743809963180" ID="ID_976799848" MODIFIED="1747223981033" POSITION="left" TEXT="Laboratories">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <icon BUILTIN="bookmark"/>
 </node>
 <node CREATED="1743809996227" ID="ID_95828706" MODIFIED="1743810026828" POSITION="left" TEXT="CheatSheet">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node CREATED="1556296667278" FOLDED="true" ID="ID_481353072" MODIFIED="1747067427313" POSITION="right" STYLE="fork">
+<node CREATED="1556296667278" ID="ID_481353072" MODIFIED="1747223826379" POSITION="right" STYLE="fork">
 <richcontent TYPE="NODE"><html>
   <head>
     

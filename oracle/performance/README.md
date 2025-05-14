@@ -114,6 +114,11 @@
     * [8.1.c. InfiniBand or RDMA over Converged Ethernet (RoCE) Network](#81c-infiniband-or-rdma-over-converged-ethernet-roce-network)
     * [8.1.d. Exadata Software](#81d-exadata-software)
   * [8.2. Exadata Architecture and Performance Features](#82-exadata-architecture-and-performance-features)
+    * [8.2.a. SMART SCAN](#82a-smart-scans)
+    * [8.2.b. STORAGE INDEXES](#82b-storage-indexes)
+    * [8.2.c. HYBRID COLUMNAR COMPRESSION](#82c-hybrid-columnar-compression-hcc)
+    * [8.2.d. I/O RESOURCE MANAGEMENT](#82d-io-resource-management-iorm)
+    * [8.2.e. SMART FLASH CACHE](#82e-smart-flash-cache)
   * [8.3. Exadata Not (from) an expert advertisements and premises](#83-exadata-not-an-expert-advertisements-and-premises)
   * [8.4. Do we still need Indexes?](#84-do-we-still-need-indexes)
   * [8.5. Do we still need Indexes?](#85-do-we-still-need-traditional-tuning)
@@ -138,6 +143,7 @@
     * [I.13.5. Partition type HASH](#ilab-13-step-5-create-partitioned-table-hash-by-order_branch)
     * [I.13.6. Partition Composite Multi-Level type RANGE-HASH](#ilab-13-step-6-create-compositemulti-level-partitioned-table-range-hash-by-order_dt-and-customer_id)
     * [I.13.7. Analysis and Conclusions](#ilab-13-step-7-analysis-and-conclusions)
+  * [I.14. Query Partitioned tables with GLOBAL vs LOCAL vs Partition aligned global indexes](#ilab-14-query-partitioned-tables-with-global-vs-local-vs-partition-aligned-global-indexes)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -3754,6 +3760,345 @@ SYS_SUBP3901      P_RANGEHASH_ORDERS_2024 55
 9. When table was Partitioned Composite(multi-level) RANGE-HASH by `order_dt BETWEEN TO_DATE('01-JAN-2025','DD-MON-YYYY') AND TO_DATE('31-DEC-2025','DD-MON-YYYY') AND by customer_id = 123456`, when query a WHERE Predicate used customer_id = 123456 then Oracle execute Partition Pruning and accessed only necessary partition
   * It is a suck find out pstart and pstop pointer to sub-partition
 
+
+---
+
+## I.Lab-14: Query partitioned tables with GLOBAL vs LOCAL vs PARTITION-ALIGNED GLOBAL indexes
+
+* Pre-requisites:
+  * [I.13. Step 7 - SCENARIO 12](#ilab-13-step-7-analysis-and-conclusions): Table and Partitioned table created and populated `ORDERS`, `P_RANGE_ORDERS`, `P_LIST_ORDERS`, `P_HASH_ORDERS`, `P_RANGEHASH_ORDERS`
+
+
+### I.Lab-14-Step-1: SCENARIO 12 - Query Non partitioned table Indexed
+
+* SCENARIO 12: Non Partitioned table Query by indexed column
+  * Analysis: Only one index was used. `IDX_ORDERS_CUSTOMERID` has best selectivity.
+  * Query Predicate key partition + indexed column
+  * Query Execution Plan: 
+    * `INDEX RANGE SCAN` - `IDX_ORDERS_CUSTOMERID` - Predicate: 8
+    * `INDEX RANGE SCAN` - `IDX_ORDERS_CUSTOMERID` - Predicate: 8
+  
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM ORDERS WHERE CUSTOMER_ID = 123456 AND ORDER_DT BETWEEN TO_DATE('2023-01-01','YYYY-MM-DD') AND TO_DATE('2023-12-31','YYYY-MM-DD');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+--------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                  | Rows  | Bytes | Cost (%CPU)| Time     |    TQ  |IN-OUT| PQ Distrib |
+--------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                       |     1 |    62 |     9   (0)| 00:00:01 |        |      |            |
+|   1 |  PX COORDINATOR                       |                       |       |       |            |          |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10001              |     1 |    62 |     9   (0)| 00:00:01 |  Q1,01 | P->S | QC (RAND)  |
+|*  3 |    TABLE ACCESS BY INDEX ROWID BATCHED| ORDERS                |     1 |    62 |     9   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                       |                       |       |       |            |          |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                       |                       |     5 |       |     3   (0)| 00:00:01 |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)    | :TQ10000              |     5 |       |     3   (0)| 00:00:01 |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                    |                       |       |       |            |          |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN              | IDX_ORDERS_CUSTOMERID |     5 |       |     3   (0)| 00:00:01 |  Q1,00 | SCWP |            |
+--------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("ORDER_DT">=TO_DATE(' 2023-01-01 00:00:00', 'syyyy-mm-dd hh24:mi:ss') AND "ORDER_DT"<=TO_DATE(' 2023-12-31 00:00:00', 
+              'syyyy-mm-dd hh24:mi:ss'))
+   8 - access("CUSTOMER_ID"=123456)
+```
+
+* Autotrace ... (F6)
+
+```v$mystat
+    :
+consistent gets             6
+CPU used by this session    4
+DB time                     10
+    :
+```
+
+
+### I.Lab-14-Step-2: SCENARIO 12 - Query Partitioned table NoIndexed
+
+* SCENARIO 12: Partitioned table Query Non indexed column
+  * Analysis: `P_RANGE_ORDERS` is partitioned table and column `customer_id` is not indexed.
+  * Query Predicate key partition + indexed column
+  * Query Execution Plan: 
+    * `TABLE ACCESS FULL` - `P_RANGE_ORDERS` - `Pstart/Pstop`: 4/4 - Predicate: 4
+
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_RANGE_ORDERS  WHERE CUSTOMER_ID = 123456 AND ORDER_DT BETWEEN TO_DATE('2023-01-01','YYYY-MM-DD') AND TO_DATE('2023-12-31','YYYY-MM-DD');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation            | Name           | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |    TQ  |IN-OUT| PQ Distrib |
+------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |                |     2 |   124 |   209   (1)| 00:00:01 |       |       |        |      |            |
+|   1 |  PX COORDINATOR      |                |       |       |            |          |       |       |        |      |            |
+|   2 |   PX SEND QC (RANDOM)| :TQ10000       |     2 |   124 |   209   (1)| 00:00:01 |       |       |  Q1,00 | P->S | QC (RAND)  |
+|   3 |    PX BLOCK ITERATOR |                |     2 |   124 |   209   (1)| 00:00:01 |     4 |     4 |  Q1,00 | PCWC |            |
+|*  4 |     TABLE ACCESS FULL| P_RANGE_ORDERS |     2 |   124 |   209   (1)| 00:00:01 |     4 |     4 |  Q1,00 | PCWP |            |
+------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - filter("CUSTOMER_ID"=123456 AND "ORDER_DT"<=TO_DATE(' 2023-12-31 00:00:00', 'syyyy-mm-dd hh24:mi:ss'))
+```
+
+
+* Autotrace ... (F6)
+
+```v$mystat
+    :
+consistent gets             1875
+CPU used by this session    3
+DB time                     6
+    :
+```
+
+
+
+### I.Lab-14-Step-3: SCENARIO 13 - Query by GLOBAL indexed column on Partitioned table 
+
+* SCENARIO 13: Partitioned table Query by GLOBAL indexed column
+  * Analysis: Tabe partitioned Column `customer_id` is indexed GLOBAL
+  * Query Predicate key partition + indexed column
+  * Query Execution Plan: 
+    * `INDEX RANGE SCAN` - IDX_P_RANGE_ORDERS_CUSTOMER_ID - Predicate: 8
+    * `TABLE ACCESS BY GLOBAL INDEX ROWID` - P_RANGE_ORDERS - Pstart/Pstop: 4/4 - Predicate: 3
+
+```sql
+-- Create a global index on CUSTOMER_ID
+CREATE INDEX IDX_P_RANGE_ORDERS_CUSTOMER_ID ON STUDY.P_RANGE_ORDERS(CUSTOMER_ID);
+
+-- Gather statistics on the index
+EXEC DBMS_STATS.GATHER_INDEX_STATS('STUDY', 'IDX_P_RANGE_ORDERS_CUSTOMER_ID');
+```
+  
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_RANGE_ORDERS  WHERE CUSTOMER_ID = 123456 AND ORDER_DT BETWEEN TO_DATE('2023-01-01','YYYY-MM-DD') AND TO_DATE('2023-12-31','YYYY-MM-DD');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                    | Name                           | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |    TQ  |IN-OUT| PQ Distrib |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                             |                                |     2 |   124 |     9   (0)| 00:00:01 |       |       |        |      |            |
+|   1 |  PX COORDINATOR                              |                                |       |       |            |          |       |       |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                        | :TQ10001                       |     2 |   124 |     9   (0)| 00:00:01 |       |       |  Q1,01 | P->S | QC (RAND)  |
+|*  3 |    TABLE ACCESS BY GLOBAL INDEX ROWID BATCHED| P_RANGE_ORDERS                 |     2 |   124 |     9   (0)| 00:00:01 |     4 |     4 |  Q1,01 | PCWP |            |
+|   4 |     BUFFER SORT                              |                                |       |       |            |          |       |       |  Q1,01 | PCWC |            |
+|   5 |      PX RECEIVE                              |                                |    10 |       |     3   (0)| 00:00:01 |       |       |  Q1,01 | PCWP |            |
+|   6 |       PX SEND HASH (BLOCK ADDRESS)           | :TQ10000                       |    10 |       |     3   (0)| 00:00:01 |       |       |  Q1,00 | S->P | HASH (BLOCK|
+|   7 |        PX SELECTOR                           |                                |       |       |            |          |       |       |  Q1,00 | SCWC |            |
+|*  8 |         INDEX RANGE SCAN                     | IDX_P_RANGE_ORDERS_CUSTOMER_ID |    10 |       |     3   (0)| 00:00:01 |       |       |  Q1,00 | SCWP |            |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("ORDER_DT">=TO_DATE(' 2023-01-01 00:00:00', 'syyyy-mm-dd hh24:mi:ss') AND "ORDER_DT"<=TO_DATE(' 2023-12-31 00:00:00', 'syyyy-mm-dd hh24:mi:ss'))
+   8 - access("CUSTOMER_ID"=123456)
+```
+
+* Autotrace ... (F6)
+
+```v$mystat
+    :
+consistent gets             4
+CPU used by this session    2
+DB time                     9
+    :
+```
+
+
+### I.Lab-14-Step-4: SCENARIO 14 - Query by LOCAL indexed column on Partitioned table 
+
+
+* SCENARIO 14: Partitioned table Query by LOCAL indexed column
+  * Analysis: Tabe partitioned Column `customer_id` is indexed GLOBAL
+  * Query Predicate key partition + indexed column
+  * Query Execution Plan: 
+    * `INDEX RANGE SCAN` - IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID - Pstart/Pstop: 4/4 - Predicate: 3
+    * `TABLE ACCESS BY LOCAL INDEX ROWID` - P_RANGE_ORDERS - Pstart/Pstop: 4/4 - Predicate: 2
+
+```sql
+-- Drop global index on CUSTOMER_ID
+DROP INDEX IDX_P_RANGE_ORDERS_CUSTOMER_ID;
+
+-- Create a global index on CUSTOMER_ID
+CREATE INDEX IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID ON P_RANGE_ORDERS(CUSTOMER_ID) LOCAL;
+
+-- Verify that separate index partitions were
+SELECT idx.index_name, 
+       idx_part.partition_name, 
+       idx_part.status,
+       tab_part.partition_name as table_partition
+FROM user_indexes idx
+JOIN user_ind_partitions idx_part ON idx.index_name = idx_part.index_name
+JOIN user_tab_partitions tab_part ON (idx_part.partition_name = tab_part.partition_name)
+WHERE idx.table_name = 'P_RANGE_ORDERS'
+AND idx.index_name = 'IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID'
+ORDER BY idx_part.partition_position;
+
+-- Gather statistics on the index
+EXEC DBMS_STATS.GATHER_INDEX_STATS('STUDY', 'IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID');
+```
+
+```query-result
+INDEX_NAME                              PARTITION_NAME         STATUS    TABLE_PARTITION
+--------------------------------------- ---------------------- --------- -------------------
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2020    USABLE    P_RANGE_ORDERS_2020
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2020    USABLE    P_RANGE_ORDERS_2020
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2021    USABLE    P_RANGE_ORDERS_2021
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2021    USABLE    P_RANGE_ORDERS_2021
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2022    USABLE    P_RANGE_ORDERS_2022
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2022    USABLE    P_RANGE_ORDERS_2022
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2023    USABLE    P_RANGE_ORDERS_2023
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2023    USABLE    P_RANGE_ORDERS_2023
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2024    USABLE    P_RANGE_ORDERS_2024
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2024    USABLE    P_RANGE_ORDERS_2024
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2025    USABLE    P_RANGE_ORDERS_2025
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_2025    USABLE    P_RANGE_ORDERS_2025
+IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID    P_RANGE_ORDERS_FUTURE  USABLE    P_RANGE_ORDERS_FUTURE
+
+```
+
+  
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_RANGE_ORDERS  WHERE CUSTOMER_ID = 123456 AND ORDER_DT BETWEEN TO_DATE('2023-01-01','YYYY-MM-DD') AND TO_DATE('2023-12-31','YYYY-MM-DD');
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+---------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                  | Name                                 | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |
+---------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                           |                                      |     2 |   124 |     7   (0)| 00:00:01 |       |       |
+|   1 |  PARTITION RANGE SINGLE                    |                                      |     2 |   124 |     7   (0)| 00:00:01 |     4 |     4 |
+|*  2 |   TABLE ACCESS BY LOCAL INDEX ROWID BATCHED| P_RANGE_ORDERS                       |     2 |   124 |     7   (0)| 00:00:01 |     4 |     4 |
+|*  3 |    INDEX RANGE SCAN                        | IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID |     1 |       |     1   (0)| 00:00:01 |     4 |     4 |
+---------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter("ORDER_DT"<=TO_DATE(' 2023-12-31 00:00:00', 'syyyy-mm-dd hh24:mi:ss'))
+   3 - access("CUSTOMER_ID"=123456)
+```
+
+* Autotrace ... (F6)
+
+```v$mystat
+    :
+consistent gets             3
+CPU used by this session    2
+DB time                     3
+    :
+```
+
+### I.Lab-14-Step-5: Compare Index Size and Structure
+
+* Compare Size
+
+```sql
+-- Compare size of different indexes
+SELECT i.index_name, i.partitioned, 
+       SUM(s.bytes)/1024/1024 AS size_mb
+FROM user_indexes i
+JOIN user_segments s ON (s.segment_name = i.index_name)
+WHERE i.table_name = 'P_RANGE_ORDERS'
+GROUP BY i.index_name, i.partitioned
+ORDER BY i.partitioned, size_mb DESC;
+
+-- Check index statistics
+SELECT index_name, blevel, leaf_blocks, clustering_factor,
+       num_rows, distinct_keys
+FROM user_indexes
+WHERE table_name = 'P_RANGE_ORDERS';
+```
+
+* Compare
+
+
+| No. Scenario                                                                      | consistent gets | CPU used | DB time |
+|-----------------------------------------------------------------------------------|-----------------|----------|---------|
+| 1. Non Partitioned ORDERS, Indexed IDX_ORDERS_CUSTOMERID                          |       6         |     4    |   10    |
+| 2. Partitioned P_RANGE_ORDERS, Non Indexed CUSTOMERID                             |      1875       |     3    |    6    |
+| 3. Partitioned P_RANGE_ORDERS, GLOBAL Indexed IDX_P_RANGE_ORDERS_CUSTOMER_ID      |       4         |     2    |    9    |
+| 4. Partitioned P_RANGE_ORDERS, LOCAL Indexed IDX_P_RANGE_ORDERS_LOCAL_CUSTOMER_ID |       3         |     2    |    3    |
+
+
+### I.Lab-14-Step-6: Analysis and Conclusions
+
+* **Key Findings**
+1. Local Indexes Provide Best Overall Performance:
+  * The local index strategy (Scenario 4) shows the best overall performance with the lowest consistent gets (3), low CPU usage (2), and the lowest DB time (3).
+  * Local indexes benefit from both partition pruning and index access path efficiency.
+2. Global Indexes vs. Non-Partitioned Table Indexes:
+  * Global indexes on partitioned tables (Scenario 3) showed better performance (4 consistent gets) than standard indexes on non-partitioned tables (6 consistent gets).
+  * Global indexes also showed better CPU utilization (2 vs 4).
+3. Full Table Scans on Partitioned Tables are Inefficient:
+  * Without any index (Scenario 2), even with partition pruning, the number of consistent gets is significantly higher (1,875) than any indexed approach.
+4. Execution Plan Differences:
+  * Local indexes enable `PARTITION RANGE SINGLE` operations followed by `TABLE ACCESS BY LOCAL INDEX ROWID`, which is more efficient when queries include both partition key and indexed column predicates.
+  * Global indexes use `TABLE ACCESS BY GLOBAL INDEX ROWID` which requires an additional step to map from the index to the partitioned table.
+
+
+* **Advantages of Different Index Types**
+  * **Local Indexes**
+    - **Performance**: Best overall performance when queries include the partition key.
+    - **Maintenance**: Each partition's index can be maintained independently.
+    - **Parallelism**: Operations can be parallelized at the partition level.
+    - **Partition Pruning**: Takes full advantage of Oracle's partition pruning capabilities.
+    - **Storage Efficiency**: Local indexes are often smaller in total size since they only reference rows within their respective partitions.
+  * **Global Indexes**
+    - **Query Flexibility**: Better for queries that don't include partition key predicates.
+    - **Simpler Structure**: Single logical index structure.
+    - **Unique Constraints**: More straightforward implementation of unique constraints across partitions.
+    - **Query Optimization**: Can be better when a highly selective predicate is on a non-partition key.
+
+
+* **Recommendations**
+1. For queries that filter on both partition key and other columns:
+  * Use local indexes on the non-partition key columns.
+  * This provides the best performance by leveraging both partition pruning and index efficiency.
+2. For queries that frequently filter only on non-partition key columns:
+  * Consider global indexes, especially if these queries are performance-critical.
+3. For tables with frequent partition maintenance operations:
+  * Prefer local indexes when possible to minimize maintenance overhead.
+  * When global indexes are necessary, consider making them partition-aligned.
+4. For implementing unique constraints across partitions:
+  * Global indexes are often necessary and more efficient.
+  * For optimizing storage and reducing fragmentation:
+  * Local indexes provide better space utilization and less fragmentation over time.
+
+
+* **Maintenance Considerations**
+
+1. Partition Operations:
+  * Adding/splitting/merging partitions affects global indexes (may require rebuilding).
+  * Local indexes are automatically maintained during partition operations.
+2. Index Rebuilding:
+  * Local indexes can be rebuilt at the partition level, minimizing impact.
+  * Global indexes typically require full rebuilds, which can be resource-intensive.
+3. Parallel Query Operations:
+  * Local indexes better support partition-wise joins and parallel operations.
+
+* **Conclusion**
+
+The laboratory results clearly demonstrate that local indexes provide the best performance for queries that filter on both partition key and indexed columns. For this specific workload pattern, local indexes outperform both global indexes and standard indexes on non-partitioned tables.
+
+When designing a partitioning strategy, the choice between global and local indexes should be based on the typical query patterns, maintenance requirements, and overall system workload. For mixed workloads, a combination of both local and global indexes might be optimal.
+
+This analysis confirms Oracle's best practice recommendation to use local indexes when queries frequently include predicates on both the partition key and other columns, which is a common pattern in data warehouse and analytical systems with time-based partitioning.
 
 ---
 

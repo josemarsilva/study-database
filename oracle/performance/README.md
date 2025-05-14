@@ -101,11 +101,11 @@
   * [6.11. Drop Partition](#611-drop-partition)
   * [6.12. Query Partition](#612-query-partition)
   * [6.13. Partition aligned global indexes in Oracle](#613-partition-aligned-global-indexes-in-oracle)
-  * [6.13.a. Characteristics](#613a-characteristics)
-  * [6.13.b. Advantages vs Disadvantages](#613b-advantages-vs-disadvantages)
-  * [6.13.c. When to use?](#613c-when-to-use)
-  * [6.13.d. Example](#613d-example)
-  * [6.13.e. Comparison](#613e-comparison)
+    * [6.13.a. Characteristics](#613a-characteristics)
+    * [6.13.b. Advantages vs Disadvantages](#613b-advantages-vs-disadvantages)
+    * [6.13.c. When to use?](#613c-when-to-use)
+    * [6.13.d. Example](#613d-example)
+    * [6.13.e. Comparison](#613e-comparison)
   * [6.99. References](#699-references)
 * [7. What is NEW in Oracle 12c vs 19c](#7-what-is-new-in-oracle-12c-vs-19c)
   * [7.1. Automatic Indexing](#71-automatic-indexing)
@@ -1158,29 +1158,31 @@ GLOBAL PARTITION BY RANGE (sales_rep_id) (
 
 ### 6.13.b. Advantages vs Disadvantages
 
-* **Advantages**
-  1. Improved Maintenance:
-    * When a portion of the index becomes unusable (e.g., after bulk loads), you can rebuild just that partition rather than the entire index.
-    * Gradual index rebuilds are possible, reducing system impact.
-  2. Better Scalability:
-    * Each index partition can be placed on different storage devices or tablespaces.
-    * Operations on index partitions can be parallelized independently.
-  3. Query Performance:
-    * When queries include predicates on the index's partitioning key, Oracle can use index partition pruning.
-    * Combines global index benefits with some partitioning advantages.
-  4. Storage Management:
-    * Easier management of very large indexes by breaking them into smaller, more manageable pieces.
-    * Storage parameters can be set at the partition level.
+**Advantages**
 
-* **Disadvantages**
-  1. Increased Complexity:
-    * Requires more planning and understanding of both table and query access patterns.
-    * Adds another dimension to database design considerations.
-  2. Maintenance Overhead:
-    * While better than regular global indexes, they still require more maintenance than local indexes during table partition operations.
-  3. Optimal Key Selection:
-    * Choosing the right partitioning key for the index requires careful analysis of query patterns.
-    * Suboptimal choices can lead to uneven distribution and poor performance.
+1. **Improved Maintenance**:
+  * When a portion of the index becomes unusable (e.g., after bulk loads), you can rebuild just that partition rather than the entire index.
+  * Gradual index rebuilds are possible, reducing system impact.
+2. **Better Scalability**:
+  * Each index partition can be placed on different storage devices or tablespaces.
+  * Operations on index partitions can be parallelized independently.
+3. **Query Performance**:
+  * When queries include predicates on the index's partitioning key, Oracle can use index partition pruning.
+  * Combines global index benefits with some partitioning advantages.
+4. **Storage Management**:
+  * Easier management of very large indexes by breaking them into smaller, more manageable pieces.
+  * Storage parameters can be set at the partition level.
+
+**Disadvantages**
+
+1. **Increased Complexity**:
+  * Requires more planning and understanding of both table and query access patterns.
+  * Adds another dimension to database design considerations.
+2. **Maintenance Overhead**:
+  * While better than regular global indexes, they still require more maintenance than local indexes during table partition operations.
+3. **Optimal Key Selection**:
+  * Choosing the right partitioning key for the index requires careful analysis of query patterns.
+  * Suboptimal choices can lead to uneven distribution and poor performance.
 
 
 ### 6.13.c. When to Use

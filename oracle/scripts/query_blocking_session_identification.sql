@@ -3,6 +3,8 @@
 -- description: Blocking Sessions Identification
 --              1. Blocker and Blockeds by active session history
 --              2. DBA blockers view
+--              Important:
+--                - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SESSION_BLOCKERS.html
 -- revision   : 
 --              * 2025-05-12 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------

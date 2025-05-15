@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : query_dbms_metadata_get_ddl.sql
+-- filename   : dbms_metadata_get_ddl.sql
 -- description: Get DDL Metadata
 --              1. TABLE
 --              2. INDEX
@@ -11,6 +11,19 @@
 -- revision   : 
 --              * 2025-05-13 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------
+
+
+-- ----------------------------------------------------------------------------
+-- 1. TABLE
+-- ----------------------------------------------------------------------------
+BEGIN
+  -- Set to omit storage clauses in the DDL
+  DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'STORAGE', FALSE);
+  -- Optionally omit other parts:
+  DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'TABLESPACE', FALSE);
+  DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'SEGMENT_ATTRIBUTES', FALSE);
+END;
+/
 
 
 -- ----------------------------------------------------------------------------

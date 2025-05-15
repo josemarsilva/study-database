@@ -150,6 +150,7 @@
     * [I.13.6. Partition Composite Multi-Level type RANGE-HASH](#ilab-13-step-6-create-compositemulti-level-partitioned-table-range-hash-by-order_dt-and-customer_id)
     * [I.13.7. Analysis and Conclusions](#ilab-13-step-7-analysis-and-conclusions)
   * [I.14. Query Partitioned tables with GLOBAL vs LOCAL vs Partition aligned global indexes](#ilab-14-query-partitioned-tables-with-global-vs-local-vs-partition-aligned-global-indexes)
+  * [I.15. Query by ALIGNED GLOBAL INDEX on Partitioned Table](#ilab-15-)
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -367,11 +368,15 @@ Now in `SQLDeveloper` worksheet, when you choose (F6) or icon `Autotrace...` col
 ### 3.4. Execution Plan (SQL*Plus)
 
 ```sql
-set lines 999
-set pages 999
-set autot trace exp stat 
-set autot trace off
-set timing on
+SET LINESIZE 200
+SET PAGESIZE 1000
+SET LONG 1000000
+SET TRIMSPOOL ON
+SET TRIMOUT ON
+
+SET AUTOT TRACE EXPL STAT
+SET AUTOT TRACE OFF 
+
 ```
 
 ### 3.5. Statistics - Correlations, Extended Statistics, Cardinality and Selectivity
@@ -1178,31 +1183,29 @@ GLOBAL PARTITION BY RANGE (sales_rep_id) (
 
 ### 6.13.b. Advantages vs Disadvantages
 
-**Advantages**
+* **Advantages**
+  * **Improved Maintenance**:
+    * When a portion of the index becomes unusable (e.g., after bulk loads), you can rebuild just that partition rather than the entire index.
+    * Gradual index rebuilds are possible, reducing system impact.
+  * **Better Scalability**:
+    * Each index partition can be placed on different storage devices or tablespaces.
+    * Operations on index partitions can be parallelized independently.
+  * **Query Performance**:
+    * When queries include predicates on the index's partitioning key, Oracle can use index partition pruning.
+    * Combines global index benefits with some partitioning advantages.
+  * **Storage Management**:
+    * Easier management of very large indexes by breaking them into smaller, more manageable pieces.
+    * Storage parameters can be set at the partition level.
 
-1. **Improved Maintenance**:
-  * When a portion of the index becomes unusable (e.g., after bulk loads), you can rebuild just that partition rather than the entire index.
-  * Gradual index rebuilds are possible, reducing system impact.
-2. **Better Scalability**:
-  * Each index partition can be placed on different storage devices or tablespaces.
-  * Operations on index partitions can be parallelized independently.
-3. **Query Performance**:
-  * When queries include predicates on the index's partitioning key, Oracle can use index partition pruning.
-  * Combines global index benefits with some partitioning advantages.
-4. **Storage Management**:
-  * Easier management of very large indexes by breaking them into smaller, more manageable pieces.
-  * Storage parameters can be set at the partition level.
-
-**Disadvantages**
-
-1. **Increased Complexity**:
-  * Requires more planning and understanding of both table and query access patterns.
-  * Adds another dimension to database design considerations.
-2. **Maintenance Overhead**:
-  * While better than regular global indexes, they still require more maintenance than local indexes during table partition operations.
-3. **Optimal Key Selection**:
-  * Choosing the right partitioning key for the index requires careful analysis of query patterns.
-  * Suboptimal choices can lead to uneven distribution and poor performance.
+* **Disadvantages**
+  * **Increased Complexity**:
+    * Requires more planning and understanding of both table and query access patterns.
+    * Adds another dimension to database design considerations.
+  * **Maintenance Overhead**:
+    * While better than regular global indexes, they still require more maintenance than local indexes during table partition operations.
+  * **Optimal Key Selection**:
+    * Choosing the right partitioning key for the index requires careful analysis of query patterns.
+    * Suboptimal choices can lead to uneven distribution and poor performance.
 
 
 ### 6.13.c. When to Use
@@ -4241,11 +4244,63 @@ WHERE table_name = 'P_RANGE_ORDERS';
 
 * **Conclusion**
 
-The laboratory results clearly demonstrate that local indexes provide the best performance for queries that filter on both partition key and indexed columns. For this specific workload pattern, local indexes outperform both global indexes and standard indexes on non-partitioned tables.
+* The laboratory results clearly demonstrate that local indexes **provide the best performance** for queries that filter on both partition key and indexed columns. For this specific workload pattern, local indexes outperform both global indexes and standard indexes on non-partitioned tables.
+* When **designing a partitioning strategy**, the choice between global and local indexes should be based on the typical query patterns, maintenance requirements, and overall system workload. For mixed workloads, a combination of both local and global indexes might be optimal.
+* This analysis confirms Oracle's **best practice recommendation** to use local indexes when queries frequently include predicates on both the partition key and other columns, which is a common pattern in data warehouse and analytical systems with time-based partitioning.
 
-When designing a partitioning strategy, the choice between global and local indexes should be based on the typical query patterns, maintenance requirements, and overall system workload. For mixed workloads, a combination of both local and global indexes might be optimal.
+---
 
-This analysis confirms Oracle's best practice recommendation to use local indexes when queries frequently include predicates on both the partition key and other columns, which is a common pattern in data warehouse and analytical systems with time-based partitioning.
+## I.Lab-15: Query by PARTITION ALIGNED GLOBAL INDEX on Partitioned Table
+
+* Pre-requisites:
+  * [I.13. Step 7 - SCENARIO 12](#ilab-13-step-7-analysis-and-conclusions): Table and Partitioned table created and populated `ORDERS`, `P_LIST_ORDERS`, `P_LIST_ORDERS`, `P_HASH_ORDERS`, `P_RANGEHASH_ORDERS`
+
+
+### I.Lab-15-Step-2: SCENARIO 13 - Create PARTITION ALIGNED GLOBAL INDEX - Table Partition Key order_mode, Indexed Partition By Range sales_rep_id
+
+* SCENARIO 14: Create PARTITION ALIGNED GLOBAL INDEX
+
+```sql
+CREATE INDEX IDX_PAGI_P_LIST_ORDERS_SALES_REP_ID
+ON P_LIST_ORDERS (sales_rep_id)
+GLOBAL PARTITION BY RANGE (sales_rep_id) (
+    PARTITION idx_sales_low VALUES LESS THAN (100),
+    PARTITION idx_sales_med VALUES LESS THAN (500),
+    PARTITION idx_sales_high VALUES LESS THAN (MAXVALUE)
+);
+```
+
+* Query Execution Plan 
+
+```sql
+EXPLAIN PLAN FOR
+  SELECT * FROM P_LIST_ORDERS WHERE sales_rep_id = 100;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+```
+
+```plan-table
+---------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                   | Name                                | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |
+---------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                            |                                     |  1860 |   112K|  1351   (0)| 00:00:01 |       |       |
+|   1 |  PARTITION RANGE SINGLE                     |                                     |  1860 |   112K|  1351   (0)| 00:00:01 |     2 |     2 |
+|   2 |   TABLE ACCESS BY GLOBAL INDEX ROWID BATCHED| P_LIST_ORDERS                       |  1860 |   112K|  1351   (0)| 00:00:01 | ROWID | ROWID |
+|*  3 |    INDEX RANGE SCAN                         | IDX_PAGI_P_LIST_ORDERS_SALES_REP_ID |  1860 |       |     7   (0)| 00:00:01 |     2 |     2 |
+---------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - access("SALES_REP_ID"=100)
+```
+
+
+### I.Lab-15-Step-6: Analysis and Conclusions
+
+
+* When queries include predicates on the index's partitioning key, Oracle can use index partition pruning.
+* Combines global index benefits with some partitioning advantages.
+
 
 ---
 

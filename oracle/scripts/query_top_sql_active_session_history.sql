@@ -5,9 +5,11 @@
 --              2. Top SQL by Active Session History (v$active_session_history samples Breakdown)
 --              3. Top Active Sessions (v$active_session_history User/Program Breakdown)
 --              * Important:
---                - v$session: information about what a session is doing any given time, status can be 'ACTIVE', 'INACTIVE'
---                - v$active_session_history: every 1 sec interval history what are ACTIVE session doing
+--                - gv$session: information about what a session is doing any given time, status can be 'ACTIVE', 'INACTIVE'
+--                - gv$active_session_history: every 1 sec interval history what are ACTIVE session doing
 --                - dba_hist_active_session_history: last 60 min, 1 in 10 sec what are ACTIVE session doing
+--                - gv$session.last_call_et seconds executions
+--                - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SESSION.html
 -- revision   : 
 --              * 2025-05-13 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------
@@ -45,6 +47,8 @@ FROM
   gv$session s
 LEFT OUTER JOIN gv$sqlarea sql ON sql.sql_id = s.sql_id AND sql.inst_id = s.inst_id
 WHERE 1=1
+  AND s.username IS NOT NULL -- not background process
+  AND s.LAST_CALL_ET > 120 -- seconds
 ;
 
 

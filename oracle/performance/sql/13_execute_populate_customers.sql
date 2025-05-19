@@ -1,10 +1,10 @@
 -- ----------------------------------------------------------------------------
--- filename   : 13_execute_load_customers.sql
+-- filename   : 13_execute_populate_customers.sql
 -- revision   : 2025-04-01 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------
 
-EXECUTE load_customers(200000)
+EXECUTE populate_customers(200000)
 
 
 -- ----------------------------------------------------------------------------

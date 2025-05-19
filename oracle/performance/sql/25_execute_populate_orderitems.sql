@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : 25_execute_load_orderitems.sql
+-- filename   : 25_execute_populate_orderitems.sql
 -- revision   : 2025-05-13 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------

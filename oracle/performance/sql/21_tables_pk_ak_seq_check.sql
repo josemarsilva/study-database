@@ -11,7 +11,7 @@
 DROP TABLE orders CASCADE CONSTRAINTS;
 
 CREATE TABLE orders (
-    id NUMBER PRIMARY KEY,
+    id NUMBER PRIMARY KEY NOT NULL,
     order_branch NUMBER(3) NOT NULL,
     order_num NUMBER(6) NOT NULL,
     order_dt DATE NOT NULL,

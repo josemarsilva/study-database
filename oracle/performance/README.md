@@ -150,7 +150,17 @@
     * [I.13.6. Partition Composite Multi-Level type RANGE-HASH](#ilab-13-step-6-create-compositemulti-level-partitioned-table-range-hash-by-order_dt-and-customer_id)
     * [I.13.7. Analysis and Conclusions](#ilab-13-step-7-analysis-and-conclusions)
   * [I.14. Query Partitioned tables with GLOBAL vs LOCAL vs Partition aligned global indexes](#ilab-14-query-partitioned-tables-with-global-vs-local-vs-partition-aligned-global-indexes)
-  * [I.15. Query by ALIGNED GLOBAL INDEX on Partitioned Table](#ilab-15-)
+  * [I.15. Query by ALIGNED GLOBAL INDEX on Partitioned Table](#ilab-15-query-by-partition-aligned-global-index-on-partitioned-table)
+  * [I.16. Redefining Table to Partitioned Table](#ilab-16-redefining-table-to-partitioned-table)
+    * [I.16.1. Re-create original duplicated table before redefinitions changes](#ilab-16-step-1-scenario-15---dropre-create-original-duplicated-table-before-redefinitions-changes)
+    * [I.16.2. Re-create interim table partitionated](#ilab-16-step-2-scenario-15---dropre-create-interim-table-partitionated)
+    * [I.16.3. Eligibility check](#ilab-16-step-3-scenario-15---eligibility-check)
+    * [I.16.4. Start redefinition](#ilab-16-step-4-scenario-15---start-redefinition)
+    * [I.16.5. Copy dependent objects](#ilab-16-step-5-scenario-15---copy-dependent-objects)
+    * [I.16.6. Synchronize Table](#ilab-16-step-6-scenario-15---synchronize-table)
+    * [I.16.7. Finish redefinition](#ilab-16-step-7-scenario-15---finish-redefinition)
+    * [I.16.8. Analysis and Conclusions](#ilab-16-step-8-analysis-and-conclusions)
+
 * [II. Performance Tuning CheatSheet](#ii-performance-tuning-cheatsheet)
   * [II.1. Turn TRACE ON/OFF EXPLAIN PLAN](#ii-cheatsheet1-turn-trace-onof-explain-plan-execution-plan-golden-step)
   * [II.2. Query Object Statistics](#ii-cheatsheet2-query-object-statistics)
@@ -1641,11 +1651,11 @@ Laboratories is a practical use of performance concepts
 
 ### I.Lab-1-Step-3: Create Procedure Load Customers
 
-* Run Script [`12_procedure_load_customers.sql`](./sql/12_procedure_load_customers.sql)
+* Run Script [`12_procedure_populate_customers.sql`](./sql/12_procedure_populate_customers.sql)
 
 ### I.Lab-1-Step-4: Load 200.000 rows into `customers` tables
 
-* Run Script [`13_execute_load_customers.sql`](./sql/13_execute_load_customers.sql)
+* Run Script [`13_execute_populate_customers.sql`](./sql/13_execute_populate_customers.sql)
 
 ```sql
 EXECUTE load_customers(200000) -- 200.000 rows
@@ -1653,7 +1663,7 @@ EXECUTE load_customers(200000) -- 200.000 rows
 
 ### I.Lab-1-Step-5: Load `cities` tables, one chaptal city for each state and a lot of cities for 'SP', 'MG', 'RJ'
 
-* Run Script [`13_execute_load_cities.sql`](./sql/13_execute_load_cities.sql)
+* Run Script [`13_execute_populate_cities.sql`](./sql/13_execute_populate_cities.sql)
 
 
 ### I.Lab-1-Step-6: Understand table `STUDY.customers` on scenario 00 changes INITIAL: number of rows, columns, distinct values
@@ -3358,9 +3368,9 @@ In summary, the composite index provided the best performance for the specific q
 
 * Run Script [`21_tables_pk_ak_seq_check.sql`](./sql/21_tables_pk_ak_seq_check.sql)
 * Run Script [`22_indexes_scenario_11_initial.sql`](./sql/22_indexes_scenario_11_initial.sql)
-* Run Script [`23_execute_load_products.sql`](./sql/23_execute_load_products.sql)
-* Run Script [`24_execute_load_orders.sql`](./sql/24_execute_load_orders.sql)
-* Run Script [`25_execute_load_orderitems.sql`](./sql/25_execute_load_orderitems.sql)
+* Run Script [`23_execute_populate_products.sql`](./sql/23_execute_populate_products.sql)
+* Run Script [`24_execute_populate_orders.sql`](./sql/24_execute_populate_orders.sql)
+* Run Script [`25_execute_populate_orderitems.sql`](./sql/25_execute_populate_orderitems.sql)
 
 
 * Let's check (orders, orderitems, products) statistics
@@ -4253,7 +4263,7 @@ WHERE table_name = 'P_RANGE_ORDERS';
 ## I.Lab-15: Query by PARTITION ALIGNED GLOBAL INDEX on Partitioned Table
 
 * Pre-requisites:
-  * [I.13. Step 7 - SCENARIO 12](#ilab-13-step-7-analysis-and-conclusions): Table and Partitioned table created and populated `ORDERS`, `P_LIST_ORDERS`, `P_LIST_ORDERS`, `P_HASH_ORDERS`, `P_RANGEHASH_ORDERS`
+  * [I.13. Step 7 - SCENARIO 12](#ilab-13-step-7-analysis-and-conclusions): Table and Partitioned table created and populated `ORDERS`, `P_RANGE_ORDERS`, `P_LIST_ORDERS`, `P_HASH_ORDERS`, `P_RANGEHASH_ORDERS`
 
 
 ### I.Lab-15-Step-2: SCENARIO 13 - Create PARTITION ALIGNED GLOBAL INDEX - Table Partition Key order_mode, Indexed Partition By Range sales_rep_id
@@ -4303,6 +4313,250 @@ Predicate Information (identified by operation id):
 
 
 ---
+
+## I.Lab-16: Redefining Table to Partitioned Table
+
+* Pre-requisites:
+  * [I.13. Step 7 - SCENARIO 13](#ilab-13-step-7-analysis-and-conclusions): Table (TO_REDEF) created and populated
+  * [Official Documentation - PL/SQL Packages and Types Reference - DBMS_REDEFINITION ](https://docs.oracle.com/en/database/oracle/oracle-database/21/arpls/DBMS_REDEFINITION.html#GUID-C0F01196-6DA2-47F0-B2D0-EE035DF19136)
+  * How partition does not accept BITMAP index source table can **NOT** have BITMAP to be synchronized to interim table
+
+
+### I.Lab-16-Step-1: SCENARIO 15 - Drop/Re-Create original duplicated table before redefinitions changes
+
+* Create table to redefinitions
+
+```sql
+-- Drop
+DROP TABLE ORDERS_TO_REDEF CASCADE CONSTRAINTS;
+
+-- Re-Create
+CREATE TABLE ORDERS_TO_REDEF
+(
+  ID NUMBER PRIMARY KEY NOT NULL, 
+  ORDER_BRANCH NUMBER(3,0) NOT NULL, 
+  ORDER_NUM NUMBER(6,0) NOT NULL, 
+  ORDER_DT DATE NOT NULL, 
+  ORDER_MODE VARCHAR2(8 BYTE), 
+  CUSTOMER_ID NUMBER NOT NULL, 
+  ORDER_STATUS NUMBER(2,0), 
+  ORDER_TOTAL NUMBER(15,2), 
+  SALES_REP_ID NUMBER(6,0), 
+  PROMOTION_ID NUMBER(6,0), 
+  OBS VARCHAR2(100 BYTE)
+);
+
+-- Indexes
+
+CREATE UNIQUE INDEX AK_ORDERS_TO_REDEF             ON ORDERS_TO_REDEF (ORDER_BRANCH, ORDER_NUM) ;
+CREATE        INDEX IDX_ORDERS_TO_REDEF_CUSTOMERID ON ORDERS_TO_REDEF (CUSTOMER_ID);
+
+-- Constraints
+
+ALTER TABLE ORDERS_TO_REDEF ADD CONSTRAINT AK_ORDERS_TO_REDEF           UNIQUE (ORDER_BRANCH, ORDER_NUM);
+ALTER TABLE ORDERS_TO_REDEF ADD CONSTRAINT FK_ORDERS_TO_REDEF_CUSTOMERS FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMERS (ID);
+```
+
+* Populate Table to redefinitions and collect statistics
+
+```sql
+-- Populate
+
+INSERT /*+ APPEND */ INTO ORDERS_TO_REDEF 
+    ( id, order_branch, order_num, order_dt, order_mode, customer_id, order_status, order_total, sales_rep_id, promotion_id, obs )
+SELECT 
+    id, order_branch, order_num, order_dt, order_mode, customer_id, order_status, order_total, sales_rep_id, promotion_id, obs
+FROM ORDERS;
+
+
+-- Collect Statistics
+
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS_TO_REDEF');
+```
+
+
+### I.Lab-16-Step-2: SCENARIO 15 - Drop/Re-Create interim table partitionated
+
+* Create table to redefinitions
+
+```sql
+-- Drop
+DROP TABLE ORDERS_INTERIM_REDEF CASCADE CONSTRAINTS;
+
+-- Re-Create
+CREATE TABLE ORDERS_INTERIM_REDEF
+(
+  ID NUMBER, 
+  ORDER_BRANCH NUMBER(3,0), 
+  ORDER_NUM NUMBER(6,0), 
+  ORDER_DT DATE, 
+  ORDER_MODE VARCHAR2(8 BYTE), 
+  CUSTOMER_ID NUMBER, 
+  ORDER_STATUS NUMBER(2,0), 
+  ORDER_TOTAL NUMBER(15,2), 
+  SALES_REP_ID NUMBER(6,0), 
+  PROMOTION_ID NUMBER(6,0), 
+  OBS VARCHAR2(100 BYTE)
+)
+PARTITION BY RANGE (ORDER_DT)
+(
+  PARTITION P_RANGE_ORDERS_2020 VALUES LESS THAN (TO_DATE('01-JAN-2021','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2021 VALUES LESS THAN (TO_DATE('01-JAN-2022','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2022 VALUES LESS THAN (TO_DATE('01-JAN-2023','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2023 VALUES LESS THAN (TO_DATE('01-JAN-2024','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2024 VALUES LESS THAN (TO_DATE('01-JAN-2025','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_2025 VALUES LESS THAN (TO_DATE('01-JAN-2026','DD-MON-YYYY')),
+  PARTITION P_RANGE_ORDERS_DEFAULT VALUES LESS THAN (MAXVALUE)
+);
+```
+
+
+### I.Lab-16-Step-3: SCENARIO 15 - Eligibility Check
+
+* Check if it is redefinitions is possible
+  * Pre-requisites: GRANT TO DBMS_REDEFINITION use
+
+```sql
+BEGIN
+   DBMS_REDEFINITION.CAN_REDEF_TABLE(
+      uname          => 'STUDY',
+      tname          => 'ORDERS_TO_REDEF',
+      options_flag   => DBMS_REDEFINITION.CONS_USE_ROWID);
+END;
+/
+```
+
+```script-output
+Empty - No ERRORS Expected!
+```
+
+* Common error is when started a redefinition and something goes wrong in the middle of way and you need to give up your last redefinition
+
+```sql
+BEGIN
+   DBMS_REDEFINITION.ABORT_REDEF_TABLE(
+      uname      => 'STUDY',
+      orig_table => 'ORDERS_TO_REDEF',
+      int_table  => 'ORDERS_INTERIM_REDEF'
+   );
+END;
+/
+```
+
+* Check Original and Destination tables - before execution
+
+```sql
+SELECT 'ORDERS_TO_REDEF' as TABLENAME,      COUNT(*) FROM STUDY.ORDERS_TO_REDEF
+UNION ALL
+SELECT 'ORDERS_INTERIM_REDEF' as TABLENAME, COUNT(*) FROM STUDY.ORDERS_INTERIM_REDEF
+```
+
+```query-result
+TABLENAME               COUNT(*)
+----------------------- -------
+ORDERS_TO_REDEF         1000000
+ORDERS_INTERIM_REDEF    0
+```
+
+### I.Lab-16-Step-4: SCENARIO 15 - Start Redefinition
+
+* This starts the redefinition process and begins copying data into the partitioned table.
+
+```sql
+BEGIN
+   DBMS_REDEFINITION.START_REDEF_TABLE(
+      uname          => 'STUDY',
+      orig_table     => 'ORDERS_TO_REDEF',
+      int_table      => 'ORDERS_INTERIM_REDEF',
+      col_mapping    => NULL,
+      options_flag   => DBMS_REDEFINITION.CONS_USE_ROWID);
+END;
+/
+```
+
+
+### I.Lab-16-Step-5: SCENARIO 15 - Copy Dependent Objects
+
+* This step copies indexes, triggers, constraints, and privileges from the original table to the interim table.
+
+```sql
+DECLARE
+   l_num_errors PLS_INTEGER;
+BEGIN
+   DBMS_REDEFINITION.COPY_TABLE_DEPENDENTS(
+      uname                  => 'STUDY',
+      orig_table             => 'ORDERS_TO_REDEF',
+      int_table              => 'ORDERS_INTERIM_REDEF',
+      copy_indexes           => DBMS_REDEFINITION.CONS_ORIG_PARAMS,
+      copy_triggers          => TRUE,
+      copy_constraints       => TRUE,
+      copy_privileges        => TRUE,
+      ignore_errors          => FALSE,
+      num_errors             => l_num_errors);
+      
+   DBMS_OUTPUT.PUT_LINE('Number of errors = ' || l_num_errors);
+END;
+/
+```
+
+### I.Lab-16-Step-6: SCENARIO 15 - Synchronize Table
+
+* This step syncs any new or updated rows that were modified in the original table 
+
+```sql
+BEGIN
+   DBMS_REDEFINITION.SYNC_INTERIM_TABLE(
+      uname          => 'STUDY',
+      orig_table     => 'ORDERS_TO_REDEF',
+      int_table      => 'ORDERS_INTERIM_REDEF');
+END;
+/
+```
+
+
+### I.Lab-16-Step-7: SCENARIO 15 - Finish Redefinition
+
+* This finalizes the redefinition by swapping the original and interim table metadata.
+
+
+```sql
+BEGIN
+  DBMS_REDEFINITION.FINISH_REDEF_TABLE(
+    uname      => 'STUDY',
+    orig_table => 'ORDERS_TO_REDEF',
+    int_table  => 'ORDERS_INTERIM_REDEF'
+  );
+END;
+/
+```
+
+* Collect statistics
+
+```sql
+-- Collect Statistics
+
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS_INTERIM_REDEF');
+```
+
+* Drop original duplicated table
+
+```sql
+-- Drop original table
+
+```
+
+
+### I.Lab-16-Step-8: Analysis and Conclusions
+
+* **Benefits**
+  * **Availability**: The original table remains available throughout the entire process
+  * **Performance**: Partitioning by date significantly improves queries that filter by ORDER_DT
+  * **Data Management**: Facilitates maintenance operations such as archiving and pruning old data
+  * **Parallelism**: Queries can be executed in parallel by partition
+
+
+---
+
 
 
 ## II. Performance Tuning CheatSheet

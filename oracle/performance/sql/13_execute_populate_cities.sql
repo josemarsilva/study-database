@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : 13_execute_load_cities.sql
+-- filename   : 13_execute_populate_cities.sql
 -- revision   : 2025-04-01 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------

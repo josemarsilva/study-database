@@ -1,12 +1,12 @@
 -- ----------------------------------------------------------------------------
--- filename   : 12_procedure_load_customers.sql
+-- filename   : 12_procedure_populate_customers.sql
 -- revision   : 2025-04-01 - josemarsilva
 -- description: 
 -- ----------------------------------------------------------------------------
 
-CREATE OR REPLACE PROCEDURE load_customers(p_count IN NUMBER)  IS
+CREATE OR REPLACE PROCEDURE populate_customers(p_count IN NUMBER)  IS
 BEGIN
-  DBMS_OUTPUT.PUT_LINE('>>> load_customers('|| p_count ||') >>>');
+  DBMS_OUTPUT.PUT_LINE('>>> populate_customers('|| p_count ||') >>>');
   --
   -- Step-1: customer_types
   --
@@ -136,7 +136,7 @@ BEGIN
   END LOOP;
   --
   COMMIT;
-  DBMS_OUTPUT.PUT_LINE('<<< load_customers() <<<');
+  DBMS_OUTPUT.PUT_LINE('<<< populate_customers() <<<');
 END;
 /
 

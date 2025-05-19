@@ -4328,10 +4328,10 @@ Predicate Information (identified by operation id):
 
 ```sql
 -- Drop
-DROP TABLE ORDERS_TO_REDEF CASCADE CONSTRAINTS;
+DROP TABLE ORDERS_ORIGINAL CASCADE CONSTRAINTS;
 
 -- Re-Create
-CREATE TABLE ORDERS_TO_REDEF
+CREATE TABLE ORDERS_ORIGINAL
 (
   ID NUMBER PRIMARY KEY NOT NULL, 
   ORDER_BRANCH NUMBER(3,0) NOT NULL, 
@@ -4348,13 +4348,13 @@ CREATE TABLE ORDERS_TO_REDEF
 
 -- Indexes
 
-CREATE UNIQUE INDEX AK_ORDERS_TO_REDEF             ON ORDERS_TO_REDEF (ORDER_BRANCH, ORDER_NUM) ;
-CREATE        INDEX IDX_ORDERS_TO_REDEF_CUSTOMERID ON ORDERS_TO_REDEF (CUSTOMER_ID);
+CREATE UNIQUE INDEX AK_ORDERS_ORIGINAL             ON ORDERS_ORIGINAL (ORDER_BRANCH, ORDER_NUM) ;
+CREATE        INDEX IDX_ORDERS_ORIGINAL_CUSTOMERID ON ORDERS_ORIGINAL (CUSTOMER_ID);
 
 -- Constraints
 
-ALTER TABLE ORDERS_TO_REDEF ADD CONSTRAINT AK_ORDERS_TO_REDEF           UNIQUE (ORDER_BRANCH, ORDER_NUM);
-ALTER TABLE ORDERS_TO_REDEF ADD CONSTRAINT FK_ORDERS_TO_REDEF_CUSTOMERS FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMERS (ID);
+ALTER TABLE ORDERS_ORIGINAL ADD CONSTRAINT AK_ORDERS_ORIGINAL           UNIQUE (ORDER_BRANCH, ORDER_NUM);
+ALTER TABLE ORDERS_ORIGINAL ADD CONSTRAINT FK_ORDERS_ORIGINAL_CUSTOMERS FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMERS (ID);
 ```
 
 * Populate Table to redefinitions and collect statistics
@@ -4362,7 +4362,7 @@ ALTER TABLE ORDERS_TO_REDEF ADD CONSTRAINT FK_ORDERS_TO_REDEF_CUSTOMERS FOREIGN 
 ```sql
 -- Populate
 
-INSERT /*+ APPEND */ INTO ORDERS_TO_REDEF 
+INSERT /*+ APPEND */ INTO ORDERS_ORIGINAL 
     ( id, order_branch, order_num, order_dt, order_mode, customer_id, order_status, order_total, sales_rep_id, promotion_id, obs )
 SELECT 
     id, order_branch, order_num, order_dt, order_mode, customer_id, order_status, order_total, sales_rep_id, promotion_id, obs
@@ -4371,7 +4371,7 @@ FROM ORDERS;
 
 -- Collect Statistics
 
-EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS_TO_REDEF');
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS_ORIGINAL');
 ```
 
 
@@ -4420,7 +4420,7 @@ PARTITION BY RANGE (ORDER_DT)
 BEGIN
    DBMS_REDEFINITION.CAN_REDEF_TABLE(
       uname          => 'STUDY',
-      tname          => 'ORDERS_TO_REDEF',
+      tname          => 'ORDERS_ORIGINAL',
       options_flag   => DBMS_REDEFINITION.CONS_USE_ROWID);
 END;
 /
@@ -4436,7 +4436,7 @@ Empty - No ERRORS Expected!
 BEGIN
    DBMS_REDEFINITION.ABORT_REDEF_TABLE(
       uname      => 'STUDY',
-      orig_table => 'ORDERS_TO_REDEF',
+      orig_table => 'ORDERS_ORIGINAL',
       int_table  => 'ORDERS_INTERIM_REDEF'
    );
 END;
@@ -4446,7 +4446,7 @@ END;
 * Check Original and Destination tables - before execution
 
 ```sql
-SELECT 'ORDERS_TO_REDEF' as TABLENAME,      COUNT(*) FROM STUDY.ORDERS_TO_REDEF
+SELECT 'ORDERS_ORIGINAL' as TABLENAME,      COUNT(*) FROM STUDY.ORDERS_ORIGINAL
 UNION ALL
 SELECT 'ORDERS_INTERIM_REDEF' as TABLENAME, COUNT(*) FROM STUDY.ORDERS_INTERIM_REDEF
 ```
@@ -4454,7 +4454,7 @@ SELECT 'ORDERS_INTERIM_REDEF' as TABLENAME, COUNT(*) FROM STUDY.ORDERS_INTERIM_R
 ```query-result
 TABLENAME               COUNT(*)
 ----------------------- -------
-ORDERS_TO_REDEF         1000000
+ORDERS_ORIGINAL         1000000
 ORDERS_INTERIM_REDEF    0
 ```
 
@@ -4466,7 +4466,7 @@ ORDERS_INTERIM_REDEF    0
 BEGIN
    DBMS_REDEFINITION.START_REDEF_TABLE(
       uname          => 'STUDY',
-      orig_table     => 'ORDERS_TO_REDEF',
+      orig_table     => 'ORDERS_ORIGINAL',
       int_table      => 'ORDERS_INTERIM_REDEF',
       col_mapping    => NULL,
       options_flag   => DBMS_REDEFINITION.CONS_USE_ROWID);
@@ -4485,7 +4485,7 @@ DECLARE
 BEGIN
    DBMS_REDEFINITION.COPY_TABLE_DEPENDENTS(
       uname                  => 'STUDY',
-      orig_table             => 'ORDERS_TO_REDEF',
+      orig_table             => 'ORDERS_ORIGINAL',
       int_table              => 'ORDERS_INTERIM_REDEF',
       copy_indexes           => DBMS_REDEFINITION.CONS_ORIG_PARAMS,
       copy_triggers          => TRUE,
@@ -4507,7 +4507,7 @@ END;
 BEGIN
    DBMS_REDEFINITION.SYNC_INTERIM_TABLE(
       uname          => 'STUDY',
-      orig_table     => 'ORDERS_TO_REDEF',
+      orig_table     => 'ORDERS_ORIGINAL',
       int_table      => 'ORDERS_INTERIM_REDEF');
 END;
 /
@@ -4523,11 +4523,41 @@ END;
 BEGIN
   DBMS_REDEFINITION.FINISH_REDEF_TABLE(
     uname      => 'STUDY',
-    orig_table => 'ORDERS_TO_REDEF',
+    orig_table => 'ORDERS_ORIGINAL',
     int_table  => 'ORDERS_INTERIM_REDEF'
   );
 END;
 /
+```
+
+* Get new original table structure - PARTITIONED
+
+```sql
+SELECT
+    partition_name,
+    partition_position,
+    high_value,
+    num_rows,
+    blocks,
+    last_analyzed
+FROM
+    user_tab_partitions
+WHERE
+    table_name = 'ORDERS_ORIGINAL'
+ORDER BY
+    partition_position;
+```
+
+```query-result
+PARTITION_NAME            PARTIT HIGH_VALUE, NUM_ROWS, BLOCKS, LAST_ANALYZED
+------------------------- ------ ------------------------------------------------------------------------------------------
+P_RANGE_ORDERS_2020       1      TO_DATE(' 2021-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'), , , ,
+P_RANGE_ORDERS_2021       2      TO_DATE(' 2022-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'), , , ,
+P_RANGE_ORDERS_2022       3      TO_DATE(' 2023-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'), , , ,
+P_RANGE_ORDERS_2023       4      TO_DATE(' 2024-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'), , , ,
+P_RANGE_ORDERS_2024       5      TO_DATE(' 2025-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'), , , ,
+P_RANGE_ORDERS_2025       6      TO_DATE(' 2026-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'), , , ,
+P_RANGE_ORDERS_DEFAULT    7      MAXVALUE
 ```
 
 * Collect statistics
@@ -4535,14 +4565,15 @@ END;
 ```sql
 -- Collect Statistics
 
-EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS_INTERIM_REDEF');
+EXEC DBMS_STATS.GATHER_TABLE_STATS('STUDY', 'ORDERS_ORIGINAL');
 ```
 
-* Drop original duplicated table
+
+* Drop INTERIM table
 
 ```sql
--- Drop original table
-
+-- Drop INTERIM table
+DROP TABLE ORDERS_INTERIM_REDEF;
 ```
 
 

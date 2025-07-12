@@ -1,11 +1,13 @@
 -- ----------------------------------------------------------------------------
--- filename   : gen_sqltune_report_sql_monitor.sql
+-- filename   : gen-sqltune-report-sql-monitor.sql
 -- description: Generate SQL MONITOR Tune Report
 --              1. Run your query to identify SQL_ID
 --              2. Identify your query
 --              3. Create tuning task
 --              4. Execute tuning task
 --              5. Get tuning recommendations
+--              * References:
+--                - https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_SQLTUNE.html
 -- revision   : 
 --              * 2025-05-08 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------

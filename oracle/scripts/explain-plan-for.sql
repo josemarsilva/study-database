@@ -1,6 +1,8 @@
 -- ----------------------------------------------------------------------------
--- filename   : explain_plan_for.sql
+-- filename   : explain-plan-for.sql
 -- description: Execution Plan and Statistics metrics
+--              * References:
+--                  - https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_XPLAN.html
 -- revision   : 
 --              * 2025-04-07 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------
@@ -13,6 +15,9 @@ SET AUTOT TRACE
 EXPLAIN PLAN FOR
   SELECT * FROM customers WHERE id = 100000;
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+--SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_AWR('sql_id', NULL, NULL, 'ADVANCED'));
+--SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR('sql_id', NULL, 'ADVANCED'));
+
 SET AUTOT OFF
 
 --

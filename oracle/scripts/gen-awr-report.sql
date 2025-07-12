@@ -1,6 +1,8 @@
 -- ----------------------------------------------------------------------------
--- filename   : gen_awr_report.sql
+-- filename   : gen-awr-report.sql
 -- description: Generate AWR Report (HTML)
+--              * References:
+--                - https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_WORKLOAD_REPOSITORY.html
 -- revision   : 
 --              * 2025-05-08 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------

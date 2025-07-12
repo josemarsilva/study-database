@@ -1,9 +1,11 @@
 -- ----------------------------------------------------------------------------
--- filename: cdb_vs_pdb.sql
--- purpose : Show and demonstrate differences between CDB - Container Database and PDB Pluggable Database
+-- filename: query-cdb-vs-pdb-con-name.sql
+-- description : Show and demonstrate differences between CDB - Container Database and PDB Pluggable Database
+--              * References:
+--          		- https://dbaparadise.com/2023/02/4-ways-of-connecting-to-a-pdb/
+--                  - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/dynamic-performance-views.html
+--                  - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/static-data-dictionary-views.html
 -- revision: 2024-02-15 19:30 - josemarsilva - 
--- remarks : 
---          * https://dbaparadise.com/2023/02/4-ways-of-connecting-to-a-pdb/
 -- ----------------------------------------------------------------------------
 
 --

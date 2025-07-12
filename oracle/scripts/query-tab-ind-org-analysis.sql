@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : query_tab_ind_org_analysis.sql
+-- filename   : query-tab-ind-org-analysis.sql
 -- description: Table and Indexes Organization Analysis
 --              1. Clustering Factor Analysis - Index Health Check
 --              2. Index vs Table Analysis

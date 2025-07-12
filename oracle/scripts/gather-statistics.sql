@@ -1,6 +1,8 @@
 -- ----------------------------------------------------------------------------
--- filename   : gather_statistics.sql
+-- filename   : gather-statistics.sql
 -- description: Gather Table, Columns and Indexes Statistics
+--              * References:
+--                - https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_STATS.html
 -- revision   : 
 --              * 2025-04-07 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------

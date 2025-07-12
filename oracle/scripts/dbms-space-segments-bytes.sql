@@ -1,6 +1,9 @@
 -- ----------------------------------------------------------------------------
--- filename   : dbms_space_segments_bytes
--- description: 
+-- filename   : dbms-space-segments-bytes.sql
+-- description: Database and object sizes
+--              * References:
+--                  - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/dynamic-performance-views.html
+--                  - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/static-data-dictionary-views.html
 -- revision   : 
 --              * 2025-04-10 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------

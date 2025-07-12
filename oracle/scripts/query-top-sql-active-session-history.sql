@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : query_top_sql_active_session_history.sql
+-- filename   : query-top-sql-active-session-history.sql
 -- description: Top SQL by Active Session History
 --              1. Active (v$session)
 --              2. Top SQL by Active Session History (v$active_session_history samples Breakdown)
@@ -10,6 +10,8 @@
 --                - dba_hist_active_session_history: last 60 min, 1 in 10 sec what are ACTIVE session doing
 --                - gv$session.last_call_et seconds executions
 --                - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SESSION.html
+--              * References:
+--                  - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-ACTIVE_SESSION_HISTORY.html
 -- revision   : 
 --              * 2025-05-13 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------

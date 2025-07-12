@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : query_io_bottlenecks_analysis.sql
+-- filename   : query-io-bottlenecks-analysis.sql
 -- description: I/O bottlenecks analysis
 --              1. I/O Bottleneck Analysis
 --              2. Helps find hot tables or indexes contributing to I/O waits.

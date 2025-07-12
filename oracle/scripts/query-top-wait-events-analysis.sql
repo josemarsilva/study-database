@@ -1,12 +1,13 @@
 -- ----------------------------------------------------------------------------
--- filename   : query_top_wait_events_analysis.sql
+-- filename   : query-top-wait-events-analysis.sql
 -- description: Top Wait Events Analysis - Help to identify dominant wait events (e.g., I/O, locks, latch contention).
 --              * Important:
 --                - v$session: information about what a session is doing any given time, status can be 'ACTIVE', 'INACTIVE'
 --                - v$active_session_history: every 1 sec interval history what are ACTIVE session doing
 --                - dba_hist_active_session_history: last 60 min, 1 in 10 sec what are ACTIVE session doing
---              References:
---              - https://www.youtube.com/watch?v=VdcHH2V1imo
+--              * References:
+--                  - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-ACTIVE_SESSION_HISTORY.html
+--                  - https://www.youtube.com/watch?v=VdcHH2V1imo
 -- revision   : 
 --              * 2025-05-12 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
 -- ----------------------------------------------------------------------------

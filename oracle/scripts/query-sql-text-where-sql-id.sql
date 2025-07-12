@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : query_sql_text_where_sql_id.sql
+-- filename   : query-sql-text-where-sql-id.sql
 -- description: Get SQL_TEXT from SQL_ID
 --              1. Using V$SQLAREA (Simplest for quick checks)
 --              2. Using V$SQLTEXT_WITH_NEWLINES (Maintains formatting)

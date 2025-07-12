@@ -1,5 +1,5 @@
 -- ----------------------------------------------------------------------------
--- filename   : query_tab_col_ind_statistics.sql
+-- filename   : query-tab-col-ind-statistics.sql
 -- description: Table Statistics, Columns Statistics, Indexes Statistics, Indexed Columns Statistics
 -- revision   : 
 --              * 2025-05-13 - josemarsilva - https://github.com/josemarsilva/study-database/blob/master/oracle/README.md
